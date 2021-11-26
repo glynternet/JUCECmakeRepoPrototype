@@ -42,7 +42,6 @@ add_subdirectory(Modules)
 if (${BUILD_JUCE_PROTOTYPE_EXAMPLES})
     #adding project folders:
     add_subdirectory(Apps)
-    add_subdirectory(Plugins)
 endif ()
 
 #optionally, we're also adding the unit tests:
