@@ -8,7 +8,15 @@ juce_generate_juce_header(${TargetName})
 target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainComponent.cpp
-        Source/MainWindow.cpp)
+        Source/MainWindow.cpp
+        Libs/BTrack/BTrack.cpp
+        Libs/BTrack/BTrack.h
+        Libs/BTrack/CircularBuffer.h
+        Libs/BTrack/OnsetDetectionFunction.cpp
+        Libs/BTrack/OnsetDetectionFunction.h)
+
+target_compile_options(${TargetName} PRIVATE
+        -DUSE_FFTW)
 
 target_compile_definitions(${TargetName} PRIVATE
         JUCE_WEB_BROWSER=0
@@ -21,4 +29,6 @@ target_link_libraries(${TargetName} PRIVATE
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_gui_basics
-        shared_processing_code)
+        shared_processing_code
+        fftw3
+        samplerate)

@@ -21,6 +21,7 @@ void MainComponent::resized()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
+    juce::Logger::writeToLog("Preparing to play: "+std::to_string(samplesPerBlockExpected)+" "+std::to_string(sampleRate));
     juce::ignoreUnused(samplesPerBlockExpected, sampleRate);
 }
 
