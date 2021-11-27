@@ -30,9 +30,9 @@ private:
     BTrack b { btrackHopSize, btrackFrameSize };
 
     double tempo = 0;
-    bool beatDetectionPaintRequired = false;
 
     juce::Label tempoLabel { "tempo label", "detecting..."} ;
+    bool paintBeatDetectionBright = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -24,13 +24,10 @@ void MainComponent::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     tempoLabel.setText(std::to_string(tempo), juce::dontSendNotification);
-    if (beatDetectionPaintRequired) {
-        beatDetectionPaintRequired = false;
-        if (tempoLabel.findColour(juce::Label::textColourId) == juce::Colours::lightgreen) {
-            tempoLabel.setColour (juce::Label::textColourId, juce::Colours::darkblue);
-        } else {
-            tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
-        }
+    if (paintBeatDetectionBright) {
+        tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
+    } else {
+        tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
     }
 }
 
@@ -77,11 +74,10 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 
     b.processAudioFrame(frameValues);
     if (b.beatDueInCurrentFrame()) {
-        juce::Logger::writeToLog("Beat due in current frame");
-        beatDetectionPaintRequired = true;
+        paintBeatDetectionBright = true;
+        juce::Timer::callAfterDelay(250, [this]{this->paintBeatDetectionBright = false;});
         tempo = b.getCurrentTempoEstimate();
-        juce::Logger::writeToLog("Tempo estimate: "+ std::to_string(b.getCurrentTempoEstimate()));
-        juce::Logger::writeToLog("Cumulative score: "+ std::to_string(b.getLatestCumulativeScoreValue()));
+        juce::Logger::writeToLog("Beat Tempo estimate: "+std::to_string(b.getCurrentTempoEstimate()));
     }
 
     bufferToFill.clearActiveBufferRegion();
