@@ -52,16 +52,13 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     const auto* channelData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
 
     // as prescribed in BTrack README: https://github.com/adamstark/BTrack
-//    double *frame;
     double frameValues[btrackFrameSize];
-//    frame = frameValues;
 
     for (auto i = 0; i < bufferToFill.numSamples; ++i) {
         frameValues[i] = channelData[i];
     }
 
     b.processAudioFrame(frameValues);
-//    b.processAudioFrame(frame);
     if (b.beatDueInCurrentFrame()) {
         juce::Logger::writeToLog("Beat due in current frame");
         juce::Logger::writeToLog("Beats: "+ std::to_string(++count));
@@ -71,21 +68,5 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 
     bufferToFill.clearActiveBufferRegion();
-//    juce::Logger::writeToLog("Cleared active buffer region");
-
-
-
-//    if (bufferToFill.buffer->getNumChannels() > 0)
-//    {
-//        const auto* channelData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
-//
-//        for (auto i = 0; i < bufferToFill.numSamples; ++i)
-//            pushNextSampleIntoFifo (channelData[i]);
-//
-//        bufferToFill.clearActiveBufferRegion();
-//    }
-
-//    noise.process(*bufferToFill.buffer);
 }
-
-} // namespace GuiApp
+}
