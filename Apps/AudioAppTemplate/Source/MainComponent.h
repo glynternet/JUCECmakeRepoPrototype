@@ -30,6 +30,7 @@ private:
 
     BTrack b { btrackHopSize, btrackFrameSize };
     int count = 0;
+    double tempo = 0;
     // hop size and frame size. For easiest maintenance we want
     // frame size to be a full buffer size from the audio settings
 //    b = BTrack(btrackHopSize, btrackFrameSize);
