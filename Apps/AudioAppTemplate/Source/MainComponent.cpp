@@ -17,11 +17,12 @@ MainComponent::~MainComponent()
 void MainComponent::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.drawFittedText(std::to_string(tempo), getLocalBounds().removeFromBottom(50), juce::Justification::horizontallyCentred, 1);
 }
 
 void MainComponent::resized()
 {
-    selector.setBounds(getLocalBounds());
+    selector.setBounds(getLocalBounds().withTrimmedBottom(50));
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -55,13 +56,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     double frameValues[btrackFrameSize];
 //    frame = frameValues;
 
-    float total = 0;
     for (auto i = 0; i < bufferToFill.numSamples; ++i) {
-        total += fabs(channelData[i]);
-//        frameValues[i] = 0;
         frameValues[i] = channelData[i];
-//        *(frameValues + i) = channelData[i];
-//        frame[i] = channelData[i];
     }
 
     b.processAudioFrame(frameValues);
@@ -69,6 +65,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     if (b.beatDueInCurrentFrame()) {
         juce::Logger::writeToLog("Beat due in current frame");
         juce::Logger::writeToLog("Beats: "+ std::to_string(++count));
+        tempo = b.getCurrentTempoEstimate();
         juce::Logger::writeToLog("Tempo estimate: "+ std::to_string(b.getCurrentTempoEstimate()));
         juce::Logger::writeToLog("Cumulative score: "+ std::to_string(b.getLatestCumulativeScoreValue()));
     }
