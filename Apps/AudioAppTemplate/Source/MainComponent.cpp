@@ -5,7 +5,13 @@ namespace AudioApp
 MainComponent::MainComponent()
 {
     setAudioChannels(2,0);
+
     addAndMakeVisible(selector);
+
+    tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
+    tempoLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(tempoLabel);
+
     setSize(600, 400);
 }
 
@@ -17,17 +23,21 @@ MainComponent::~MainComponent()
 void MainComponent::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-    std::string prefix;
+    tempoLabel.setText(std::to_string(tempo), juce::dontSendNotification);
     if (beatDetectionPaintRequired) {
         beatDetectionPaintRequired = false;
-        prefix = "wooop ";
+        if (tempoLabel.findColour(juce::Label::textColourId) == juce::Colours::lightgreen) {
+            tempoLabel.setColour (juce::Label::textColourId, juce::Colours::darkblue);
+        } else {
+            tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
+        }
     }
-    g.drawFittedText(prefix + std::to_string(tempo), getLocalBounds().removeFromBottom(50), juce::Justification::horizontallyCentred, 1);
 }
 
 void MainComponent::resized()
 {
     selector.setBounds(getLocalBounds().withTrimmedBottom(50));
+    tempoLabel.setBounds(getLocalBounds().removeFromBottom(50));
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
