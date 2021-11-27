@@ -23,7 +23,7 @@ MainComponent::~MainComponent()
 void MainComponent::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-    tempoLabel.setText(std::to_string(tempo), juce::dontSendNotification);
+    tempoLabel.setText(tempo, juce::dontSendNotification);
     if (paintBeatDetectionBright) {
         tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
     } else {
@@ -76,8 +76,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     if (b.beatDueInCurrentFrame()) {
         paintBeatDetectionBright = true;
         juce::Timer::callAfterDelay(250, [this]{this->paintBeatDetectionBright = false;});
-        tempo = b.getCurrentTempoEstimate();
-        juce::Logger::writeToLog("Beat Tempo estimate: "+std::to_string(b.getCurrentTempoEstimate()));
+        tempo = juce::String(b.getCurrentTempoEstimate());
     }
 
     bufferToFill.clearActiveBufferRegion();
