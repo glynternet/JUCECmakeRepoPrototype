@@ -13,7 +13,8 @@ target_sources(${TargetName} PRIVATE
         Libs/BTrack/BTrack.h
         Libs/BTrack/CircularBuffer.h
         Libs/BTrack/OnsetDetectionFunction.cpp
-        Libs/BTrack/OnsetDetectionFunction.h)
+        Libs/BTrack/OnsetDetectionFunction.h
+        )
 
 target_compile_options(${TargetName} PRIVATE
         -DUSE_FFTW)
