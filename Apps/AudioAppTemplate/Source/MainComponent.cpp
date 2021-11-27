@@ -17,7 +17,12 @@ MainComponent::~MainComponent()
 void MainComponent::paint(Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-    g.drawFittedText(std::to_string(tempo), getLocalBounds().removeFromBottom(50), juce::Justification::horizontallyCentred, 1);
+    std::string prefix;
+    if (beatDetectionPaintRequired) {
+        beatDetectionPaintRequired = false;
+        prefix = "wooop ";
+    }
+    g.drawFittedText(prefix + std::to_string(tempo), getLocalBounds().removeFromBottom(50), juce::Justification::horizontallyCentred, 1);
 }
 
 void MainComponent::resized()
@@ -27,8 +32,10 @@ void MainComponent::resized()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-    juce::Logger::writeToLog("Preparing to play: "+std::to_string(samplesPerBlockExpected)+" "+std::to_string(sampleRate));
-    juce::ignoreUnused(samplesPerBlockExpected, sampleRate);
+    btrackFrameSize = samplesPerBlockExpected;
+    btrackHopSize = samplesPerBlockExpected / 2;
+    b.updateHopAndFrameSize(btrackHopSize, btrackFrameSize);
+    juce::Logger::writeToLog("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize));
 }
 
 void MainComponent::releaseResources()
@@ -61,7 +68,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     b.processAudioFrame(frameValues);
     if (b.beatDueInCurrentFrame()) {
         juce::Logger::writeToLog("Beat due in current frame");
-        juce::Logger::writeToLog("Beats: "+ std::to_string(++count));
+        beatDetectionPaintRequired = true;
         tempo = b.getCurrentTempoEstimate();
         juce::Logger::writeToLog("Tempo estimate: "+ std::to_string(b.getCurrentTempoEstimate()));
         juce::Logger::writeToLog("Cumulative score: "+ std::to_string(b.getLatestCumulativeScoreValue()));

@@ -8,10 +8,6 @@ namespace AudioApp
 {
 class MainComponent : public juce::AudioAppComponent
 {
-
-    static const int btrackFrameSize = 512;
-    static const int btrackHopSize = 256;
-
 public:
     MainComponent();
     ~MainComponent();
@@ -28,12 +24,13 @@ private:
         deviceManager, 2, 2, 2, 2, false, false, true, false};
     WhiteNoise::Oscillator noise;
 
+    // these need to be set above where we initialise b
+    int btrackFrameSize = 512;
+    int btrackHopSize = 256;
     BTrack b { btrackHopSize, btrackFrameSize };
-    int count = 0;
+
     double tempo = 0;
-    // hop size and frame size. For easiest maintenance we want
-    // frame size to be a full buffer size from the audio settings
-//    b = BTrack(btrackHopSize, btrackFrameSize);
+    bool beatDetectionPaintRequired = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
