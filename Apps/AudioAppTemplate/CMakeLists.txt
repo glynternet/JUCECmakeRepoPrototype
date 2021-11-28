@@ -11,16 +11,17 @@ target_sources(${TargetName} PRIVATE
         Source/MainComponent.cpp
         Source/MainWindow.cpp
         Libs/BTrack/BTrack.cpp
-        Libs/BTrack/OnsetDetectionFunction.cpp
-        Libs/kissfft/kiss_fft.c)
+        Libs/BTrack/OnsetDetectionFunction.cpp)
 
+# These are directories where headers are found, "something.h".
+# Here we have to include the fftw and libsamplerate (which fftw depends on)
 target_include_directories(${TargetName} PRIVATE
         ../../../../dependencies/libsamplerate-0.2.2-win32/include
         ../../../../dependencies/fftw3.3.5-dll32
         )
 
 target_compile_options(${TargetName} PRIVATE
-        -DUSE_KISS_FFT)
+        -DUSE_FFTW)
 
 target_compile_definitions(${TargetName} PRIVATE
         JUCE_WEB_BROWSER=0
@@ -28,6 +29,7 @@ target_compile_definitions(${TargetName} PRIVATE
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:${TargetName},JUCE_PROJECT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:${TargetName},JUCE_VERSION>")
 
+# Windows: These are directories that include .lib files.
 target_link_directories(${TargetName} PRIVATE
         ../../../../dependencies/fftw3.3.5-dll32
         ../../../../dependencies/libsamplerate-0.2.2-win32/lib
@@ -39,6 +41,8 @@ target_link_libraries(${TargetName} PRIVATE
         juce::juce_recommended_warning_flags
         juce::juce_gui_basics
         shared_processing_code
-#        fftw3
+        # Libraries extra to the ones from the JUCE CMake template ones above.
+        # Windows: These are the required `.lib` files but `.lib` is omitted from the definitions below.
+        libfftw3-3
         samplerate
         )
