@@ -22,6 +22,8 @@
 #ifndef __BTRACK_H
 #define __BTRACK_H
 
+static const double sampleRate = 48000.0;
+
 #include "OnsetDetectionFunction.h"
 #include "CircularBuffer.h"
 #include <vector>
