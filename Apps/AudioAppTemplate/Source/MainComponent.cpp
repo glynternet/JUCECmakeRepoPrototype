@@ -110,25 +110,13 @@ void MainComponent::openButtonClicked()
     {
         message.setText("Open button clicked", juce::dontSendNotification);
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
-                                                            juce::File::getSpecialLocation(juce::File::userMusicDirectory),
-                                                            "*.wav; *.mp3");
+            juce::File::getSpecialLocation(juce::File::userMusicDirectory),
+            "*.wav; *.mp3");
 
-        int flags = juce::FileBrowserComponent::openMode
-                    | juce::FileBrowserComponent::canSelectFiles;
-
-        auto callback = [this] (const juce::FileChooser& fileChooser)
-        {
-            this->chooserClosed(fileChooser);
-        };
-
-        fileChooser_->launchAsync (flags, callback);
-
-//        chooserClosed(chooser);
-//        juce::FileChooser chooser("Choose a Wav or AIFF File", juce::File::getSpecialLocation(juce::File::userHomeDirectory), "*.wav; *.mp3");
-//
-//        chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] {
-//            this->chooserClosed(chooser);
-//        });
+        fileChooser_->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser &fileChooser) {
+                this->chooserClosed(fileChooser);
+            });
     }
 
     void MainComponent::chooserClosed(const juce::FileChooser& chooser){
@@ -205,5 +193,4 @@ void MainComponent::openButtonClicked()
             }
         }
     }
-
 }

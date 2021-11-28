@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommonHeader.h"
-#include "../Libs/Btrack/BTrack.h"
+#include "../Libs/BTrack/BTrack.h"
 #include <cmath>
 
 namespace AudioApp
@@ -21,7 +21,6 @@ public:
     void resized() override;
 
 private:
-//    juce::AudioDeviceManager otherDeviceManager;
     juce::AudioDeviceSelectorComponent selector {
         deviceManager, 2, 2, 2, 2, false, false, true, false};
     WhiteNoise::Oscillator noise;
