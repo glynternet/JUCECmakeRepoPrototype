@@ -5,25 +5,18 @@ set (TargetName ${PROJECT_NAME})
 juce_add_gui_app(${TargetName} PRODUCT_NAME "Audio App Template")
 juce_generate_juce_header(${TargetName})
 
-# I think this only needs to include the .cpp files
+# I think this only needs to be the .cpp files
 target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
-        Source/BTrack/BTrack.cpp
-#        Source/BTrack/BTrack.h
-#        Libs/BTrack/CircularBuffer.h
-        Source/BTrack/OnsetDetectionFunction.cpp
-        Source/kissfft/kiss_fft.c
-#        Libs/BTrack/OnsetDetectionFunction.h
-        )
+        Libs/BTrack/BTrack.cpp
+        Libs/BTrack/OnsetDetectionFunction.cpp
+        Libs/kissfft/kiss_fft.c)
 
 target_include_directories(${TargetName} PRIVATE
-#        Libs/BTrack
-#        Libs/kissfft
-        ../../../../dependencies/fftw3.3.5-dll32
         ../../../../dependencies/libsamplerate-0.2.2-win32/include
-        ../../../../dependencies/libsamplerate-0.2.2-win32
+        ../../../../dependencies/fftw3.3.5-dll32
         )
 
 target_compile_options(${TargetName} PRIVATE
