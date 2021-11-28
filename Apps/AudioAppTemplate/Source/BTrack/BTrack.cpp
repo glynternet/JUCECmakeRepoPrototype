@@ -380,7 +380,7 @@ void BTrack::resampleOnsetDetectionFunction()
 {
 	float output[512];
     
-    float input[onsetDFBufferSize];
+    std::vector<float> input(onsetDFBufferSize);
     
     for (int i = 0;i < onsetDFBufferSize;i++)
     {
@@ -395,7 +395,7 @@ void BTrack::resampleOnsetDetectionFunction()
     //output_len = (int) floor (((double) BUFFER_LEN) * src_ratio) ;
     output_len = 512;
     
-    src_data.data_in = input;
+    src_data.data_in = input.data();
     src_data.input_frames = BUFFER_LEN;
     
     src_data.src_ratio = src_ratio;
@@ -499,7 +499,7 @@ void BTrack::adaptiveThreshold (double* x, int N)
 {
 	int i = 0;
 	int k,t = 0;
-	double x_thresh[N];
+	std::vector<double> x_thresh(N);
 	
 	int p_post = 7;
 	int p_pre = 8;
@@ -707,7 +707,7 @@ void BTrack::updateCumulativeScore (double odfSample)
 	end = onsetDFBufferSize - round (beatPeriod / 2);
 	winsize = end-start+1;
 	
-	double w1[winsize];
+	std::vector<double> w1(winsize);
 	double v = -2*beatPeriod;
 	double wcumscore;
 	
@@ -741,8 +741,8 @@ void BTrack::updateCumulativeScore (double odfSample)
 void BTrack::predictBeat()
 {	 
 	int windowSize = (int) beatPeriod;
-	double futureCumulativeScore[onsetDFBufferSize + windowSize];
-	double w2[windowSize];
+	std::vector<double> futureCumulativeScore(onsetDFBufferSize + windowSize);
+	std::vector<double> w2(windowSize);
     
 	// copy cumscore to first part of fcumscore
 	for (int i = 0;i < onsetDFBufferSize;i++)
@@ -763,7 +763,7 @@ void BTrack::predictBeat()
 	int start = onsetDFBufferSize - round(2*beatPeriod);
 	int end = onsetDFBufferSize - round(beatPeriod/2);
 	int pastwinsize = end-start+1;
-	double w1[pastwinsize];
+	std::vector<double> w1(pastwinsize);
 
 	for (int i = 0;i < pastwinsize;i++)
 	{
