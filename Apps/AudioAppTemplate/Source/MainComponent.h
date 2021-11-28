@@ -62,7 +62,6 @@ private:
     int btrackHopSize = 256;
     BTrack b { btrackHopSize, btrackFrameSize };
 
-    juce::String tempo = "detecting...";
     int beats = 0;
     juce::Label tempoLabel;
 

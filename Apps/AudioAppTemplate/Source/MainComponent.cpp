@@ -71,6 +71,8 @@ void MainComponent::releaseResources()
 {
 }
 
+static const int fadeIncrements = 8;
+
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     // TODO(glynternet): some logic around handling file vs device input.
@@ -101,8 +103,21 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     b.processAudioFrame(frameValues.data());
     if (b.beatDueInCurrentFrame()) {
         tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-        juce::Timer::callAfterDelay(250, [this]{this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgrey);});
-        tempoLabel.setText(std::to_string(++beats) + " " + std::to_string( b.getCurrentTempoEstimate()), juce::dontSendNotification);
+        double tempo = b.getCurrentTempoEstimate();
+        auto secondsBerBeat = 60/tempo;
+
+        for (int i = 0; i < fadeIncrements; ++i) {
+            const double proportion = (float) i / float(fadeIncrements);
+            // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
+            // 1500 * seconds per beat to take 75% of the time between flashes to fade.
+            // * 1000 to convert seconds to milliseconds
+            // * 0.75 to convert to 75% of the time between "beats"
+            // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
+            juce::Timer::callAfterDelay((int)(1500. * secondsBerBeat * proportion), [this, proportion]{
+                this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion));
+            });
+        }
+        tempoLabel.setText(std::to_string(++beats) + " " + std::to_string(tempo), juce::dontSendNotification);
     }
 }
 
