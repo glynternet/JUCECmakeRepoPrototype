@@ -6,7 +6,8 @@
 
 namespace AudioApp
 {
-class MainComponent : public juce::AudioAppComponent
+class MainComponent : public juce::AudioAppComponent,
+                      public juce::ChangeListener
 {
 public:
     MainComponent();
@@ -20,18 +21,51 @@ public:
     void resized() override;
 
 private:
+//    juce::AudioDeviceManager otherDeviceManager;
     juce::AudioDeviceSelectorComponent selector {
         deviceManager, 2, 2, 2, 2, false, false, true, false};
     WhiteNoise::Oscillator noise;
 
+    juce::Label message;
+
+    // File play
+    enum TransportState
+    {
+        Stopped,
+        Starting,
+        Stopping,
+        Playing
+    };
+
+    TransportState state;
+
+    std::unique_ptr<juce::FileChooser> fileChooser_;
+
+    void openButtonClicked();
+    void chooserClosed(const juce::FileChooser& chooser);
+
+    void playButtonClicked();
+    void stopButtonClicked();
+    void transportStateChanged(TransportState newState);
+    void changeListenerCallback (juce::ChangeBroadcaster *source) override;
+
+    juce::TextButton openButton;
+    juce::TextButton playButton;
+    juce::TextButton stopButton;
+
+    juce::AudioFormatManager formatManager;
+    std::unique_ptr<juce::AudioFormatReaderSource> playSource;
+    juce::AudioTransportSource transport;
+
+    // Tempo detection
     // these need to be set above where we initialise b
     int btrackFrameSize = 512;
     int btrackHopSize = 256;
     BTrack b { btrackHopSize, btrackFrameSize };
 
     juce::String tempo = "detecting...";
+    int beats = 0;
     juce::Label tempoLabel;
-    bool paintBeatDetectionBright = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

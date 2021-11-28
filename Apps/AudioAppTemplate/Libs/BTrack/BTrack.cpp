@@ -97,7 +97,7 @@ void BTrack::initialise (int hopSize_, int frameSize_)
 	alpha = 0.9;
 	tempo = 120;
 	estimatedTempo = 120.0;
-	tempoToLagFactor = 60.*44100./512.;
+	tempoToLagFactor = 60.*sampleRate/512.;
 	
 	m0 = 10;
 	beatCounter = -1;
@@ -168,7 +168,7 @@ void BTrack::setHopSize (int hopSize_)
 	hopSize = hopSize_;
 	onsetDFBufferSize = (512*512)/hopSize;		// calculate df buffer size
 	
-	beatPeriod = round(60/((((double) hopSize)/44100)*tempo));
+	beatPeriod = round(60/((((double) hopSize)/sampleRate)*tempo));
 
     // set size of onset detection function buffer
     onsetDF.resize (onsetDFBufferSize);
@@ -304,7 +304,7 @@ void BTrack::setTempo (double tempo)
 	/////////// CUMULATIVE SCORE ARTIFICAL TEMPO UPDATE //////////////////
 	
 	// calculate new beat period
-	int new_bperiod = (int) round(60/((((double) hopSize)/44100)*tempo));
+	int new_bperiod = (int) round(60/((((double) hopSize)/sampleRate)*tempo));
 	
 	int bcounter = 1;
 	// initialise df_buffer to zeros
@@ -486,11 +486,11 @@ void BTrack::calculateTempo()
 		prevDelta[j] = delta[j];
 	}
 	
-	beatPeriod = round ((60.0*44100.0)/(((2*maxind)+80)*((double) hopSize)));
+	beatPeriod = round ((60.0 * sampleRate) / (((2 * maxind) + 80) * ((double) hopSize)));
 	
 	if (beatPeriod > 0)
 	{
-		estimatedTempo = 60.0/((((double) hopSize) / 44100.0) * beatPeriod);
+		estimatedTempo = 60.0/((((double) hopSize) / sampleRate) * beatPeriod);
 	}
 }
 
