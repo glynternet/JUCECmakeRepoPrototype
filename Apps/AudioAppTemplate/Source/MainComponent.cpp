@@ -37,7 +37,7 @@ void MainComponent::resized()
     tempoLabel.setBounds(getLocalBounds().removeFromBottom(50));
 }
 
-void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
+void MainComponent::prepareToPlay(int samplesPerBlockExpected, double)
 {
     btrackFrameSize = samplesPerBlockExpected;
     btrackHopSize = samplesPerBlockExpected / 2;
@@ -66,13 +66,15 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     const auto* channelData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
 
     // as prescribed in BTrack README: https://github.com/adamstark/BTrack
-    double frameValues[btrackFrameSize];
+    // TODO(glynternet): is there a float version of BTrack so that we can avoid this conversion of float to double and avoid creating a vector?
+    // TODO(glynternet): if the above todo is not possible, can we reuse this vector to avoid having to create a new one every audio block?
+    std::vector<double> frameValues(btrackFrameSize);
 
     for (auto i = 0; i < bufferToFill.numSamples; ++i) {
         frameValues[i] = channelData[i];
     }
 
-    b.processAudioFrame(frameValues);
+    b.processAudioFrame(frameValues.data());
     if (b.beatDueInCurrentFrame()) {
         paintBeatDetectionBright = true;
         juce::Timer::callAfterDelay(250, [this]{this->paintBeatDetectionBright = false;});

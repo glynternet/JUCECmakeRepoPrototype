@@ -16,6 +16,9 @@ target_sources(${TargetName} PRIVATE
         Libs/BTrack/OnsetDetectionFunction.h
         )
 
+target_include_directories(${TargetName} PRIVATE
+        ../../../../dependencies/fftw3.3.5-dll64)
+
 target_compile_options(${TargetName} PRIVATE
         -DUSE_FFTW)
 
