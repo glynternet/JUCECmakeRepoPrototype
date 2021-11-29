@@ -62,12 +62,15 @@ private:
     int btrackHopSize = 256;
     BTrack b { btrackHopSize, btrackFrameSize };
 
-    int beats = 0;
+    uint64_t beats = 0;
+    uint8_t beat = 0;
     juce::Label tempoLabel;
-    juce::int64 lastTime = 0;
-    double tempoEwma = 0;
+    juce::int64 lastTime = juce::Time::currentTimeMillis();
+    double diffEwma = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+
+    double ewma(double current, double nextValue, double alpha) const;
 };
 
 }
