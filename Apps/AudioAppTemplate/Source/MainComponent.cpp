@@ -129,15 +129,43 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         }
         auto current = juce::Time::currentTimeMillis();
         auto diff = current - lastTime;
+        diffEwma = ewma(diffEwma, (double)diff, 0.1);
         lastTime = current;
         double tempoFromManualCalculation = 120000. / (double) diff;
-        tempoEwma = 0.1 * tempoFromManualCalculation + 0.9 * tempoEwma;
-        tempoLabel.setText(std::to_string(++beats) + " " + std::to_string(tempo) + " " + std::to_string(diff) + " " + std::to_string(
-                tempoFromManualCalculation) + " " + std::to_string(tempoEwma), juce::dontSendNotification);
+        double tempoFromEWMA = 120000. / (double) diffEwma;
+        ++beats;
+        beat = ++beat%4;
+        const int multiplier = 16;
+        for (int i = 1; i < multiplier; ++i) {
+            // TODO: use a single timer here instead
+            juce::Timer::callAfterDelay((int)(diffEwma*(double)i/(double)multiplier), [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
+                beat = ++beat%4;
+                tempoLabel.setText(
+                        std::to_string(beats) + " " +
+                        std::to_string(beat) + " " +
+                        std::to_string(tempo) + " " +
+                        std::to_string(diffEwma) + " " +
+                        std::to_string(tempoFromManualCalculation) + " " +
+                        std::to_string(tempoFromEWMA),
+                        juce::dontSendNotification);
+            });
+        }
+
+
+        tempoLabel.setText(
+                std::to_string(beats) + " " +
+                std::to_string(beat) + " " +
+                std::to_string(tempo) + " " +
+                std::to_string(diffEwma) + " " +
+                std::to_string(tempoFromManualCalculation) + " " +
+                std::to_string(tempoFromEWMA),
+                juce::dontSendNotification);
     }
 }
 
-void MainComponent::openButtonClicked()
+    double MainComponent::ewma(double current, double nextValue, double alpha) const { return alpha * nextValue + (1 - alpha) * current; }
+
+    void MainComponent::openButtonClicked()
     {
         message.setText("Open button clicked", juce::dontSendNotification);
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
