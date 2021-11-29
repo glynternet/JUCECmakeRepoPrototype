@@ -91,14 +91,24 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         return;
     }
 
-    const auto* channelData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
+//    bufferToFill.buffer.mak
+    const auto* inputData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
+    auto* outputData = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
+
+
 
     // as prescribed in BTrack README: https://github.com/adamstark/BTrack
     // TODO(glynternet): is there a float version of BTrack so that we can avoid this conversion of float to double and avoid creating a vector?
     // TODO(glynternet): if the above todo is not possible, can we reuse this vector to avoid having to create a new one every audio block?
     std::vector<double> frameValues(btrackFrameSize);
 
-    for (auto i = 0; i < bufferToFill.numSamples; ++i) { frameValues[i] = channelData[i]; }
+    for (auto i = 0; i < bufferToFill.numSamples; ++i) {
+        frameValues[i] = inputData[i];
+
+        // TODO(glynternet): some logic around handling file vs device input.
+        //   If from file, the transport will have already written to the output portion of the buffer.
+        outputData[i] = inputData[i];
+    }
 
     b.processAudioFrame(frameValues.data());
     if (b.beatDueInCurrentFrame()) {
