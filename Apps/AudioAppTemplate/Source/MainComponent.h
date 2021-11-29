@@ -68,9 +68,10 @@ private:
     juce::int64 lastTime = juce::Time::currentTimeMillis();
     double diffEwma = 0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
-
+    void repeatFunc(int interval, int count, std::function<void()> call);
     double ewma(double current, double nextValue, double alpha) const;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 
 }

@@ -114,8 +114,13 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     if (b.beatDueInCurrentFrame()) {
         tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
         double tempo = b.getCurrentTempoEstimate();
-        auto secondsBerBeat = 60/tempo;
 
+        auto current = juce::Time::currentTimeMillis();
+        auto diff = current - lastTime;
+        diffEwma = ewma(diffEwma, (double)diff, 0.1);
+        lastTime = current;
+
+        // this might actually be better as a function that says "repeat X time in the next Y milliseconds"
         for (int i = 0; i < fadeIncrements; ++i) {
             const double proportion = (float) i / float(fadeIncrements);
             // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
@@ -123,34 +128,27 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
             // * 1000 to convert seconds to milliseconds
             // * 0.75 to convert to 75% of the time between "beats"
             // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
-            juce::Timer::callAfterDelay((int)(1500. * secondsBerBeat * proportion), [this, proportion]{
+            juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
                 this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion));
             });
         }
-        auto current = juce::Time::currentTimeMillis();
-        auto diff = current - lastTime;
-        diffEwma = ewma(diffEwma, (double)diff, 0.1);
-        lastTime = current;
+
         double tempoFromManualCalculation = 120000. / (double) diff;
         double tempoFromEWMA = 120000. / (double) diffEwma;
         ++beats;
         beat = ++beat%4;
         const int multiplier = 16;
-        for (int i = 1; i < multiplier; ++i) {
-            // TODO: use a single timer here instead
-            juce::Timer::callAfterDelay((int)(diffEwma*(double)i/(double)multiplier), [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
-                beat = ++beat%4;
-                tempoLabel.setText(
-                        std::to_string(beats) + " " +
-                        std::to_string(beat) + " " +
-                        std::to_string(tempo) + " " +
-                        std::to_string(diffEwma) + " " +
-                        std::to_string(tempoFromManualCalculation) + " " +
-                        std::to_string(tempoFromEWMA),
-                        juce::dontSendNotification);
-            });
-        }
-
+        repeatFunc((int)(diffEwma/(double)multiplier), multiplier-1, [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
+            beat = ++beat%4;
+            tempoLabel.setText(
+                    std::to_string(beats) + " " +
+                    std::to_string(beat) + " " +
+                    std::to_string(tempo) + " " +
+                    std::to_string(diffEwma) + " " +
+                    std::to_string(tempoFromManualCalculation) + " " +
+                    std::to_string(tempoFromEWMA),
+                    juce::dontSendNotification);
+        });
 
         tempoLabel.setText(
                 std::to_string(beats) + " " +
@@ -162,6 +160,13 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
                 juce::dontSendNotification);
     }
 }
+
+    void MainComponent::repeatFunc(int interval, int count, std::function<void()> call) {
+        // TODO: use a single timer here instead
+        for (int i = 0; i < count; ++i) {
+            juce::Timer::callAfterDelay((1+i)*interval, call);
+        }
+    }
 
     double MainComponent::ewma(double current, double nextValue, double alpha) const { return alpha * nextValue + (1 - alpha) * current; }
 
