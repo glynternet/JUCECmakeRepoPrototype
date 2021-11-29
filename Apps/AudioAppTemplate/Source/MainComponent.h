@@ -64,6 +64,8 @@ private:
 
     int beats = 0;
     juce::Label tempoLabel;
+    juce::int64 lastTime = 0;
+    double tempoEwma = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

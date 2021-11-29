@@ -127,7 +127,13 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
                 this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion));
             });
         }
-        tempoLabel.setText(std::to_string(++beats) + " " + std::to_string(tempo), juce::dontSendNotification);
+        auto current = juce::Time::currentTimeMillis();
+        auto diff = current - lastTime;
+        lastTime = current;
+        double tempoFromManualCalculation = 120000. / (double) diff;
+        tempoEwma = 0.1 * tempoFromManualCalculation + 0.9 * tempoEwma;
+        tempoLabel.setText(std::to_string(++beats) + " " + std::to_string(tempo) + " " + std::to_string(diff) + " " + std::to_string(
+                tempoFromManualCalculation) + " " + std::to_string(tempoEwma), juce::dontSendNotification);
     }
 }
 
