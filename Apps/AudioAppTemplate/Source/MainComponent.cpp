@@ -47,7 +47,7 @@ namespace AudioApp
 
     void MainComponent::resized()
     {
-        message.setText("resized", juce::dontSendNotification);
+        log("resized");
         selector.setBounds(getLocalBounds().withTrimmedBottom(50));
         const juce::Rectangle<int> &tempoRectangle = getLocalBounds().removeFromBottom(50);
         message.setBounds(tempoRectangle.translated(0, -tempoRectangle.getHeight()));
@@ -65,7 +65,7 @@ namespace AudioApp
         btrackFrameSize = samplesPerBlockExpected;
         btrackHopSize = samplesPerBlockExpected / 2;
         b.updateHopAndFrameSize(btrackHopSize, btrackFrameSize);
-        message.setText("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize), juce::dontSendNotification);
+        log("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize));
     }
 
     void MainComponent::releaseResources()
@@ -81,13 +81,13 @@ namespace AudioApp
 
 
         if (bufferToFill.numSamples != btrackFrameSize) {
-            message.setText("Num samples not equal to frame size: frameSize:" + std::to_string(btrackFrameSize) + " numSamples:" + std::to_string(bufferToFill.numSamples), juce::dontSendNotification);
+            log("Num samples not equal to frame size: frameSize:" + std::to_string(btrackFrameSize) + " numSamples:" + std::to_string(bufferToFill.numSamples));
             bufferToFill.clearActiveBufferRegion();
             return;
         }
 
         if (bufferToFill.buffer->getNumChannels() == 0) {
-            message.setText("No channels in buffer to fill", juce::dontSendNotification);
+            log("No channels in buffer to fill");
             bufferToFill.clearActiveBufferRegion();
             return;
         }
@@ -115,13 +115,13 @@ namespace AudioApp
         if (b.beatDueInCurrentFrame()) {
             if (senderConnected) {
                 try {
-                    message.setText("Message sent: " + std::to_string(sender.send("/hello")), juce::dontSendNotification);
+                    log("Message sent: " + std::to_string(sender.send("/hello")));
                 }
                 catch (const juce::OSCException& e) {
-                    message.setText("Error sending message: "+ e.description, juce::dontSendNotification);
+                    log("Error sending message: "+ e.description);
                 }
             } else {
-                message.setText("Sender not connected. Unable to send beat message.", juce::dontSendNotification);
+                log("Sender not connected. Unable to send beat message.");
             }
 
             tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
@@ -184,7 +184,7 @@ namespace AudioApp
 
     void MainComponent::openButtonClicked()
     {
-        message.setText("Open button clicked", juce::dontSendNotification);
+        log("Open button clicked");
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
             juce::File::getSpecialLocation(juce::File::userMusicDirectory),
             "*.wav; *.mp3");
@@ -198,7 +198,7 @@ namespace AudioApp
     void MainComponent::chooserClosed(const juce::FileChooser& chooser){
         juce::File file (chooser.getResult());
 
-        message.setText("chooserClosed", juce::dontSendNotification);
+        log("chooserClosed");
 
         juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
         if (reader != nullptr)
@@ -227,10 +227,10 @@ namespace AudioApp
     {
         senderConnected = sender.connect ("127.0.0.1", 9000);
         if (!senderConnected) {
-            message.setText("Error: could not connect to UDP port 9001.", juce::dontSendNotification);
+            log("Error: could not connect to UDP port 9001.");
             return;
         }
-        message.setText("Connected OSC sender.", juce::dontSendNotification);
+        log("Connected OSC sender.");
     }
 
     void MainComponent::transportStateChanged(TransportState newState)
@@ -277,5 +277,9 @@ namespace AudioApp
                 transportStateChanged(Stopped);
             }
         }
+    }
+
+    void MainComponent::log(const String& message) {
+        this->message.setText(message, juce::dontSendNotification);
     }
 }
