@@ -2,7 +2,7 @@
 
 namespace AudioApp
 {
-MainComponent::MainComponent(): state(Stopped), openButton("Open"), playButton("Play"), stopButton("Stop")
+MainComponent::MainComponent(): state(Stopped), openButton("Open"), playButton("Play"), stopButton("Stop"), connectOSCButton("Connect OSC")
 {
     setAudioChannels(2,2);
 
@@ -14,25 +14,25 @@ MainComponent::MainComponent(): state(Stopped), openButton("Open"), playButton("
     addAndMakeVisible(&openButton);
 
     playButton.onClick = [this] { playButtonClicked(); };
-    playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
     playButton.setEnabled(true);
     addAndMakeVisible(&playButton);
 
     stopButton.onClick = [this] { stopButtonClicked(); };
-    stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
     stopButton.setEnabled(false);
     addAndMakeVisible(&stopButton);
 
+    connectOSCButton.onClick = [this] { connectOSCSender(); };
+    addAndMakeVisible(&connectOSCButton);
+
     formatManager.registerBasicFormats();
     transport.addChangeListener(this);
-
-    setSize (400, 700);
 
     addAndMakeVisible(selector);
 
     tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
     tempoLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(tempoLabel);
+    setSize (400, 700);
 }
 
 MainComponent::~MainComponent()
@@ -55,6 +55,7 @@ void MainComponent::resized()
     openButton.setBounds(10, 310, getWidth() - 20, 30);
     playButton.setBounds(10, 350, getWidth() - 20, 30);
     stopButton.setBounds(10, 390, getWidth() - 20, 30);
+    connectOSCButton.setBounds(10, 430, getWidth() - 20, 30);
 }
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -112,6 +113,17 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
 
     b.processAudioFrame(frameValues.data());
     if (b.beatDueInCurrentFrame()) {
+        if (senderConnected) {
+            try {
+                message.setText("Message sent: " + std::to_string(sender.send("/hello")), juce::dontSendNotification);
+            }
+            catch (const juce::OSCException& e) {
+                message.setText("Error sending message: "+ e.description, juce::dontSendNotification);
+            }
+        } else {
+            message.setText("Sender not connected. Unable to send beat message.", juce::dontSendNotification);
+        }
+
         tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
         double tempo = b.getCurrentTempoEstimate();
 
@@ -187,9 +199,8 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         juce::File file (chooser.getResult());
 
         message.setText("chooserClosed", juce::dontSendNotification);
-        //read the file
-        juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
 
+        juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
         if (reader != nullptr)
         {
             //get the file ready to play
@@ -210,6 +221,16 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     void MainComponent::stopButtonClicked()
     {
         transportStateChanged(Stopping);
+    }
+
+    void MainComponent::connectOSCSender()
+    {
+        senderConnected = sender.connect ("127.0.0.1", 9000);
+        if (!senderConnected) {
+            message.setText("Error: could not connect to UDP port 9001.", juce::dontSendNotification);
+            return;
+        }
+        message.setText("Connected OSC sender.", juce::dontSendNotification);
     }
 
     void MainComponent::transportStateChanged(TransportState newState)

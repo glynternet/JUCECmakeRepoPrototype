@@ -40,6 +40,7 @@ target_link_libraries(${TargetName} PRIVATE
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_gui_basics
+        juce::juce_osc
         shared_processing_code
         # Libraries extra to the ones from the JUCE CMake template ones above.
         # Windows: These are the required `.lib` files but `.lib` is omitted from the definitions below.
