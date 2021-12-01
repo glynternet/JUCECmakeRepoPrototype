@@ -280,6 +280,17 @@ namespace AudioApp
     }
 
     void MainComponent::log(const String& message) {
-        this->message.setText(message, juce::dontSendNotification);
+        if (logMessages.size() > 10) {
+            logMessages.pop_back();
+        }
+        logMessages.insert(logMessages.begin(), message.toStdString());
+
+        const char* const delim = "\n";
+
+        std::ostringstream joined;
+        std::copy(logMessages.begin(), logMessages.end(),
+                  std::ostream_iterator<std::string>(joined, delim));
+
+        this->message.setText(joined.str(), juce::dontSendNotification);
     }
 }
