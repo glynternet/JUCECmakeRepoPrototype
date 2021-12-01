@@ -26,6 +26,7 @@ private:
     WhiteNoise::Oscillator noise;
 
     juce::Label message;
+    std::vector<std::string> logMessages;
     void log(const String &message);
 
     // File play
