@@ -7,7 +7,7 @@ namespace AudioApp
         setAudioChannels(2,2);
 
         message.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
-        message.setJustificationType(juce::Justification::centred);
+        message.setJustificationType(juce::Justification::topLeft);
         addAndMakeVisible(message);
 
         openButton.onClick = [this] {  openButtonClicked(); };
