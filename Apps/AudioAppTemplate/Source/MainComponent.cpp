@@ -6,9 +6,7 @@ namespace AudioApp
     {
         setAudioChannels(2,2);
 
-        message.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
-        message.setJustificationType(juce::Justification::topLeft);
-        addAndMakeVisible(message);
+        addAndMakeVisible(logger);
 
         openButton.onClick = [this] {  openButtonClicked(); };
         addAndMakeVisible(&openButton);
@@ -47,15 +45,17 @@ namespace AudioApp
 
     void MainComponent::resized()
     {
-        log("resized");
+        logger.log("resized: " + getLocalBounds().toString());
         selector.setBounds(getLocalBounds().withTrimmedBottom(50));
-        const juce::Rectangle<int> &tempoRectangle = getLocalBounds().removeFromBottom(50);
-        message.setBounds(tempoRectangle.translated(0, -tempoRectangle.getHeight()));
-        tempoLabel.setBounds(tempoRectangle);
-        openButton.setBounds(10, 310, getWidth() - 20, 30);
-        playButton.setBounds(10, 350, getWidth() - 20, 30);
-        stopButton.setBounds(10, 390, getWidth() - 20, 30);
-        connectOSCButton.setBounds(10, 430, getWidth() - 20, 30);
+        logger.setBounds(getLocalBounds()
+            .withTrimmedBottom(50)
+            .withTrimmedTop(420));
+        tempoLabel.setBounds(getLocalBounds().removeFromBottom(50));
+        int buttonWidth = (getWidth() - 40) / 3;
+        openButton.setBounds(10, 310, buttonWidth, 30);
+        playButton.setBounds(20 + buttonWidth, 310, buttonWidth, 30);
+        stopButton.setBounds(30 + 2 * buttonWidth, 310, buttonWidth, 30);
+        connectOSCButton.setBounds(10, 350, getWidth() - 20, 30);
     }
 
     void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -65,7 +65,7 @@ namespace AudioApp
         btrackFrameSize = samplesPerBlockExpected;
         btrackHopSize = samplesPerBlockExpected / 2;
         b.updateHopAndFrameSize(btrackHopSize, btrackFrameSize);
-        log("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize));
+        logger.log("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize));
     }
 
     void MainComponent::releaseResources()
@@ -81,13 +81,13 @@ namespace AudioApp
 
 
         if (bufferToFill.numSamples != btrackFrameSize) {
-            log("Num samples not equal to frame size: frameSize:" + std::to_string(btrackFrameSize) + " numSamples:" + std::to_string(bufferToFill.numSamples));
+            logger.log("Num samples not equal to frame size: frameSize:" + std::to_string(btrackFrameSize) + " numSamples:" + std::to_string(bufferToFill.numSamples));
             bufferToFill.clearActiveBufferRegion();
             return;
         }
 
         if (bufferToFill.buffer->getNumChannels() == 0) {
-            log("No channels in buffer to fill");
+            logger.log("No channels in buffer to fill");
             bufferToFill.clearActiveBufferRegion();
             return;
         }
@@ -115,13 +115,13 @@ namespace AudioApp
         if (b.beatDueInCurrentFrame()) {
             if (senderConnected) {
                 try {
-                    log("Message sent: " + std::to_string(sender.send("/hello")));
+                    logger.log("Message sent: " + std::to_string(sender.send("/hello")));
                 }
                 catch (const juce::OSCException& e) {
-                    log("Error sending message: "+ e.description);
+                    logger.log("Error sending message: "+ e.description);
                 }
             } else {
-                log("Sender not connected. Unable to send beat message.");
+                logger.log("Sender not connected. Unable to send beat message.");
             }
 
             tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
@@ -184,7 +184,7 @@ namespace AudioApp
 
     void MainComponent::openButtonClicked()
     {
-        log("Open button clicked");
+        logger.log("Open button clicked");
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
             juce::File::getSpecialLocation(juce::File::userMusicDirectory),
             "*.wav; *.mp3");
@@ -198,7 +198,7 @@ namespace AudioApp
     void MainComponent::chooserClosed(const juce::FileChooser& chooser){
         juce::File file (chooser.getResult());
 
-        log("chooserClosed");
+        logger.log("chooserClosed");
 
         juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
         if (reader != nullptr)
@@ -227,10 +227,10 @@ namespace AudioApp
     {
         senderConnected = sender.connect ("127.0.0.1", 9000);
         if (!senderConnected) {
-            log("Error: could not connect to UDP port 9001.");
+            logger.log("Error: could not connect to UDP port 9001.");
             return;
         }
-        log("Connected OSC sender.");
+        logger.log("Connected OSC sender.");
     }
 
     void MainComponent::transportStateChanged(TransportState newState)
@@ -277,20 +277,5 @@ namespace AudioApp
                 transportStateChanged(Stopped);
             }
         }
-    }
-
-    void MainComponent::log(const String& message) {
-        if (logMessages.size() > 10) {
-            logMessages.pop_back();
-        }
-        logMessages.insert(logMessages.begin(), message.toStdString());
-
-        const char* const delim = "\n";
-
-        std::ostringstream joined;
-        std::copy(logMessages.begin(), logMessages.end(),
-                  std::ostream_iterator<std::string>(joined, delim));
-
-        this->message.setText(joined.str(), juce::dontSendNotification);
     }
 }

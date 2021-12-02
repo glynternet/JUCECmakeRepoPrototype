@@ -3,6 +3,7 @@
 #include "CommonHeader.h"
 #include "../Libs/BTrack/BTrack.h"
 #include <cmath>
+#include "LogOutputComponent.h"
 
 namespace AudioApp
 {
@@ -25,9 +26,7 @@ private:
         deviceManager, 2, 2, 2, 2, false, false, true, false};
     WhiteNoise::Oscillator noise;
 
-    juce::Label message;
-    std::vector<std::string> logMessages;
-    void log(const String &message);
+    LogOutputComponent logger;
 
     // File play
     enum TransportState
