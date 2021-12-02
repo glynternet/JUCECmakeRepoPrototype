@@ -29,9 +29,9 @@ namespace AudioApp
 
         addAndMakeVisible(selector);
 
-        tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
-        tempoLabel.setJustificationType(juce::Justification::centred);
-        addAndMakeVisible(tempoLabel);
+        tempoAnalyser.onBeat = [this] { sendBeatMessage(); };
+        addAndMakeVisible(tempoAnalyser);
+
         setSize (400, 700);
     }
 
@@ -52,7 +52,7 @@ namespace AudioApp
         logger.setBounds(getLocalBounds()
             .withTrimmedBottom(50)
             .withTrimmedTop(420));
-        tempoLabel.setBounds(getLocalBounds().removeFromBottom(50));
+        tempoAnalyser.setBounds(getLocalBounds().removeFromBottom(50));
         int buttonWidth = (getWidth() - 40) / 3;
         openButton.setBounds(10, 310, buttonWidth, 30);
         playButton.setBounds(20 + buttonWidth, 310, buttonWidth, 30);
@@ -63,30 +63,17 @@ namespace AudioApp
     void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
     {
         transport.prepareToPlay(samplesPerBlockExpected, sampleRate);
-
-        btrackFrameSize = samplesPerBlockExpected;
-        btrackHopSize = samplesPerBlockExpected / 2;
-        b.updateHopAndFrameSize(btrackHopSize, btrackFrameSize);
-        logger.log("Updated BTrack to with new hopSize:"+std::to_string(btrackHopSize)+" and frameSize:"+std::to_string(btrackFrameSize));
+        tempoAnalyser.updateSamplePerBlockExpected(samplesPerBlockExpected);
     }
 
     void MainComponent::releaseResources()
     {
     }
 
-    static const int fadeIncrements = 8;
-
     void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
     {
         // TODO(glynternet): some logic around handling file vs device input.
         transport.getNextAudioBlock(bufferToFill);
-
-
-        if (bufferToFill.numSamples != btrackFrameSize) {
-            logger.log("Num samples not equal to frame size: frameSize:" + std::to_string(btrackFrameSize) + " numSamples:" + std::to_string(bufferToFill.numSamples));
-            bufferToFill.clearActiveBufferRegion();
-            return;
-        }
 
         if (bufferToFill.buffer->getNumChannels() == 0) {
             logger.log("No channels in buffer to fill");
@@ -94,16 +81,13 @@ namespace AudioApp
             return;
         }
 
-    //    bufferToFill.buffer.mak
         const auto* inputData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
         auto* outputData = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
-
-
 
         // as prescribed in BTrack README: https://github.com/adamstark/BTrack
         // TODO(glynternet): is there a float version of BTrack so that we can avoid this conversion of float to double and avoid creating a vector?
         // TODO(glynternet): if the above todo is not possible, can we reuse this vector to avoid having to create a new one every audio block?
-        std::vector<double> frameValues(btrackFrameSize);
+        std::vector<double> frameValues(bufferToFill.numSamples);
 
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
             frameValues[i] = inputData[i];
@@ -113,76 +97,21 @@ namespace AudioApp
             outputData[i] = inputData[i];
         }
 
-        b.processAudioFrame(frameValues.data());
-        if (b.beatDueInCurrentFrame()) {
-            if (senderConnected) {
-                try {
-                    logger.log("Message sent: " + std::to_string(sender.send("/hello")));
-                }
-                catch (const juce::OSCException& e) {
-                    logger.log("Error sending message: "+ e.description);
-                }
-            } else {
-                logger.log("Sender not connected. Unable to send beat message.");
-            }
-
-            tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-            double tempo = b.getCurrentTempoEstimate();
-
-            auto current = juce::Time::currentTimeMillis();
-            auto diff = current - lastTime;
-            diffEwma = ewma(diffEwma, (double)diff, 0.1);
-            lastTime = current;
-
-            // this might actually be better as a function that says "repeat X time in the next Y milliseconds@
-            for (int i = 0; i < fadeIncrements; ++i) {
-                const double proportion = (float) i / float(fadeIncrements);
-                // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
-                // 1500 * seconds per beat to take 75% of the time between flashes to fade.
-                // * 1000 to convert seconds to milliseconds
-                // * 0.75 to convert to 75% of the time between "beats"
-                // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
-                juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
-                    this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion));
-                });
-            }
-
-            double tempoFromManualCalculation = 120000. / (double) diff;
-            double tempoFromEWMA = 120000. / (double) diffEwma;
-            ++beats;
-            beat = ++beat%4;
-            const int multiplier = 16;
-            repeatFunc((int)(diffEwma/(double)multiplier), multiplier-1, [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
-                beat = ++beat%4;
-                tempoLabel.setText(
-                        std::to_string(beats) + " " +
-                        std::to_string(beat) + " " +
-                        std::to_string(tempo) + " " +
-                        std::to_string(diffEwma) + " " +
-                        std::to_string(tempoFromManualCalculation) + " " +
-                        std::to_string(tempoFromEWMA),
-                        juce::dontSendNotification);
-            });
-
-            tempoLabel.setText(
-                    std::to_string(beats) + " " +
-                    std::to_string(beat) + " " +
-                    std::to_string(tempo) + " " +
-                    std::to_string(diffEwma) + " " +
-                    std::to_string(tempoFromManualCalculation) + " " +
-                    std::to_string(tempoFromEWMA),
-                    juce::dontSendNotification);
-        }
+        tempoAnalyser.processAudioFrame(frameValues.data());
     }
 
-    void MainComponent::repeatFunc(int interval, int count, std::function<void()> call) {
-        // TODO: use a single timer here instead
-        for (int i = 0; i < count; ++i) {
-            juce::Timer::callAfterDelay((1+i)*interval, call);
+    void MainComponent::sendBeatMessage() {
+        if (senderConnected) {
+            try {
+                logger.log("Message sent: " + std::to_string(sender.send("/hello")));
+            }
+            catch (const juce::OSCException& e) {
+                logger.log("Error sending message: "+ e.description);
+            }
+        } else {
+            logger.log("Sender not connected. Unable to send beat message.");
         }
     }
-
-    double MainComponent::ewma(double current, double nextValue, double alpha) const { return alpha * nextValue + (1 - alpha) * current; }
 
     void MainComponent::openButtonClicked()
     {
