@@ -6,6 +6,8 @@ namespace AudioApp
     {
         setAudioChannels(2,2);
 
+        getLookAndFeel().setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
+
         addAndMakeVisible(logger);
 
         openButton.onClick = [this] {  openButtonClicked(); };
