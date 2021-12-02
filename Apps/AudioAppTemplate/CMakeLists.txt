@@ -10,6 +10,7 @@ target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
+        Source/LogOutputComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)
 
