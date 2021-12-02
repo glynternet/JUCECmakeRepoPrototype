@@ -11,6 +11,7 @@ target_sources(${TargetName} PRIVATE
         Source/MainComponent.cpp
         Source/MainWindow.cpp
         Source/LogOutputComponent.cpp
+        Source/TempoAnalyserComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)
 

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cmath>
 #include "CommonHeader.h"
 #include "../Libs/BTrack/BTrack.h"
-#include <cmath>
 #include "LogOutputComponent.h"
+#include "TempoAnalyserComponent.h"
 
 namespace AudioApp
 {
@@ -57,21 +58,9 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> playSource;
     juce::AudioTransportSource transport;
 
-    // Tempo detection
-    // these need to be set above where we initialise b
-    int btrackFrameSize = 512;
-    int btrackHopSize = 256;
-    BTrack b { btrackHopSize, btrackFrameSize };
+    void sendBeatMessage();
+    TempoAnalyserComponent tempoAnalyser;
 
-    uint64_t beats = 0;
-    uint8_t beat = 0;
-    juce::Label tempoLabel;
-    juce::int64 lastTime = juce::Time::currentTimeMillis();
-    double diffEwma = 0;
-
-    void repeatFunc(int interval, int count, std::function<void()> call);
-
-    double ewma(double current, double nextValue, double alpha) const;
     juce::TextButton connectOSCButton;
     // Probably worth taking a look at the AVVAOSCSender class from the legacy repo
     juce::OSCSender sender;
