@@ -15,7 +15,8 @@ namespace AudioApp
         void log(const String &message);
 
     private:
-        juce::Label message;
+        juce::Label label;
         std::vector<std::string> logMessages;
+        std::string content;
     };
 }
