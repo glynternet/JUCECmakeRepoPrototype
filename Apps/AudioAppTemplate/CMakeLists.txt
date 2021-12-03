@@ -22,6 +22,12 @@ target_include_directories(${TargetName} PRIVATE
         ../../../../dependencies/fftw3.3.5-dll32
         )
 
+# Windows: These are directories that include .lib files.
+target_link_directories(${TargetName} PRIVATE
+        ../../../../dependencies/libsamplerate-0.2.2-win32/lib
+        ../../../../dependencies/fftw3.3.5-dll32
+        )
+
 target_compile_options(${TargetName} PRIVATE
         -DUSE_FFTW)
 
@@ -30,12 +36,6 @@ target_compile_definitions(${TargetName} PRIVATE
         JUCE_USE_CURL=0
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:${TargetName},JUCE_PROJECT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:${TargetName},JUCE_VERSION>")
-
-# Windows: These are directories that include .lib files.
-target_link_directories(${TargetName} PRIVATE
-        ../../../../dependencies/fftw3.3.5-dll32
-        ../../../../dependencies/libsamplerate-0.2.2-win32/lib
-        )
 
 target_link_libraries(${TargetName} PRIVATE
         juce::juce_recommended_config_flags
@@ -46,6 +46,6 @@ target_link_libraries(${TargetName} PRIVATE
         shared_processing_code
         # Libraries extra to the ones from the JUCE CMake template ones above.
         # Windows: These are the required `.lib` files but `.lib` is omitted from the definitions below.
-        libfftw3-3
+        fftw3
         samplerate
         )
