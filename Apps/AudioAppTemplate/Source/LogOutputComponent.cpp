@@ -1,20 +1,22 @@
 #include "LogOutputComponent.h"
+#include <iterator>
 
 namespace AudioApp
 {
     LogOutputComponent::LogOutputComponent()
     {
-        message.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
-        message.setJustificationType(juce::Justification::topLeft);
-        addAndMakeVisible(message);
+        label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
+        label.setJustificationType(juce::Justification::topLeft);
+        addAndMakeVisible(label);
     }
 
     void LogOutputComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+        label.setText(content, juce::dontSendNotification);
     }
 
     void LogOutputComponent::resized() {
-        message.setBounds(getLocalBounds());
+        label.setBounds(getLocalBounds());
     }
 
     void LogOutputComponent::log(const String& message) {
@@ -29,6 +31,7 @@ namespace AudioApp
         std::copy(logMessages.begin(), logMessages.end(),
                   std::ostream_iterator<std::string>(joined, delim));
 
-        this->message.setText(joined.str(), juce::dontSendNotification);
+        content = joined.str();
+        repaint();
     }
 }

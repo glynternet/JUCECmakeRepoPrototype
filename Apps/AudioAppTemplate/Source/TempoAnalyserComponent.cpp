@@ -5,17 +5,19 @@ namespace AudioApp
     static const int fadeIncrements = 8;
 
     TempoAnalyserComponent::TempoAnalyserComponent() {
-        tempoLabel.setColour (juce::Label::textColourId, juce::Colours::lightgreen);
-        tempoLabel.setJustificationType(juce::Justification::centred);
-        addAndMakeVisible(tempoLabel);
+        label.setColour (juce::Label::textColourId, colour);
+        label.setJustificationType(juce::Justification::centred);
+        addAndMakeVisible(label);
     }
 
     void TempoAnalyserComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+        label.setColour (juce::Label::textColourId, colour);
+        label.setText(content, juce::dontSendNotification);
     }
 
     void TempoAnalyserComponent::resized() {
-        tempoLabel.setBounds(getLocalBounds());
+        label.setBounds(getLocalBounds());
     }
 
     void TempoAnalyserComponent::processAudioFrame (double* frame) {
@@ -33,7 +35,6 @@ namespace AudioApp
     }
 
     void TempoAnalyserComponent::beat() {
-        tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white);
         auto tempo = btrack.getCurrentTempoEstimate();
         auto current = juce::Time::currentTimeMillis();
         auto diff = current - lastTime;
@@ -41,6 +42,7 @@ namespace AudioApp
         lastTime = current;
 
         // this might actually be better as a function that says "repeat X time in the next Y milliseconds@
+        colour = juce::Colours::white;
         for (int i = 0; i < fadeIncrements; ++i) {
             const double proportion = (float) i / float(fadeIncrements);
             // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
@@ -49,7 +51,8 @@ namespace AudioApp
             // * 0.75 to convert to 75% of the time between "beats"
             // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
             juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
-                this->tempoLabel.setColour (juce::Label::textColourId, juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion));
+                colour = juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion);
+                repaint();
             });
         }
 
@@ -60,24 +63,22 @@ namespace AudioApp
         const int multiplier = 16;
         repeatFunc((int)(diffEwma/(double)multiplier), multiplier-1, [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
             currentBeat = ++currentBeat%4;
-            tempoLabel.setText(
-                    std::to_string(beats) + " " +
-                    std::to_string(currentBeat) + " " +
-                    std::to_string(tempo) + " " +
-                    std::to_string(diffEwma) + " " +
-                    std::to_string(tempoFromManualCalculation) + " " +
-                    std::to_string(tempoFromEWMA),
-                    juce::dontSendNotification);
-        });
-
-        tempoLabel.setText(
-                std::to_string(beats) + " " +
+            content = std::to_string(beats) + " " +
                 std::to_string(currentBeat) + " " +
                 std::to_string(tempo) + " " +
                 std::to_string(diffEwma) + " " +
                 std::to_string(tempoFromManualCalculation) + " " +
-                std::to_string(tempoFromEWMA),
-                juce::dontSendNotification);
+                std::to_string(tempoFromEWMA);
+            repaint();
+        });
+
+        content = std::to_string(beats) + " " +
+                  std::to_string(currentBeat) + " " +
+                  std::to_string(tempo) + " " +
+                  std::to_string(diffEwma) + " " +
+                  std::to_string(tempoFromManualCalculation) + " " +
+                  std::to_string(tempoFromEWMA);
+        repaint();
     }
 
     void TempoAnalyserComponent::repeatFunc(int interval, int count, const std::function<void()>& call) {
