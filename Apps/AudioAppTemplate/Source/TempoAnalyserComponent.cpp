@@ -8,6 +8,7 @@ namespace AudioApp
         label.setColour (juce::Label::textColourId, colour);
         label.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(label);
+        startTimerHz(30);
     }
 
     void TempoAnalyserComponent::paint(Graphics& g) {
@@ -18,6 +19,12 @@ namespace AudioApp
 
     void TempoAnalyserComponent::resized() {
         label.setBounds(getLocalBounds());
+    }
+
+    void TempoAnalyserComponent::timerCallback() {
+        if (dirty.exchange(false)) {
+            repaint();
+        }
     }
 
     void TempoAnalyserComponent::processAudioFrame (double* frame) {
@@ -52,6 +59,7 @@ namespace AudioApp
             // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
             juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
                 colour = juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion);
+                dirty = true;
             });
         }
 
@@ -68,6 +76,7 @@ namespace AudioApp
                 std::to_string(diffEwma) + " " +
                 std::to_string(tempoFromManualCalculation) + " " +
                 std::to_string(tempoFromEWMA);
+            dirty = true;
         });
 
         content = std::to_string(beats) + " " +
@@ -76,6 +85,7 @@ namespace AudioApp
                   std::to_string(diffEwma) + " " +
                   std::to_string(tempoFromManualCalculation) + " " +
                   std::to_string(tempoFromEWMA);
+        dirty = true;
     }
 
     void TempoAnalyserComponent::repeatFunc(int interval, int count, const std::function<void()>& call) {

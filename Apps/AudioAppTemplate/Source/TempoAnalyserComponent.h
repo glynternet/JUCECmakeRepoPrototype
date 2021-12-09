@@ -6,13 +6,15 @@
 
 namespace AudioApp
 {
-    class TempoAnalyserComponent : public juce::Component
+    class TempoAnalyserComponent : public juce::Component, juce::Timer
     {
     public:
         TempoAnalyserComponent();
 
         void paint(Graphics& g) override;
         void resized() override;
+        void timerCallback() override;
+
         void processAudioFrame(double *frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
 
@@ -34,6 +36,7 @@ namespace AudioApp
         juce::Label label;
         Colour colour = juce::Colours::lightgreen;
         std::string content;
+        std::atomic<bool> dirty;
 
         static void repeatFunc(int interval, int count, const std::function<void()>& call);
         static double ewma(double current, double nextValue, double alpha);
