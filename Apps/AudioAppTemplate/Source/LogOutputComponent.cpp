@@ -8,6 +8,13 @@ namespace AudioApp
         label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         label.setJustificationType(juce::Justification::topLeft);
         addAndMakeVisible(label);
+        startTimerHz(30);
+    }
+
+    void LogOutputComponent::timerCallback() {
+        if (dirty.exchange(false)) {
+            repaint();
+        }
     }
 
     void LogOutputComponent::paint(Graphics& g) {
@@ -32,6 +39,6 @@ namespace AudioApp
                   std::ostream_iterator<std::string>(joined, delim));
 
         content = joined.str();
-        repaint();
+        dirty = true;
     }
 }
