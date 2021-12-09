@@ -52,7 +52,6 @@ namespace AudioApp
             // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
             juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
                 colour = juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion);
-                repaint();
             });
         }
 
@@ -69,7 +68,6 @@ namespace AudioApp
                 std::to_string(diffEwma) + " " +
                 std::to_string(tempoFromManualCalculation) + " " +
                 std::to_string(tempoFromEWMA);
-            repaint();
         });
 
         content = std::to_string(beats) + " " +
@@ -78,7 +76,6 @@ namespace AudioApp
                   std::to_string(diffEwma) + " " +
                   std::to_string(tempoFromManualCalculation) + " " +
                   std::to_string(tempoFromEWMA);
-        repaint();
     }
 
     void TempoAnalyserComponent::repeatFunc(int interval, int count, const std::function<void()>& call) {
