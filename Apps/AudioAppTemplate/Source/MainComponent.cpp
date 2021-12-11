@@ -2,7 +2,7 @@
 
 namespace AudioApp
 {
-    MainComponent::MainComponent(): connectOSCButton("Connect OSC")
+    MainComponent::MainComponent()
     {
         setAudioChannels(2,2);
 
@@ -10,11 +10,9 @@ namespace AudioApp
 
         addAndMakeVisible(logger);
         addAndMakeVisible(audioSource);
+        addAndMakeVisible(oscComponent);
 
-        connectOSCButton.onClick = [this] { connectOSCSender(); };
-        addAndMakeVisible(&connectOSCButton);
-
-        tempoAnalyser.onBeat = [this] { sendBeatMessage(); };
+        tempoAnalyser.onBeat = [this] { oscComponent.sendBeatMessage(); };
         addAndMakeVisible(tempoAnalyser);
 
         setSize (400, 700);
@@ -38,7 +36,7 @@ namespace AudioApp
             .withTrimmedBottom(50)
             .withTrimmedTop(420));
         tempoAnalyser.setBounds(getLocalBounds().removeFromBottom(50));
-        connectOSCButton.setBounds(10, getHeight() - 90, getWidth() - 20, 30);
+        oscComponent.setBounds(getLocalBounds().removeFromBottom(50).translated(0, -50));
     }
 
     void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
@@ -47,36 +45,11 @@ namespace AudioApp
         tempoAnalyser.updateSamplePerBlockExpected(samplesPerBlockExpected);
     }
 
-    void MainComponent::releaseResources()
-    {
-    }
+    void MainComponent::releaseResources() {}
 
     void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
     {
         audioSource.getNextAudioBlock(bufferToFill);
         tempoAnalyser.processAudioFrame(audioSource.getFrameValues());
-    }
-
-    void MainComponent::sendBeatMessage() {
-        if (senderConnected) {
-            try {
-                logger.log("Message sent: " + std::to_string(sender.send("/hello")));
-            }
-            catch (const juce::OSCException& e) {
-                logger.log("Error sending message: "+ e.description);
-            }
-        } else {
-            logger.log("Sender not connected. Unable to send beat message.");
-        }
-    }
-
-    void MainComponent::connectOSCSender()
-    {
-        senderConnected = sender.connect ("127.0.0.1", 9000);
-        if (!senderConnected) {
-            logger.log("Error: could not connect to UDP port 9001.");
-            return;
-        }
-        logger.log("Connected OSC sender.");
     }
 }

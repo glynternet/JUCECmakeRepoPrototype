@@ -45,7 +45,7 @@ namespace AudioApp
         auto tempo = btrack.getCurrentTempoEstimate();
         auto current = juce::Time::currentTimeMillis();
         auto diff = current - lastTime;
-        diffEwma = ewma(diffEwma, (double)diff, 0.1);
+        diffEwma = ewma(diffEwma, (double)diff, 0.5);
         lastTime = current;
 
         // this might actually be better as a function that says "repeat X time in the next Y milliseconds@
