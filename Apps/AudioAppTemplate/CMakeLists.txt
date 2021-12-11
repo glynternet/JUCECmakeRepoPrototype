@@ -12,6 +12,7 @@ target_sources(${TargetName} PRIVATE
         Source/MainWindow.cpp
         Source/AudioSourceComponent.cpp
         Source/LogOutputComponent.cpp
+        Source/OSCComponent.cpp
         Source/TempoAnalyserComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)

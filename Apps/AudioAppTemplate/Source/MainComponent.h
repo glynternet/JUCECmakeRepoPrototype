@@ -4,6 +4,7 @@
 #include "CommonHeader.h"
 #include "AudioSourceComponent.h"
 #include "LogOutputComponent.h"
+#include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 
 namespace AudioApp
@@ -25,16 +26,7 @@ private:
     LogOutputComponent logger;
     AudioSourceComponent audioSource { deviceManager, logger };
     TempoAnalyserComponent tempoAnalyser;
-
-    void connectOSCSender();
-    void sendBeatMessage();
-
-    juce::TextButton connectOSCButton;
-    // Probably worth taking a look at the AVVAOSCSender class from the legacy repo
-    juce::OSCSender sender;
-
-    bool senderConnected = false;
-
+    OSCComponent oscComponent { logger };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 }
