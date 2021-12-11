@@ -1,11 +1,12 @@
 #pragma once
 
 #include "CommonHeader.h"
+#include "Logger.h"
 #include <cmath>
 
 namespace AudioApp
 {
-    class LogOutputComponent : public juce::Component, juce::Timer
+    class LogOutputComponent : public juce::Component, juce::Timer, public Logger
     {
     public:
         LogOutputComponent();
