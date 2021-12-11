@@ -5,6 +5,7 @@ namespace AudioApp
 {
     LogOutputComponent::LogOutputComponent()
     {
+        // TODO: set to monospace font
         label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         label.setJustificationType(juce::Justification::topLeft);
         addAndMakeVisible(label);
@@ -26,11 +27,19 @@ namespace AudioApp
         label.setBounds(getLocalBounds());
     }
 
-    void LogOutputComponent::log(const String& message) {
+    void LogOutputComponent::info(const String& message) {
+        log(leveledMessage{"INFO ", message.toStdString() });
+    }
+
+    void LogOutputComponent::error(const String& message) {
+        log(leveledMessage{"ERROR", message.toStdString() });
+    }
+
+    void LogOutputComponent::log(leveledMessage message) {
         if (logMessages.size() > 10) {
             logMessages.pop_back();
         }
-        logMessages.insert(logMessages.begin(),  message.toStdString());
+        logMessages.insert(logMessages.begin(),  message.level + ": " + message.message);
 
         const char* const delim = "\n";
 

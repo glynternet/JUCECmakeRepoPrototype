@@ -31,22 +31,26 @@ namespace AudioApp {
     void OSCComponent::sendBeatMessage() {
         if (senderConnected) {
             try {
-                logger.log("Message send " + (String)(sender.send("/hello") ? "success" : "error"));
+                if (sender.send("/hello")) {
+                    logger.info("Message sent");
+                } else {
+                    logger.error("Error sending message");
+                }
             }
             catch (const juce::OSCException& e) {
-                logger.log("Error sending message: "+ e.description);
+                logger.error("Error sending message: "+ e.description);
             }
         } else {
-            logger.log("Sender not connected. Unable to send beat message.");
+            logger.info("Sender not connected. Unable to send beat message.");
         }
     }
 
     void OSCComponent::connectOSCSender(const String& address) {
         senderConnected = sender.connect (address, 9000);
         if (!senderConnected) {
-            logger.log("Error: could not connect to UDP port 9001.");
+            logger.error("Error: could not connect to UDP port 9001.");
             return;
         }
-        logger.log("Connected OSC sender to "+address);
+        logger.info("Connected OSC sender to "+address);
     }
 }

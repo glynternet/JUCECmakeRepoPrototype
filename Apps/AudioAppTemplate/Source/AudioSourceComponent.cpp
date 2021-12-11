@@ -37,7 +37,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::changeListenerCallback (juce::ChangeBroadcaster *source)
     {
-        logger.log("Change listened callback triggered");
+        logger.info("Change listened callback triggered");
         if (source == &transport)
         {
             if (transport.isPlaying())
@@ -52,7 +52,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     }
 
     void AudioSourceComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
-        logger.log("Preparing to play");
+        logger.info("Preparing to play");
         transport.prepareToPlay(samplesPerBlockExpected, sampleRate);
     }
 
@@ -66,7 +66,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         transport.getNextAudioBlock(bufferToFill);
 
         if (bufferToFill.buffer->getNumChannels() == 0) {
-            logger.log("No channels in buffer to fill");
+            logger.error("No channels in buffer to fill");
             bufferToFill.clearActiveBufferRegion();
             return;
         }
@@ -96,7 +96,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::openButtonClicked()
     {
-        logger.log("Open button clicked");
+        logger.info("Open button clicked");
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
                                                            juce::File::getSpecialLocation(juce::File::userMusicDirectory),
                                                            // TODO: MP3 doesn't seem to work on z30-a linux.
@@ -112,7 +112,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     void AudioSourceComponent::chooserClosed(const juce::FileChooser& chooser){
         juce::File file (chooser.getResult());
 
-        logger.log("chooserClosed");
+        logger.info("File chooser closed");
 
         juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
         if (reader != nullptr)
@@ -125,18 +125,18 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
             playSource.reset(tempSource.release());
         }
-        logger.log("Reaader prepated");
+        logger.info("Reaader prepated");
     }
 
     void AudioSourceComponent::playButtonClicked()
     {
-        logger.log("Play button clicked");
+        logger.info("Play button clicked");
         transportStateChanged(Starting);
     }
 
     void AudioSourceComponent::stopButtonClicked()
     {
-        logger.log("Stop button clicked");
+        logger.info("Stop button clicked");
         transportStateChanged(Stopping);
     }
 
