@@ -30,7 +30,7 @@ namespace AudioApp
 
     void MainComponent::resized()
     {
-        logger.log("resized: " + getLocalBounds().toString());
+        logger.info("resized: " + getLocalBounds().toString());
         audioSource.setBounds(getLocalBounds().removeFromTop(420));
         logger.setBounds(getLocalBounds()
             .withTrimmedBottom(50)
