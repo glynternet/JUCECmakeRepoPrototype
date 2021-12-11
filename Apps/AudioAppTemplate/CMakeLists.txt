@@ -10,6 +10,7 @@ target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
+        Source/AudioSourceComponent.cpp
         Source/LogOutputComponent.cpp
         Source/TempoAnalyserComponent.cpp
         Libs/BTrack/BTrack.cpp
