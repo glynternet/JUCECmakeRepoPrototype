@@ -5,7 +5,7 @@
 #include "OSCComponent.h"
 
 namespace AudioApp {
-    OSCComponent::OSCComponent(Logger& logger): logger(logger), targetAddress("targetAddress", "localhost"), connectOSCButton("Connect OSC") {
+    OSCComponent::OSCComponent(Logger& logger): logger(logger), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
         targetAddress.setJustificationType(juce::Justification::centred);
         targetAddress.setEditable(true, false, true);
         targetAddress.onEditorShow = [this]{
