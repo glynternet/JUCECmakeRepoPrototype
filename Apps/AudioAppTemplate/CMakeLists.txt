@@ -48,6 +48,7 @@ target_link_libraries(${TargetName} PRIVATE
         shared_processing_code
         # Libraries extra to the ones from the JUCE CMake template ones above.
         # Windows: These are the required `.lib` files but `.lib` is omitted from the definitions below.
+        #          The built artifact of fftw3 is actually libfftw3-3.lib and needs to be renamed to fftw3.lib
         fftw3
         samplerate
         )
