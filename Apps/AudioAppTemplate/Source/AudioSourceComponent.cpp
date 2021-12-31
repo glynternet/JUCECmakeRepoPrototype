@@ -22,8 +22,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         addAndMakeVisible(selector);
     }
 
-    void AudioSourceComponent::paint(Graphics& g) {
-    }
+    void AudioSourceComponent::paint(Graphics&) {}
 
     void AudioSourceComponent::resized() {
         auto selectorBounds = getLocalBounds().withTrimmedBottom(50);
