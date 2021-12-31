@@ -31,7 +31,8 @@ namespace AudioApp {
     void OSCComponent::sendBeatMessage() {
         if (senderConnected) {
             try {
-                if (sender.send("/hello")) {
+                // the value 123 is currently ignored on the server side
+                if (sender.send("/clock", (juce::String)"millisPerBeat", (float)123)) {
                     logger.info("Message sent");
                 } else {
                     logger.error("Error sending message");
