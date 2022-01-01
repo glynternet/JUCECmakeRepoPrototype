@@ -18,8 +18,8 @@ namespace AudioApp
 
         void paint(Graphics& g) override;
         void resized() override;
-        void info(const String &message);
-        void error(const String &message);
+        void info(const String &message) override;
+        void error(const String &message) override;
         void timerCallback() override;
 
     private:
