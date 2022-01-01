@@ -5,6 +5,9 @@
 #include "OSCComponent.h"
 
 namespace AudioApp {
+    static const int OSCPort = 9000;
+    static const std::string OSCPortString = std::to_string(OSCPort);
+
     OSCComponent::OSCComponent(Logger& logger): logger(logger), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
         targetAddress.setJustificationType(juce::Justification::centred);
         targetAddress.setEditable(true, false, true);
@@ -47,11 +50,12 @@ namespace AudioApp {
     }
 
     void OSCComponent::connectOSCSender(const String& address) {
-        senderConnected = sender.connect (address, 9000);
+        auto target = address + ":" + OSCPortString;
+        senderConnected = sender.connect (address, OSCPort);
         if (!senderConnected) {
-            logger.error("Error: could not connect to UDP port 9001.");
+            logger.error("Error: could not connect to UDP port " + OSCPortString);
             return;
         }
-        logger.info("Connected OSC sender to "+address);
+        logger.info("Connected OSC sender to " + address + ":" + OSCPortString);
     }
 }
