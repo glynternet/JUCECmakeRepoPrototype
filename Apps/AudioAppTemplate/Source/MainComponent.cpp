@@ -30,13 +30,13 @@ namespace AudioApp
 
     void MainComponent::resized()
     {
-        logger.info("resized: " + getLocalBounds().toString());
-        audioSource.setBounds(getLocalBounds().removeFromTop(420));
-        logger.setBounds(getLocalBounds()
-            .withTrimmedBottom(50)
-            .withTrimmedTop(420));
-        tempoAnalyser.setBounds(getLocalBounds().removeFromBottom(50));
-        oscComponent.setBounds(getLocalBounds().removeFromBottom(50).translated(0, -50));
+        auto area = getLocalBounds();
+        logger.info("resized: " + area.toString());
+
+        audioSource.setBounds(area.removeFromTop(420));
+        oscComponent.setBounds(area.removeFromBottom(50));
+        tempoAnalyser.setBounds(area.removeFromBottom(50));
+        logger.setBounds(area);
     }
 
     void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
