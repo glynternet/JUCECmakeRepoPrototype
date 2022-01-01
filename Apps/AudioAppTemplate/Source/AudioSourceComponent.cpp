@@ -56,7 +56,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     }
 
     void AudioSourceComponent::releaseResources() {
-        // I THINK THIS IS NOT NEEDED BECUASE RESOURCES ARE RELEASED IN THE MAINCOMPONENT
+        // I THINK THIS IS NOT NEEDED BECAUSE RESOURCES ARE RELEASED IN THE MAINCOMPONENT
     }
 
     void AudioSourceComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)

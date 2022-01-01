@@ -27,28 +27,21 @@ namespace AudioApp
         }
     }
 
-    void TempoSynthesizerComponent::beat(double period) {
-        // this might actually be better as a function that says "repeat X time in the next Y milliseconds@
-        colour = juce::Colours::white;
-        for (int i = 0; i < fadeIncrements; ++i) {
-            const double proportion = (float) i / float(fadeIncrements);
-            // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
-            // 1500 * seconds per beat to take 75% of the time between flashes to fade.
-            // * 1000 to convert seconds to milliseconds
-            // * 0.75 to convert to 75% of the time between "beats"
-            // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
-            juce::Timer::callAfterDelay((int)((double)period * 0.75 * proportion), [this, proportion]{
-                colour = juce::Colours::white.interpolatedWith(juce::Colours::grey, (float)proportion);
-                dirty = true;
-            });
-        }
+    void TempoSynthesizerComponent::beat(long long period) {
+        diffEwma = ewma(diffEwma, (double)period, 0.5);
 
-        ++beats;
-        currentBeat = ++currentBeat%4;
         const int multiplier = 16;
-        repeatFunc((int)(period/(double)multiplier), multiplier-1, [this]{
+        Repeat::repeatFunc((int)((double)diffEwma/(double)multiplier), multiplier, [this]{
             currentBeat = ++currentBeat%4;
             this->updateLabel(currentBeat);
+        });
+
+        flash((int)(0.75 * (double)diffEwma));
+    }
+
+    void TempoSynthesizerComponent::flash(int duration) {
+        Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
+            this->updateLabelColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
         });
     }
 
@@ -57,10 +50,12 @@ namespace AudioApp
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::repeatFunc(int interval, int count, const std::function<void()>& call) {
-        // TODO: use a single timer here instead
-        for (int i = 0; i < count; ++i) {
-            juce::Timer::callAfterDelay((1+i)*interval, call);
-        }
+    void TempoSynthesizerComponent::updateLabelColour(juce::Colour newColour) {
+        colour = newColour;
+        dirty = true;
+    }
+
+    double TempoSynthesizerComponent::ewma(double current, double nextValue, double alpha) {
+        return alpha * nextValue + (1 - alpha) * current;
     }
 }
