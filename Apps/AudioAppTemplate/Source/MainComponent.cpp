@@ -12,7 +12,7 @@ namespace AudioApp
         addAndMakeVisible(audioSource);
         addAndMakeVisible(oscComponent);
 
-        tempoAnalyser.onBeat = [this](double period) {
+        tempoAnalyser.onBeat = [this](long long period) {
             oscComponent.sendBeatMessage();
             tempoSynthesizer.beat(period);
         };

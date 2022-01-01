@@ -7,11 +7,11 @@ juce_generate_juce_header(${TargetName})
 
 # I think this only needs to be the .cpp files
 target_sources(${TargetName} PRIVATE
+        Source/AudioSourceComponent.cpp
+        Source/LogOutputComponent.cpp
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
-        Source/AudioSourceComponent.cpp
-        Source/LogOutputComponent.cpp
         Source/OSCComponent.cpp
         Source/TempoAnalyserComponent.cpp
         Source/TempoSynthesizerComponent.cpp

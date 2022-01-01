@@ -3,6 +3,7 @@
 #include <cmath>
 #include "CommonHeader.h"
 #include "../Libs/BTrack/BTrack.h"
+#include "Repeat.h"
 
 namespace AudioApp
 {
@@ -15,21 +16,22 @@ namespace AudioApp
         void resized() override;
         void timerCallback() override;
 
-        void beat(double period);
+        void beat(long long period);
 
     private:
-
-        uint64_t beats = 0;
         uint8_t currentBeat = 0;
         juce::int64 lastTime = juce::Time::currentTimeMillis();
+        double diffEwma = 0;
 
         juce::Label label;
         Colour colour = juce::Colours::grey;
         std::string content;
         std::atomic<bool> dirty;
 
+        void flash(int duration);
         void updateLabel(uint8_t beat);
+        void updateLabelColour(juce::Colour newColour);
 
-        static void repeatFunc(int interval, int count, const std::function<void()>& call);
+        static double ewma(double current, double nextValue, double alpha);
     };
 }
