@@ -30,10 +30,11 @@ namespace AudioApp
     void TempoAnalyserComponent::processAudioFrame (double* frame) {
         btrack.processAudioFrame(frame);
         if (btrack.beatDueInCurrentFrame()) {
-            if (onBeat != nullptr) {
-                onBeat();
-            }
+            // TODO: move this out of the tempo analysis, we should report raw value here and do averaging in the tempo synthesizer.
             beat();
+            if (onBeat != nullptr) {
+                onBeat(diffEwma);
+            }
         }
     }
 
@@ -49,7 +50,7 @@ namespace AudioApp
         lastTime = current;
 
         // this might actually be better as a function that says "repeat X time in the next Y milliseconds@
-        colour = juce::Colours::white;
+        setLabelColour(juce::Colours::white);
         for (int i = 0; i < fadeIncrements; ++i) {
             const double proportion = (float) i / float(fadeIncrements);
             // beatDueInCurrentFrame only happens every other beat and we want to fade over 2 beats, so we do
@@ -58,8 +59,7 @@ namespace AudioApp
             // * 0.75 to convert to 75% of the time between "beats"
             // * 2 because the beat detection happens every other beat (there may be something in the research paper that mentions why this is)
             juce::Timer::callAfterDelay((int)((double)diffEwma * 0.75 * proportion), [this, proportion]{
-                colour = juce::Colours::white.interpolatedWith(juce::Colours::lightgrey, (float)proportion);
-                dirty = true;
+                this->setLabelColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float)proportion));
             });
         }
 
@@ -67,24 +67,21 @@ namespace AudioApp
         double tempoFromEWMA = 120000. / (double) diffEwma;
         ++beats;
         currentBeat = ++currentBeat%4;
-        const int multiplier = 16;
-        repeatFunc((int)(diffEwma/(double)multiplier), multiplier-1, [this, tempoFromManualCalculation, tempo, tempoFromEWMA]{
-            currentBeat = ++currentBeat%4;
-            content = std::to_string(beats) + " " +
-                std::to_string(currentBeat) + " " +
-                std::to_string(tempo) + " " +
-                std::to_string(diffEwma) + " " +
-                std::to_string(tempoFromManualCalculation) + " " +
-                std::to_string(tempoFromEWMA);
-            dirty = true;
-        });
+        setLabelText(tempo, tempoFromManualCalculation, tempoFromEWMA);
+    }
 
-        content = std::to_string(beats) + " " +
+    void TempoAnalyserComponent::setLabelColour(juce::Colour newColour) {
+        colour = newColour;
+        dirty = true;
+    }
+
+    void TempoAnalyserComponent::setLabelText(double btrackTempo, double manualCalcTempo, double movingAverageTempo) {
+        content = "● " +
                   std::to_string(currentBeat) + " " +
-                  std::to_string(tempo) + " " +
+                  std::to_string(btrackTempo) + " " +
                   std::to_string(diffEwma) + " " +
-                  std::to_string(tempoFromManualCalculation) + " " +
-                  std::to_string(tempoFromEWMA);
+                  std::to_string(manualCalcTempo) + " " +
+                  std::to_string(movingAverageTempo);
         dirty = true;
     }
 

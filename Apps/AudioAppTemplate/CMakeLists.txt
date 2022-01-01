@@ -14,6 +14,7 @@ target_sources(${TargetName} PRIVATE
         Source/LogOutputComponent.cpp
         Source/OSCComponent.cpp
         Source/TempoAnalyserComponent.cpp
+        Source/TempoSynthesizerComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)
 

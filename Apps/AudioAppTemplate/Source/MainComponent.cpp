@@ -12,8 +12,12 @@ namespace AudioApp
         addAndMakeVisible(audioSource);
         addAndMakeVisible(oscComponent);
 
-        tempoAnalyser.onBeat = [this] { oscComponent.sendBeatMessage(); };
+        tempoAnalyser.onBeat = [this](double period) {
+            oscComponent.sendBeatMessage();
+            tempoSynthesizer.beat(period);
+        };
         addAndMakeVisible(tempoAnalyser);
+        addAndMakeVisible(tempoSynthesizer);
 
         setSize (400, 700);
     }
@@ -33,8 +37,9 @@ namespace AudioApp
         auto area = getLocalBounds();
         logger.info("resized: " + area.toString());
 
-        audioSource.setBounds(area.removeFromTop(420));
+        audioSource.setBounds(area.removeFromTop(300));
         oscComponent.setBounds(area.removeFromBottom(50));
+        tempoSynthesizer.setBounds(area.removeFromBottom(50));
         tempoAnalyser.setBounds(area.removeFromBottom(50));
         logger.setBounds(area);
     }

@@ -6,6 +6,7 @@
 #include "LogOutputComponent.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
+#include "TempoSynthesizerComponent.h"
 
 namespace AudioApp
 {
@@ -26,6 +27,7 @@ private:
     LogOutputComponent logger;
     AudioSourceComponent audioSource { deviceManager, logger };
     TempoAnalyserComponent tempoAnalyser;
+    TempoSynthesizerComponent tempoSynthesizer;
     OSCComponent oscComponent { logger };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -18,7 +18,9 @@ namespace AudioApp
         void processAudioFrame(double *frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
 
-        std::function<void()> onBeat;
+        // onBeat is run whenever a new beat is encountered by btrack and
+        // receives the duration since last detected beat as a parameter.
+        std::function<void(double)> onBeat;
 
     private:
         void beat();
@@ -34,11 +36,14 @@ namespace AudioApp
         double diffEwma = 0;
 
         juce::Label label;
-        Colour colour = juce::Colours::lightgreen;
+        Colour colour = juce::Colours::grey;
         std::string content;
         std::atomic<bool> dirty;
 
         static void repeatFunc(int interval, int count, const std::function<void()>& call);
         static double ewma(double current, double nextValue, double alpha);
+
+        void setLabelColour(Colour newColout);
+        void setLabelText(double btrackTempo, double manualCalcTempo, double movingAverageTempo);
     };
 }
