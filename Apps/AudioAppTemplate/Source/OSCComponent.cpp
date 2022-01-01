@@ -7,6 +7,8 @@
 namespace AudioApp {
     static const int OSCPort = 9000;
     static const std::string OSCPortString = std::to_string(OSCPort);
+    // the value 123 is currently ignored on the server side
+    static const juce::OSCMessage* clockMessage = new juce::OSCMessage("/clock", (juce::String)"millisPerBeat", (float)123);
 
     OSCComponent::OSCComponent(Logger& logger): logger(logger), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
         targetAddress.setJustificationType(juce::Justification::centred);
@@ -34,8 +36,7 @@ namespace AudioApp {
     void OSCComponent::sendBeatMessage() {
         if (senderConnected) {
             try {
-                // the value 123 is currently ignored on the server side
-                if (sender.send("/clock", (juce::String)"millisPerBeat", (float)123)) {
+                if (sender.send(*clockMessage)) {
                     logger.info("Message sent");
                 } else {
                     logger.error("Error sending message");
