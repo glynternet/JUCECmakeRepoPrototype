@@ -2,8 +2,7 @@
 
 namespace AudioApp
 {
-    MainComponent::MainComponent()
-    {
+    MainComponent::MainComponent() {
         setAudioChannels(2,2);
 
         getLookAndFeel().setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
@@ -37,7 +36,7 @@ namespace AudioApp
         auto area = getLocalBounds();
         logger.info("resized: " + area.toString());
 
-        audioSource.setBounds(area.removeFromTop(300));
+        audioSource.setBounds(area.removeFromTop(390));
         oscComponent.setBounds(area.removeFromBottom(50));
         tempoSynthesizer.setBounds(area.removeFromBottom(50));
         tempoAnalyser.setBounds(area.removeFromBottom(50));

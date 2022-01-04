@@ -3,12 +3,22 @@
 
 namespace AudioApp
 {
-    LogOutputComponent::LogOutputComponent()
-    {
+    LogOutputComponent::LogOutputComponent() : pauseButton("pause"), dirty(true) {
         // TODO: set to monospace font
         label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         label.setJustificationType(juce::Justification::topLeft);
         addAndMakeVisible(label);
+
+        pauseButton.onClick = [this] {
+            this->playing = !this->playing;
+            if (this->playing) {
+                this->pauseButton.setButtonText("pause");
+                dirty = true;
+            } else {
+                this->pauseButton.setButtonText("play");
+            }
+        };
+        addAndMakeVisible(pauseButton);
         startTimerHz(30);
     }
 
@@ -20,11 +30,14 @@ namespace AudioApp
 
     void LogOutputComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-        label.setText(content, juce::dontSendNotification);
+        if (playing) {
+            label.setText(content, juce::dontSendNotification);
+        }
     }
 
     void LogOutputComponent::resized() {
         label.setBounds(getLocalBounds());
+        pauseButton.setBounds(getLocalBounds().removeFromTop(15).removeFromRight(25));
     }
 
     void LogOutputComponent::info(const String& message) {
@@ -36,7 +49,7 @@ namespace AudioApp
     }
 
     void LogOutputComponent::log(leveledMessage message) {
-        if (logMessages.size() > 10) {
+        if (logMessages.size() > 100) {
             logMessages.pop_back();
         }
         logMessages.insert(logMessages.begin(),  message.level + ": " + message.message);
