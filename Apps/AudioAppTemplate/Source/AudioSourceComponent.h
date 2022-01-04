@@ -22,8 +22,6 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
 
     private:
         std::vector<double> frameValues2;
-        // How do I get this here?
-        // does this need to be a pointer?
         Logger& logger;
 
         juce::AudioDeviceManager& deviceManager;

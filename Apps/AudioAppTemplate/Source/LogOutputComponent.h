@@ -25,6 +25,9 @@ namespace AudioApp
     private:
         void log(leveledMessage);
 
+        juce::TextButton pauseButton;
+        bool playing = true;
+
         juce::Label label;
         // TODO: probably a good idea to put some locking on here as I'm not really sure how safe this is
         std::vector<std::string> logMessages;
