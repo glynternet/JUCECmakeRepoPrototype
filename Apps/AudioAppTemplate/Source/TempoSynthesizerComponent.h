@@ -28,7 +28,7 @@ namespace AudioApp
         std::string content;
         std::atomic<bool> dirty;
 
-        void flash(int duration);
+        void flash(float duration);
         void updateLabel(uint8_t beat);
         void updateLabelColour(juce::Colour newColour);
 
