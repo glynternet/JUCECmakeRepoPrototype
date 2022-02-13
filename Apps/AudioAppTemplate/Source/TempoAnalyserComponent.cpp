@@ -29,7 +29,7 @@ namespace AudioApp
             if (onBeat != nullptr) {
                 onBeat(diff);
             }
-            flash( (int)(0.75 * (double)diff));
+            flash( 0.75f * (float)diff);
         }
     }
 
@@ -37,7 +37,7 @@ namespace AudioApp
         btrack.updateHopAndFrameSize(samplePerBlockExpected / 2, samplePerBlockExpected);
     }
 
-    void TempoAnalyserComponent::flash(int duration) {
+    void TempoAnalyserComponent::flash(float duration) {
         Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
             this->setColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
         });

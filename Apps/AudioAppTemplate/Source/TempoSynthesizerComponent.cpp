@@ -31,15 +31,15 @@ namespace AudioApp
         diffEwma = ewma(diffEwma, (double)period, 0.5);
 
         const int multiplier = 16;
-        Repeat::repeatFunc((int)((double)diffEwma/(double)multiplier), multiplier, [this]{
+        Repeat::repeatFunc(((float)diffEwma/(float)multiplier), multiplier, [this]{
             currentBeat = ++currentBeat%4;
             this->updateLabel(currentBeat);
         });
 
-        flash((int)(0.75 * (double)diffEwma));
+        flash(0.75f * (float)diffEwma);
     }
 
-    void TempoSynthesizerComponent::flash(int duration) {
+    void TempoSynthesizerComponent::flash(float duration) {
         Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
             this->updateLabelColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
         });

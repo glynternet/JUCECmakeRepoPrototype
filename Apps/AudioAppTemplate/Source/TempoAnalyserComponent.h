@@ -24,7 +24,7 @@ namespace AudioApp
         std::function<void(long long)> onBeat;
 
     private:
-        void flash(int duration);
+        void flash(float duration);
 
         // these need to be set above where we initialise btrack
         int btrackFrameSize = 512;
