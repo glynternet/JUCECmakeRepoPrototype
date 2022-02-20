@@ -8,10 +8,11 @@
 namespace AudioApp {
     static const int OSCPort = 9000;
     static const std::string OSCPortString = std::to_string(OSCPort);
+
     // the value 123 is currently ignored on the server side
     static const std::unique_ptr<juce::OSCMessage> clockMessage = std::make_unique<juce::OSCMessage>("/clock", (juce::String)"millisPerBeat", (float)123);
 
-    OSCComponent::OSCComponent(Logger& logger): logger(logger), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
+    OSCComponent::OSCComponent(Logger& l): logger(l), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
         targetAddress.setJustificationType(juce::Justification::centred);
         targetAddress.setEditable(true, false, true);
         targetAddress.onEditorShow = [this]{
