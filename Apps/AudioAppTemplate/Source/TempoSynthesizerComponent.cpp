@@ -6,7 +6,7 @@ namespace AudioApp
     const int multiplier = 4;
     static const int fadeIncrements = 8;
 
-    TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l): logger(l) {
+    TempoSynthesizerComponent::TempoSynthesizerComponent() {
         label.setColour (juce::Label::textColourId, colour);
         label.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(label);

@@ -10,7 +10,7 @@ namespace AudioApp
 {
     class TempoSynthesizerComponent : public juce::Component, juce::HighResolutionTimer, juce::Timer {
     public:
-        explicit TempoSynthesizerComponent(Logger& logger);
+        TempoSynthesizerComponent();
 
         void paint(Graphics& g) override;
         void resized() override;
@@ -19,8 +19,6 @@ namespace AudioApp
 
         void beat(long long period);
     private:
-        Logger& logger;
-
         // max uint8 value so that next beat makes it start on 0
         uint8_t currentBeat = 255;
         juce::int64 lastTime = juce::Time::currentTimeMillis();
