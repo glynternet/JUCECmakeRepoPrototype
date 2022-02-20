@@ -1,18 +1,24 @@
 #include "TempoSynthesizerComponent.h"
+#include "LogOutputComponent.h"
 
 namespace AudioApp
 {
+    const int multiplier = 4;
     static const int fadeIncrements = 8;
 
-    TempoSynthesizerComponent::TempoSynthesizerComponent() {
+    TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l): logger(l) {
         label.setColour (juce::Label::textColourId, colour);
         label.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(label);
-        startTimerHz(30);
+        juce::HighResolutionTimer::startTimer(1);
+        juce::Timer::startTimerHz(60);
     }
 
     void TempoSynthesizerComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+        g.setColour(colour);
+        auto segmentWidth = getLocalBounds().getWidth()/multiplier;
+        g.fillRect(currentBeat * segmentWidth,0,segmentWidth,getLocalBounds().getHeight());
         label.setColour (juce::Label::textColourId, colour);
         label.setText(content, juce::dontSendNotification);
     }
@@ -27,14 +33,38 @@ namespace AudioApp
         }
     }
 
+    void TempoSynthesizerComponent::hiResTimerCallback() {
+        while (!scheduledBeats.empty()) {
+            auto soonest = scheduledBeats.front();
+            // We call currentTimeMillis() within this loop but are assuming that the loop
+            // is rarely going to be ran for more than one iteration so it's probably
+            // better most of the time to not call it before the loop and store it.
+            // Although, this should definitely be benchmarked rather than worked on this
+            // assumption.
+            if (juce::Time::currentTimeMillis() < soonest.millis) {
+                break;
+            }
+            updateBeat(soonest.beat);
+            scheduledBeats.pop_front();
+        }
+    }
+
+    // beat is called on the beat detected with period being the time between each call
     void TempoSynthesizerComponent::beat(long long period) {
+        auto timeOfBeat = juce::Time::currentTimeMillis();
+
         diffEwma = ewma(diffEwma, (double)period, 0.5);
 
-        const int multiplier = 16;
-        Repeat::repeatFunc(((float)diffEwma/(float)multiplier), multiplier, [this]{
-            currentBeat = ++currentBeat%4;
-            this->updateLabel(currentBeat);
-        });
+        // We update the beat to 0 here because we currently only support synthesizing
+        // extra beats rather than downsampling to less.
+        updateBeat(0);
+
+        for (uint8_t i = 1; i < multiplier; ++i) {
+            scheduledBeats.push_back(scheduledBeat{
+                timeOfBeat + (int)((float) diffEwma / (float) multiplier * (float)i),
+                i,
+            });
+        }
 
         flash(0.75f * (float)diffEwma);
     }
@@ -45,7 +75,8 @@ namespace AudioApp
         });
     }
 
-    void TempoSynthesizerComponent::updateLabel(uint8_t beat) {
+    void TempoSynthesizerComponent::updateBeat(uint8_t beat) {
+        currentBeat = beat;
         content = "● " + std::to_string(beat);
         dirty = true;
     }
