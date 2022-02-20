@@ -5,7 +5,7 @@ namespace AudioApp
     static const int fadeIncrements = 16;
 
     TempoAnalyserComponent::TempoAnalyserComponent() {
-        startTimerHz(30);
+        startTimerHz(60);
     }
 
     void TempoAnalyserComponent::paint(Graphics& g) {
@@ -29,7 +29,7 @@ namespace AudioApp
             if (onBeat != nullptr) {
                 onBeat(diff);
             }
-            flash( 0.75f * (float)diff);
+            flash(0.75f * (float)diff);
         }
     }
 
