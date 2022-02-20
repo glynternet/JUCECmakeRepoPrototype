@@ -11,8 +11,7 @@ namespace AudioApp
         std::string message;
     };
 
-    class LogOutputComponent : public juce::Component, juce::Timer, public Logger
-    {
+    class LogOutputComponent : public juce::Component, juce::Timer, public Logger {
     public:
         LogOutputComponent();
 
