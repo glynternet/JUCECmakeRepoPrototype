@@ -17,11 +17,10 @@ namespace AudioApp
         void timerCallback() override;
         void hiResTimerCallback() override;
 
-        void beat(long long period);
+        void beat(double period);
     private:
         // max uint8 value so that next beat makes it start on 0
         uint8_t currentBeat = 255;
-        juce::int64 lastTime = juce::Time::currentTimeMillis();
         double diffEwma = 0;
 
         juce::Label label;
@@ -36,7 +35,7 @@ namespace AudioApp
         static double ewma(double current, double nextValue, double alpha);
 
         struct scheduledBeat {
-            __int64_t millis;
+            double millis;
             uint8_t beat;
         };
 

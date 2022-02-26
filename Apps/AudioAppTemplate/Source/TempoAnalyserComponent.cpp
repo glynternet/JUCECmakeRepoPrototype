@@ -6,6 +6,7 @@ namespace AudioApp
 
     TempoAnalyserComponent::TempoAnalyserComponent() {
         startTimerHz(60);
+        lastTime = juce::Time::getMillisecondCounterHiRes();
     }
 
     void TempoAnalyserComponent::paint(Graphics& g) {
@@ -23,7 +24,7 @@ namespace AudioApp
     void TempoAnalyserComponent::processAudioFrame (double* frame) {
         btrack.processAudioFrame(frame);
         if (btrack.beatDueInCurrentFrame()) {
-            auto current = juce::Time::currentTimeMillis();
+            auto current = juce::Time::getMillisecondCounterHiRes();
             auto diff = current - lastTime;
             lastTime = current;
             if (onBeat != nullptr) {
