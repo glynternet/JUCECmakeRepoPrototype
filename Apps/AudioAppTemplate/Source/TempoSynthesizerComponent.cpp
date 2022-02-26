@@ -36,12 +36,12 @@ namespace AudioApp
     void TempoSynthesizerComponent::hiResTimerCallback() {
         while (!scheduledBeats.empty()) {
             auto soonest = scheduledBeats.front();
-            // We call currentTimeMillis() within this loop but are assuming that the loop
+            // We call getMillisecondCounterHiRes() within this loop but are assuming that the loop
             // is rarely going to be ran for more than one iteration so it's probably
             // better most of the time to not call it before the loop and store it.
             // Although, this should definitely be benchmarked rather than worked on this
             // assumption.
-            if (juce::Time::currentTimeMillis() < soonest.millis) {
+            if (juce::Time::getMillisecondCounterHiRes() < soonest.millis) {
                 break;
             }
             updateBeat(soonest.beat);
@@ -50,8 +50,8 @@ namespace AudioApp
     }
 
     // beat is called on the beat detected with period being the time between each call
-    void TempoSynthesizerComponent::beat(long long period) {
-        auto timeOfBeat = juce::Time::currentTimeMillis();
+    void TempoSynthesizerComponent::beat(double period) {
+        auto timeOfBeat = juce::Time::getMillisecondCounterHiRes();
 
         diffEwma = ewma(diffEwma, (double)period, 0.5);
 
@@ -61,7 +61,7 @@ namespace AudioApp
 
         for (uint8_t i = 1; i < multiplier; ++i) {
             scheduledBeats.push_back(scheduledBeat{
-                timeOfBeat + (int)((float) diffEwma / (float) multiplier * (float)i),
+                timeOfBeat + (diffEwma / (double) multiplier * (double)i),
                 i,
             });
         }

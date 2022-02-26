@@ -21,7 +21,7 @@ namespace AudioApp
 
         // onBeat is run whenever a new beat is encountered by btrack and
         // receives the duration since last detected beat as a parameter.
-        std::function<void(long long)> onBeat;
+        std::function<void(double)> onBeat;
 
     private:
         void flash(float duration);
@@ -31,7 +31,8 @@ namespace AudioApp
         int btrackHopSize = 256;
         BTrack btrack {btrackHopSize, btrackFrameSize };
 
-        juce::int64 lastTime = juce::Time::currentTimeMillis();
+        // cannot initialise here as juce::Time::getMillisecondCounterHiRes() returns 0 at this point
+        double lastTime;
 
         void setColour(Colour newColour);
         Colour colour = juce::Colours::grey;
