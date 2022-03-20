@@ -23,21 +23,37 @@ namespace AudioApp
         uint8_t currentBeat = 255;
         double diffEwma = 0;
 
-        juce::Label label;
         Colour colour = juce::Colours::grey;
-        std::string content;
-        std::atomic<bool> dirty;
+        std::atomic<bool> dirty{};
 
         void flash(float duration);
         void updateBeat(uint8_t beat);
-        void updateLabelColour(juce::Colour newColour);
+        void updateColour(juce::Colour newColour);
 
-        static double ewma(double current, double nextValue, double alpha);
+        int multiplierIndex = 2;
+        int nextMultiplierIndex = 2;
+        juce::ShapeButton up {"up", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
+        juce::ShapeButton down {"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
+        int multiplierValues[9]{};
+        juce::ShapeButton multiplierValueButtons[9]{
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+            {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
+        };
 
         struct scheduledBeat {
             double millis;
             uint8_t beat;
         };
+
+        void setMultiplierIndex(int m);
+        void setNextMultiplierIndex(int m);
 
         // deffo put locking on here if we're using high res scheduler with access from everywhere
         std::list<scheduledBeat> scheduledBeats;
