@@ -35,8 +35,8 @@ namespace AudioApp
         juce::ShapeButton up {"up", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
         juce::ShapeButton down {"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
 
+        int multiplier = 1;
         #define MULTIPLIER_COUNT 9
-        int multiplierValues[MULTIPLIER_COUNT]{};
         juce::ShapeButton multiplierValueButtons[MULTIPLIER_COUNT]{
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
@@ -54,7 +54,7 @@ namespace AudioApp
             uint8_t beat;
         };
 
-        void setMultiplierIndex(int m);
+        void setMultiplierFromIndex(int m);
         void setNextMultiplierIndex(int m);
 
         // deffo put locking on here if we're using high res scheduler with access from everywhere
