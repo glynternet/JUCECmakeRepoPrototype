@@ -30,7 +30,6 @@ namespace AudioApp
         down.setOutline(juce::Colours::transparentWhite, 3);
         addAndMakeVisible(down);
         for (int i = 0; i < 9; ++i) {
-            multiplierValues[i] = ipow(2, i);
             juce::ShapeButton &button = multiplierValueButtons[i];
             button.onClick = [this, i]() {
                 setNextMultiplierIndex(i);
@@ -41,15 +40,16 @@ namespace AudioApp
             button.setOutline(juce::Colours::transparentWhite, 3);
             addAndMakeVisible(button);
         }
-        setMultiplierIndex(2);
+        setMultiplierFromIndex(2);
         setNextMultiplierIndex(2);
         juce::HighResolutionTimer::startTimer(1);
         juce::Timer::startTimerHz(60);
     }
 
-    void TempoSynthesizerComponent::setMultiplierIndex(int m) {
+    void TempoSynthesizerComponent::setMultiplierFromIndex(int m) {
         multiplierValueButtons[multiplierIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multiplierIndex = m;
+        multiplier = ipow(2, multiplierIndex);
         multiplierValueButtons[multiplierIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
     }
 
@@ -62,7 +62,7 @@ namespace AudioApp
     void TempoSynthesizerComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
         g.setColour(colour);
-        g.fillRect((int)((float)getWidth() * (float)currentBeat / (float)multiplierValues[multiplierIndex]), 0, segmentWidth, halfHeight);
+        g.fillRect((int)((float)getWidth() * (float)currentBeat / (float)multiplier), 0, segmentWidth, halfHeight);
     }
 
     void TempoSynthesizerComponent::resized() {
@@ -108,10 +108,9 @@ namespace AudioApp
         updateBeat(0);
 
         if (multiplierIndex != nextMultiplierIndex) {
-            setMultiplierIndex(nextMultiplierIndex);
+            setMultiplierFromIndex(nextMultiplierIndex);
         }
 
-        int multiplier = multiplierValues[multiplierIndex];
         for (uint8_t i = 0; i < multiplier - 1; ++i) {
             uint8_t beat = i + 1;
             scheduledBeats.push_back(scheduledBeat{
