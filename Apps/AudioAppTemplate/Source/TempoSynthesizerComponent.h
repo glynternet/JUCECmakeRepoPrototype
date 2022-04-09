@@ -34,8 +34,10 @@ namespace AudioApp
         int nextMultiplierIndex = 2;
         juce::ShapeButton up {"up", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
         juce::ShapeButton down {"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
-        int multiplierValues[9]{};
-        juce::ShapeButton multiplierValueButtons[9]{
+
+        #define MULTIPLIER_COUNT 9
+        int multiplierValues[MULTIPLIER_COUNT]{};
+        juce::ShapeButton multiplierValueButtons[MULTIPLIER_COUNT]{
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
