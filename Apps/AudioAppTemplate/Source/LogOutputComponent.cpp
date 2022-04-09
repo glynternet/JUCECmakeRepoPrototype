@@ -3,7 +3,7 @@
 
 namespace AudioApp
 {
-    LogOutputComponent::LogOutputComponent() : pauseButton("pause"), dirty(true) {
+    LogOutputComponent::LogOutputComponent() : pauseButton("pause"), dirty(true), now(time(nullptr)) {
         // TODO: set to monospace font
         label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         label.setJustificationType(juce::Justification::topLeft);
@@ -48,11 +48,20 @@ namespace AudioApp
         log(leveledMessage{"ERROR", message.toStdString() });
     }
 
-    void LogOutputComponent::log(leveledMessage message) {
+    void LogOutputComponent::log(const leveledMessage& message) {
         if (logMessages.size() > 100) {
             logMessages.pop_back();
         }
-        logMessages.insert(logMessages.begin(),  message.level + ": " + message.message);
+
+        localtime_s(&ltm,&now);
+
+        std::ostringstream oss;
+        oss << std::put_time(&ltm, "%H:%M:%S");
+        oss << " ";
+        oss << message.level;
+        oss << " ";
+        oss << message.message;
+        logMessages.insert(logMessages.begin(),oss.str());
 
         const char* const delim = "\n";
 
