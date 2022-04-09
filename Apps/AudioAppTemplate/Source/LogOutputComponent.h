@@ -3,6 +3,7 @@
 #include "CommonHeader.h"
 #include "Logger.h"
 #include <cmath>
+#include <ctime>
 
 namespace AudioApp
 {
@@ -22,7 +23,7 @@ namespace AudioApp
         void timerCallback() override;
 
     private:
-        void log(leveledMessage);
+        void log(const leveledMessage&);
 
         juce::TextButton pauseButton;
         bool playing = true;
@@ -32,5 +33,9 @@ namespace AudioApp
         std::vector<std::string> logMessages;
         std::string content;
         std::atomic<bool> dirty;
+
+        // Used to get time for prepending to log lines
+        time_t now;
+        tm ltm;
     };
 }
