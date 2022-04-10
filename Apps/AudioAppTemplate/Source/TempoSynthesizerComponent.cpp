@@ -7,7 +7,7 @@ namespace AudioApp
     int halfHeight;
     int segmentWidth;
 
-    TempoSynthesizerComponent::TempoSynthesizerComponent() {
+    TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l) : logger(l) {
         up.onClick = [this](){
             if (nextMultipleIndex < MULTIPLE_COUNT-1) {
                 setNextMultipleIndex(nextMultipleIndex + 1);

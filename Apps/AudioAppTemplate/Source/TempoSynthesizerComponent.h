@@ -5,12 +5,13 @@
 #include "../Libs/BTrack/BTrack.h"
 #include "Repeat.h"
 #include "LogOutputComponent.h"
+#include "Logger.h"
 
 namespace AudioApp
 {
     class TempoSynthesizerComponent : public juce::Component, juce::HighResolutionTimer, juce::Timer {
     public:
-        TempoSynthesizerComponent();
+        explicit TempoSynthesizerComponent(Logger& logger);
 
         void paint(Graphics& g) override;
         void resized() override;
@@ -19,6 +20,8 @@ namespace AudioApp
 
         void beat(double period);
     private:
+        Logger &logger;
+
         // max uint8 value so that next beat makes it start on 0
         uint8_t currentBeat = 255;
         double diffEwma = 0;
