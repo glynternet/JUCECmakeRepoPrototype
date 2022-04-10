@@ -93,7 +93,6 @@ namespace AudioApp
             if (juce::Time::getMillisecondCounterHiRes() < soonest.millis) {
                 break;
             }
-            updateBeat(soonest.beat);
             flash(0.75f * (float)durationPerSynthesizedBeat);
             scheduledBeats.pop_front();
         }
@@ -104,10 +103,6 @@ namespace AudioApp
         auto timeOfBeat = juce::Time::getMillisecondCounterHiRes();
 
         diffEwma = ewma(diffEwma, (double)period, 0.5);
-
-        // We update the beat to 0 here because we currently only support synthesizing
-        // extra beats rather than downsampling to less.
-        updateBeat(0);
 
         if (multipleIndex != nextMultipleIndex) {
             setMultipleFromIndex(nextMultipleIndex);
@@ -120,7 +115,6 @@ namespace AudioApp
             uint8_t beat = i + 1;
             scheduledBeats.push_back(scheduledBeat{
                 timeOfBeat + (durationPerSynthesizedBeat * (double)beat),
-                beat,
             });
         }
 
@@ -131,11 +125,6 @@ namespace AudioApp
         Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
             this->updateColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
         });
-    }
-
-    void TempoSynthesizerComponent::updateBeat(uint8_t beat) {
-        currentBeat = beat;
-        dirty = true;
     }
 
     void TempoSynthesizerComponent::updateColour(juce::Colour newColour) {
