@@ -30,14 +30,17 @@ namespace AudioApp
         void updateBeat(uint8_t beat);
         void updateColour(juce::Colour newColour);
 
-        int multiplierIndex = 2;
-        int nextMultiplierIndex = 2;
+        // multiple is the number of beats on top of the input beat in which we want to synthesise beats for.
+        int multiple = 1;
+        int multipleIndex = 2;
+        int nextMultipleIndex = 2;
         juce::ShapeButton up {"up", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
         juce::ShapeButton down {"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
-
-        int multiplier = 1;
-        #define MULTIPLIER_COUNT 9
-        juce::ShapeButton multiplierValueButtons[MULTIPLIER_COUNT]{
+        // MULTIPLE_COUNT cannot be higher than 9 because the index of the multipleButtons is used as an exponent for a base of 2.
+        // Where a MULTIPLE_COUNT of 9 gives a highest index of 8, so ipow(2, 8) is 256. For synthesis, this value has 1
+        // taken off it and just fits into a uint8, which is what we store the current beat in.
+        #define MULTIPLE_COUNT 9
+        juce::ShapeButton multipleButtons[MULTIPLE_COUNT]{
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
@@ -54,8 +57,8 @@ namespace AudioApp
             uint8_t beat;
         };
 
-        void setMultiplierFromIndex(int m);
-        void setNextMultiplierIndex(int m);
+        void setMultipleFromIndex(int m);
+        void setNextMultipleIndex(int m);
 
         // deffo put locking on here if we're using high res scheduler with access from everywhere
         std::list<scheduledBeat> scheduledBeats;
