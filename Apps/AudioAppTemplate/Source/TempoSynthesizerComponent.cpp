@@ -5,7 +5,7 @@ namespace AudioApp
 {
     static const int fadeIncrements = 8;
     int halfHeight;
-    int segmentWidth;
+    double durationPerSynthesizedBeat = 500;
 
     TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l) : logger(l) {
         up.onClick = [this](){
@@ -49,7 +49,6 @@ namespace AudioApp
         multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multipleIndex = m;
         multiple = ipow(2, multipleIndex);
-        segmentWidth = getWidth() / multiple;
         multipleButtons[multipleIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
         dirty = true;
     }
@@ -64,7 +63,7 @@ namespace AudioApp
     void TempoSynthesizerComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
         g.setColour(colour);
-        g.fillRect((int)((float)getWidth() * (float)currentBeat / (float)multiple), 0, segmentWidth, halfHeight);
+        g.fillRect(getLocalBounds().withTrimmedBottom(halfHeight));
     }
 
     void TempoSynthesizerComponent::resized() {
@@ -75,7 +74,6 @@ namespace AudioApp
         for (int i = 0; i < MULTIPLE_COUNT; ++i) {
             multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (MULTIPLE_COUNT - i)));
         }
-        segmentWidth = getWidth() / multiple;
     }
 
     void TempoSynthesizerComponent::timerCallback() {
@@ -96,6 +94,7 @@ namespace AudioApp
                 break;
             }
             updateBeat(soonest.beat);
+            flash(0.75f * (float)durationPerSynthesizedBeat);
             scheduledBeats.pop_front();
         }
     }
@@ -114,15 +113,17 @@ namespace AudioApp
             setMultipleFromIndex(nextMultipleIndex);
         }
 
+        durationPerSynthesizedBeat = diffEwma / (double) multiple;
+        flash(0.75f * (float)durationPerSynthesizedBeat);
+
         for (uint8_t i = 0; i < multiple - 1; ++i) {
             uint8_t beat = i + 1;
             scheduledBeats.push_back(scheduledBeat{
-                timeOfBeat + (diffEwma / (double) multiple * (double)beat),
+                timeOfBeat + (durationPerSynthesizedBeat * (double)beat),
                 beat,
             });
         }
 
-        flash(0.75f * (float)diffEwma);
         dirty = true;
     }
 
