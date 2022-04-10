@@ -51,12 +51,14 @@ namespace AudioApp
         multiple = ipow(2, multipleIndex);
         segmentWidth = getWidth() / multiple;
         multipleButtons[multipleIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
+        dirty = true;
     }
 
     void TempoSynthesizerComponent::setNextMultipleIndex(int m) {
         multipleButtons[nextMultipleIndex].setOutline(juce::Colours::transparentWhite, 3);
         nextMultipleIndex = m;
         multipleButtons[nextMultipleIndex].setOutline(juce::Colours::white, 3);
+        dirty = true;
     }
 
     void TempoSynthesizerComponent::paint(Graphics& g) {
