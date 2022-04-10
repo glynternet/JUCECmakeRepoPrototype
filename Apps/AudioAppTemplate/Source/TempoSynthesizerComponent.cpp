@@ -9,9 +9,8 @@ namespace AudioApp
 
     TempoSynthesizerComponent::TempoSynthesizerComponent() {
         up.onClick = [this](){
-            // 256 is max because current beat is represented as uint8
-            if (nextMultiplierIndex < 8) {
-                setNextMultiplierIndex(nextMultiplierIndex + 1);
+            if (nextMultipleIndex < MULTIPLE_COUNT-1) {
+                setNextMultipleIndex(nextMultipleIndex + 1);
             }
         };
         juce::Path upShape;
@@ -20,8 +19,8 @@ namespace AudioApp
         up.setOutline(juce::Colours::transparentWhite, 3);
         addAndMakeVisible(up);
         down.onClick = [this](){
-            if (nextMultiplierIndex > 0) {
-                setNextMultiplierIndex(nextMultiplierIndex - 1);
+            if (nextMultipleIndex > 0) {
+                setNextMultipleIndex(nextMultipleIndex - 1);
             }
         };
         juce::Path downShape;
@@ -29,10 +28,10 @@ namespace AudioApp
         down.setShape(downShape, true, false, false);
         down.setOutline(juce::Colours::transparentWhite, 3);
         addAndMakeVisible(down);
-        for (int i = 0; i < 9; ++i) {
-            juce::ShapeButton &button = multiplierValueButtons[i];
+        for (int i = 0; i < MULTIPLE_COUNT; ++i) {
+            juce::ShapeButton &button = multipleButtons[i];
             button.onClick = [this, i]() {
-                setNextMultiplierIndex(i);
+                setNextMultipleIndex(i);
             };
             juce::Path rect;
             rect.addRectangle(0.0, 0.0, 1.0, 1.0);
@@ -40,29 +39,29 @@ namespace AudioApp
             button.setOutline(juce::Colours::transparentWhite, 3);
             addAndMakeVisible(button);
         }
-        setMultiplierFromIndex(2);
-        setNextMultiplierIndex(2);
+        setMultipleFromIndex(2);
+        setNextMultipleIndex(2);
         juce::HighResolutionTimer::startTimer(1);
         juce::Timer::startTimerHz(60);
     }
 
-    void TempoSynthesizerComponent::setMultiplierFromIndex(int m) {
-        multiplierValueButtons[multiplierIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
-        multiplierIndex = m;
-        multiplier = ipow(2, multiplierIndex);
-        multiplierValueButtons[multiplierIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
+    void TempoSynthesizerComponent::setMultipleFromIndex(int m) {
+        multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
+        multipleIndex = m;
+        multiple = ipow(2, multipleIndex);
+        multipleButtons[multipleIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
     }
 
-    void TempoSynthesizerComponent::setNextMultiplierIndex(int m) {
-        multiplierValueButtons[nextMultiplierIndex].setOutline(juce::Colours::transparentWhite, 3);
-        nextMultiplierIndex = m;
-        multiplierValueButtons[nextMultiplierIndex].setOutline(juce::Colours::white, 3);
+    void TempoSynthesizerComponent::setNextMultipleIndex(int m) {
+        multipleButtons[nextMultipleIndex].setOutline(juce::Colours::transparentWhite, 3);
+        nextMultipleIndex = m;
+        multipleButtons[nextMultipleIndex].setOutline(juce::Colours::white, 3);
     }
 
     void TempoSynthesizerComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
         g.setColour(colour);
-        g.fillRect((int)((float)getWidth() * (float)currentBeat / (float)multiplier), 0, segmentWidth, halfHeight);
+        g.fillRect((int)((float)getWidth() * (float)currentBeat / (float)multiple), 0, segmentWidth, halfHeight);
     }
 
     void TempoSynthesizerComponent::resized() {
@@ -70,8 +69,8 @@ namespace AudioApp
         auto rect = getLocalBounds().withTrimmedTop(halfHeight);
         up.setBounds(rect.removeFromRight(30));
         down.setBounds(rect.removeFromLeft(30));
-        for (int i = 0; i < 9; ++i) {
-            multiplierValueButtons[i].setBounds(rect.removeFromLeft(rect.getWidth()/(9-i)));
+        for (int i = 0; i < MULTIPLE_COUNT; ++i) {
+            multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (MULTIPLE_COUNT - i)));
         }
     }
 
@@ -107,20 +106,20 @@ namespace AudioApp
         // extra beats rather than downsampling to less.
         updateBeat(0);
 
-        if (multiplierIndex != nextMultiplierIndex) {
-            setMultiplierFromIndex(nextMultiplierIndex);
+        if (multipleIndex != nextMultipleIndex) {
+            setMultipleFromIndex(nextMultipleIndex);
         }
 
-        for (uint8_t i = 0; i < multiplier - 1; ++i) {
+        for (uint8_t i = 0; i < multiple - 1; ++i) {
             uint8_t beat = i + 1;
             scheduledBeats.push_back(scheduledBeat{
-                timeOfBeat + (diffEwma / (double) multiplier * (double)beat),
+                timeOfBeat + (diffEwma / (double) multiple * (double)beat),
                 beat,
             });
         }
 
         flash(0.75f * (float)diffEwma);
-        segmentWidth = getWidth() / multiplier;
+        segmentWidth = getWidth() / multiple;
         dirty = true;
     }
 
