@@ -49,6 +49,7 @@ namespace AudioApp
         multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multipleIndex = m;
         multiple = ipow(2, multipleIndex);
+        segmentWidth = getWidth() / multiple;
         multipleButtons[multipleIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
     }
 
@@ -72,6 +73,7 @@ namespace AudioApp
         for (int i = 0; i < MULTIPLE_COUNT; ++i) {
             multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (MULTIPLE_COUNT - i)));
         }
+        segmentWidth = getWidth() / multiple;
     }
 
     void TempoSynthesizerComponent::timerCallback() {
@@ -119,7 +121,6 @@ namespace AudioApp
         }
 
         flash(0.75f * (float)diffEwma);
-        segmentWidth = getWidth() / multiple;
         dirty = true;
     }
 
