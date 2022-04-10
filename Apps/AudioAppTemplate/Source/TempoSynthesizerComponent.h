@@ -22,15 +22,12 @@ namespace AudioApp
     private:
         Logger &logger;
 
-        // max uint8 value so that next beat makes it start on 0
-        uint8_t currentBeat = 255;
         double diffEwma = 0;
 
         Colour colour = juce::Colours::grey;
         std::atomic<bool> dirty{};
 
         void flash(float duration);
-        void updateBeat(uint8_t beat);
         void updateColour(juce::Colour newColour);
 
         // multiple is the number of beats on top of the input beat in which we want to synthesise beats for.
@@ -41,7 +38,7 @@ namespace AudioApp
         juce::ShapeButton down {"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
         // MULTIPLE_COUNT cannot be higher than 9 because the index of the multipleButtons is used as an exponent for a base of 2.
         // Where a MULTIPLE_COUNT of 9 gives a highest index of 8, so ipow(2, 8) is 256. For synthesis, this value has 1
-        // taken off it and just fits into a uint8, which is what we store the current beat in.
+        // taken off it and just fits into a uint8, which is what is used for the scheduledBeat creating loop.
         #define MULTIPLE_COUNT 9
         juce::ShapeButton multipleButtons[MULTIPLE_COUNT]{
             {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
@@ -57,7 +54,6 @@ namespace AudioApp
 
         struct scheduledBeat {
             double millis;
-            uint8_t beat;
         };
 
         void setMultipleFromIndex(int m);
