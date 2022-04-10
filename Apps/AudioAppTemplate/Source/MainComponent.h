@@ -27,7 +27,7 @@ private:
     LogOutputComponent logger;
     AudioSourceComponent audioSource { deviceManager, logger };
     TempoAnalyserComponent tempoAnalyser;
-    TempoSynthesizerComponent tempoSynthesizer;
+    TempoSynthesizerComponent tempoSynthesizer { logger };
     OSCComponent oscComponent { logger };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
