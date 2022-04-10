@@ -9,7 +9,7 @@ namespace AudioApp
 
     TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l) : logger(l) {
         up.onClick = [this](){
-            if (nextMultipleIndex < MULTIPLE_COUNT-1) {
+            if (nextMultipleIndex < (TOTAL_MULTIPLE_COUNT - 1)) {
                 setNextMultipleIndex(nextMultipleIndex + 1);
             }
         };
@@ -28,7 +28,7 @@ namespace AudioApp
         down.setShape(downShape, true, false, false);
         down.setOutline(juce::Colours::transparentWhite, 3);
         addAndMakeVisible(down);
-        for (int i = 0; i < MULTIPLE_COUNT; ++i) {
+        for (int i = 0; i < TOTAL_MULTIPLE_COUNT; ++i) {
             juce::ShapeButton &button = multipleButtons[i];
             button.onClick = [this, i]() {
                 setNextMultipleIndex(i);
@@ -39,8 +39,8 @@ namespace AudioApp
             button.setOutline(juce::Colours::transparentWhite, 3);
             addAndMakeVisible(button);
         }
-        setMultipleFromIndex(2);
-        setNextMultipleIndex(2);
+        setMultipleFromIndex(4);
+        setNextMultipleIndex(4);
         juce::HighResolutionTimer::startTimer(1);
         juce::Timer::startTimerHz(60);
     }
@@ -48,7 +48,11 @@ namespace AudioApp
     void TempoSynthesizerComponent::setMultipleFromIndex(int m) {
         multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multipleIndex = m;
-        multiple = ipow(2, multipleIndex);
+        auto exponent = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
+        if (exponent < 0) {
+            exponent = -exponent;
+        }
+        multiple = ipow(2, exponent);
         multipleButtons[multipleIndex].setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
         dirty = true;
     }
@@ -71,8 +75,8 @@ namespace AudioApp
         auto rect = getLocalBounds().withTrimmedTop(halfHeight);
         up.setBounds(rect.removeFromRight(30));
         down.setBounds(rect.removeFromLeft(30));
-        for (int i = 0; i < MULTIPLE_COUNT; ++i) {
-            multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (MULTIPLE_COUNT - i)));
+        for (int i = 0; i < TOTAL_MULTIPLE_COUNT; ++i) {
+            multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (TOTAL_MULTIPLE_COUNT - i)));
         }
     }
 
@@ -101,23 +105,33 @@ namespace AudioApp
     // beat is called on the beat detected with period being the time between each call
     void TempoSynthesizerComponent::beat(double period) {
         auto timeOfBeat = juce::Time::getMillisecondCounterHiRes();
-
+        inputBeatCount++;
         diffEwma = ewma(diffEwma, (double)period, 0.5);
 
         if (multipleIndex != nextMultipleIndex) {
             setMultipleFromIndex(nextMultipleIndex);
         }
 
-        durationPerSynthesizedBeat = diffEwma / (double) multiple;
-        flash(0.75f * (float)durationPerSynthesizedBeat);
-
-        for (uint8_t i = 0; i < multiple - 1; ++i) {
-            uint8_t beat = i + 1;
-            scheduledBeats.push_back(scheduledBeat{
-                timeOfBeat + (durationPerSynthesizedBeat * (double)beat),
-            });
+        // map multipleIndex to a value where positive is upsampling and negative is downsampling a beat.
+        auto relativeMultiplierIndex = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
+        if (relativeMultiplierIndex > 0) {
+            durationPerSynthesizedBeat = diffEwma / (double) multiple;
+            flash(0.75f * (float)durationPerSynthesizedBeat);
+            for (uint8_t i = 0; i < multiple - 1; ++i) {
+                scheduledBeats.push_back(scheduledBeat{
+                        timeOfBeat + durationPerSynthesizedBeat * (double)(i + 1),
+                });
+            }
+            flash(0.75f * (float)durationPerSynthesizedBeat);
+        } else if (relativeMultiplierIndex == 0) {
+            durationPerSynthesizedBeat = diffEwma;
+            flash(0.75f * (float)durationPerSynthesizedBeat);
+        } else {
+            durationPerSynthesizedBeat = diffEwma * (double) multiple;
+            if (inputBeatCount % multiple == 0) {
+                flash(0.75f * (float)durationPerSynthesizedBeat);
+            }
         }
-
         dirty = true;
     }
 
