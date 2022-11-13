@@ -3,7 +3,7 @@
 
 namespace AudioApp
 {
-    LogOutputComponent::LogOutputComponent() : pauseButton("pause"), dirty(true), now(time(nullptr)) {
+    LogOutputComponent::LogOutputComponent() : pauseButton("pause"), levelButton("debug"), dirty(true), now(time(nullptr)) {
         // TODO: set to monospace font
         label.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         label.setJustificationType(juce::Justification::topLeft);
@@ -19,6 +19,17 @@ namespace AudioApp
             }
         };
         addAndMakeVisible(pauseButton);
+
+        levelButton.onClick = [this] {
+            this->debugLevel = !this->debugLevel;
+            if (this->debugLevel) {
+                this->levelButton.setButtonText("info");
+            } else {
+                this->levelButton.setButtonText("debug");
+            }
+            dirty = true;
+        };
+        addAndMakeVisible(levelButton);
         startTimerHz(30);
     }
 
@@ -35,13 +46,22 @@ namespace AudioApp
         }
     }
 
+
     void LogOutputComponent::resized() {
         label.setBounds(getLocalBounds());
-        pauseButton.setBounds(getLocalBounds().removeFromTop(15).removeFromRight(25));
+        static const int buttonWidth = 35;
+        const juce::Rectangle<int> &pauseBounds = getLocalBounds().removeFromTop(15).removeFromRight(buttonWidth);
+        pauseButton.setBounds(pauseBounds);
+        levelButton.setBounds(pauseBounds.translated(-buttonWidth, 0));
+    }
+
+    void LogOutputComponent::debug(const String& message) {
+        if (this->debugLevel)
+            log(leveledMessage{"DEBUG", message.toStdString() });
     }
 
     void LogOutputComponent::info(const String& message) {
-        log(leveledMessage{"INFO ", message.toStdString() });
+        log(leveledMessage{"INFO", message.toStdString() });
     }
 
     void LogOutputComponent::error(const String& message) {
