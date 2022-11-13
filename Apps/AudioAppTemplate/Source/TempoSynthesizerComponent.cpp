@@ -97,7 +97,7 @@ namespace AudioApp
             if (juce::Time::getMillisecondCounterHiRes() < soonest.millis) {
                 break;
             }
-            flash(0.75f * (float)durationPerSynthesizedBeat);
+            synthesizedBeat(durationPerSynthesizedBeat);
             scheduledBeats.pop_front();
         }
     }
@@ -114,29 +114,40 @@ namespace AudioApp
 
         // map multipleIndex to a value where positive is upsampling and negative is downsampling a beat.
         auto relativeMultiplierIndex = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
+
+        // upsampling
         if (relativeMultiplierIndex > 0) {
             durationPerSynthesizedBeat = diffEwma / (double) multiple;
-            flash(0.75f * (float)durationPerSynthesizedBeat);
+            synthesizedBeat(durationPerSynthesizedBeat);
             for (uint8_t i = 0; i < multiple - 1; ++i) {
                 scheduledBeats.push_back(scheduledBeat{
                         timeOfBeat + durationPerSynthesizedBeat * (double)(i + 1),
                 });
             }
-            flash(0.75f * (float)durationPerSynthesizedBeat);
+
+        // synthesized is the same as input
         } else if (relativeMultiplierIndex == 0) {
             durationPerSynthesizedBeat = diffEwma;
-            flash(0.75f * (float)durationPerSynthesizedBeat);
+            synthesizedBeat(durationPerSynthesizedBeat);
+
+        // downsampling
         } else {
             durationPerSynthesizedBeat = diffEwma * (double) multiple;
             if (inputBeatCount % multiple == 0) {
-                flash(0.75f * (float)durationPerSynthesizedBeat);
+                synthesizedBeat(durationPerSynthesizedBeat);
             }
         }
+
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::flash(float duration) {
-        Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
+    void TempoSynthesizerComponent::synthesizedBeat(double duration) {
+        if (onSynthesizedBeat != nullptr) {
+            onSynthesizedBeat(duration);
+        }
+
+        float flashDuration = 0.75f * (float) duration;
+        Repeat::repeatFunc(flashDuration/fadeIncrements, fadeIncrements, [this](int i){
             this->updateColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
         });
     }
