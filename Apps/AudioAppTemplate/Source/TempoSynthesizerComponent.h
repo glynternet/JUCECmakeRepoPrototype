@@ -19,6 +19,10 @@ namespace AudioApp
         void hiResTimerCallback() override;
 
         void beat(double period);
+
+        // onSynthesizedBeat is run whenever a new beat is synthesized and
+        // receives the duration since last synthesized beat as a parameter.
+        std::function<void(double)> onSynthesizedBeat;
     private:
         Logger &logger;
 
@@ -29,7 +33,7 @@ namespace AudioApp
         Colour colour = juce::Colours::grey;
         std::atomic<bool> dirty{};
 
-        void flash(float duration);
+        void synthesizedBeat(double duration);
         void updateColour(juce::Colour newColour);
 
         // multiple is the number of beats on top of the input beat in which we want to synthesise beats for.
