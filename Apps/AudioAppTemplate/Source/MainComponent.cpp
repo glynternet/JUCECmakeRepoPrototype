@@ -15,7 +15,7 @@ namespace AudioApp
             tempoSynthesizer.beat(period);
         };
         tempoSynthesizer.onSynthesizedBeat = [this](double period) {
-            oscComponent.sendBeatMessage();
+            oscComponent.sendBeatMessage(period);
         };
         addAndMakeVisible(tempoAnalyser);
         addAndMakeVisible(tempoSynthesizer);
