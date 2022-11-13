@@ -95,7 +95,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::openButtonClicked()
     {
-        logger.info("Open button clicked");
+        logger.debug("Open button clicked");
         fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
                                                            juce::File::getSpecialLocation(juce::File::userMusicDirectory),
                                                            // TODO: MP3 doesn't seem to work on z30-a linux.
@@ -111,7 +111,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     void AudioSourceComponent::chooserClosed(const juce::FileChooser& chooser){
         juce::File file (chooser.getResult());
 
-        logger.info("File chooser closed");
+        logger.debug("File chooser closed");
 
         juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
         if (reader != nullptr)
@@ -124,18 +124,16 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
             playSource.reset(tempSource.release());
         }
-        logger.info("Reaader prepated");
+        logger.debug("Reader prepared");
     }
 
     void AudioSourceComponent::playButtonClicked()
     {
-        logger.info("Play button clicked");
         transportStateChanged(Starting);
     }
 
     void AudioSourceComponent::stopButtonClicked()
     {
-        logger.info("Stop button clicked");
         transportStateChanged(Stopping);
     }
 
@@ -147,21 +145,25 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
             switch (state) {
                 case Stopped:
+                    logger.info("Stopped");
                     playButton.setEnabled(true);
                     transport.setPosition(0.0);
                     break;
 
                 case Playing:
+                    logger.info("Playing");
                     playButton.setEnabled(true);
                     break;
 
                 case Starting:
+                    logger.info("Starting");
                     stopButton.setEnabled(true);
                     playButton.setEnabled(false);
                     transport.start();
                     break;
 
                 case Stopping:
+                    logger.info("Stopping");
                     playButton.setEnabled(true);
                     stopButton.setEnabled(false);
                     transport.stop();

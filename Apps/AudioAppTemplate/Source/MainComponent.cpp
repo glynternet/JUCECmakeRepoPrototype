@@ -34,7 +34,7 @@ namespace AudioApp
     void MainComponent::resized()
     {
         auto area = getLocalBounds();
-        logger.info("resized: " + area.toString());
+        logger.debug("resized: " + area.toString());
 
         audioSource.setBounds(area.removeFromTop(390));
         oscComponent.setBounds(area.removeFromBottom(50));

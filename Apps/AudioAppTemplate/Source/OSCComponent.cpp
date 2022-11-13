@@ -39,7 +39,7 @@ namespace AudioApp {
         if (senderConnected) {
             try {
                 if (sender.send(*clockMessage)) {
-                    logger.info("Message sent");
+                    logger.debug("Message sent");
                 } else {
                     logger.error("Error sending message");
                 }
