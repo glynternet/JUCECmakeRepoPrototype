@@ -73,6 +73,7 @@ namespace AudioApp
             logMessages.pop_back();
         }
 
+        now = time(nullptr);
         localtime_s(&ltm,&now);
 
         std::ostringstream oss;
