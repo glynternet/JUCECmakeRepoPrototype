@@ -35,9 +35,11 @@ namespace AudioApp {
 
     void OSCComponent::paint(Graphics&) {}
 
-    void OSCComponent::sendBeatMessage() {
+    void OSCComponent::sendBeatMessage(double period) {
         if (senderConnected) {
             try {
+                // modify period argument of message
+                (*clockMessage)[1] = (float)period;
                 if (sender.send(*clockMessage)) {
                     logger.debug("Message sent");
                 } else {
