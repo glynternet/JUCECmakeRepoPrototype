@@ -18,6 +18,7 @@ namespace AudioApp
 
         void paint(Graphics& g) override;
         void resized() override;
+        void debug(const String &message) override;
         void info(const String &message) override;
         void error(const String &message) override;
         void timerCallback() override;
@@ -27,6 +28,9 @@ namespace AudioApp
 
         juce::TextButton pauseButton;
         bool playing = true;
+
+        juce::TextButton levelButton;
+        bool debugLevel = false;
 
         juce::Label label;
         // TODO: probably a good idea to put some locking on here as I'm not really sure how safe this is
