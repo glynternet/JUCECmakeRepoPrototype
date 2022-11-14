@@ -3,8 +3,6 @@
 
 namespace AudioApp
 {
-    static const int fadeIncrements = 8;
-    int halfHeight;
     double durationPerSynthesizedBeat = 500;
 
     TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l) : logger(l) {
@@ -66,13 +64,10 @@ namespace AudioApp
 
     void TempoSynthesizerComponent::paint(Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-        g.setColour(colour);
-        g.fillRect(getLocalBounds().withTrimmedBottom(halfHeight));
     }
 
     void TempoSynthesizerComponent::resized() {
-        halfHeight = getHeight() / 2;
-        auto rect = getLocalBounds().withTrimmedTop(halfHeight);
+        auto rect = getLocalBounds();
         up.setBounds(rect.removeFromRight(30));
         down.setBounds(rect.removeFromLeft(30));
         for (int i = 0; i < TOTAL_MULTIPLE_COUNT; ++i) {
@@ -145,15 +140,5 @@ namespace AudioApp
         if (onSynthesizedBeat != nullptr) {
             onSynthesizedBeat(duration);
         }
-
-        float flashDuration = 0.75f * (float) duration;
-        Repeat::repeatFunc(flashDuration/fadeIncrements, fadeIncrements, [this](int i){
-            this->updateColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
-        });
-    }
-
-    void TempoSynthesizerComponent::updateColour(juce::Colour newColour) {
-        colour = newColour;
-        dirty = true;
     }
 }

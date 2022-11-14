@@ -30,11 +30,9 @@ namespace AudioApp
 
         double diffEwma = 0;
 
-        Colour colour = juce::Colours::grey;
         std::atomic<bool> dirty{};
 
         void synthesizedBeat(double duration);
-        void updateColour(juce::Colour newColour);
 
         // multiple is the number of beats on top of the input beat in which we want to synthesise beats for.
         int multiple = 1;
