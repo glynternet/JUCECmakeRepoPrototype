@@ -13,12 +13,15 @@ namespace AudioApp
 
         tempoAnalyser.onBeat = [this](double period) {
             tempoSynthesizer.beat(period);
+            tempoAnalyserFlash.flash(0.75f * (float) period);
         };
         tempoSynthesizer.onSynthesizedBeat = [this](double period) {
             oscComponent.sendBeatMessage(period);
+            tempoSynthesizerFlash.flash(0.75f * (float) period);
         };
-        addAndMakeVisible(tempoAnalyser);
+        addAndMakeVisible(tempoAnalyserFlash);
         addAndMakeVisible(tempoSynthesizer);
+        addAndMakeVisible(tempoSynthesizerFlash);
 
         setSize (400, 700);
     }
@@ -40,8 +43,10 @@ namespace AudioApp
 
         audioSource.setBounds(area.removeFromTop(390));
         oscComponent.setBounds(area.removeFromBottom(50));
-        tempoSynthesizer.setBounds(area.removeFromBottom(50));
-        tempoAnalyser.setBounds(area.removeFromBottom(50));
+        tempoSynthesizer.setBounds(area.removeFromBottom(25));
+        auto tempoFlashes = area.removeFromBottom(25);
+        tempoAnalyserFlash.setBounds(tempoFlashes.removeFromLeft(25));
+        tempoSynthesizerFlash.setBounds(tempoFlashes);
         logger.setBounds(area);
     }
 

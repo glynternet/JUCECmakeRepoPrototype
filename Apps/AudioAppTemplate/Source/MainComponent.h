@@ -3,6 +3,7 @@
 #include <cmath>
 #include "CommonHeader.h"
 #include "AudioSourceComponent.h"
+#include "FlashBox.h"
 #include "LogOutputComponent.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
@@ -27,7 +28,9 @@ private:
     LogOutputComponent logger;
     AudioSourceComponent audioSource { deviceManager, logger };
     TempoAnalyserComponent tempoAnalyser;
+    FlashBox tempoAnalyserFlash;
     TempoSynthesizerComponent tempoSynthesizer { logger };
+    FlashBox tempoSynthesizerFlash;
     OSCComponent oscComponent { logger };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
