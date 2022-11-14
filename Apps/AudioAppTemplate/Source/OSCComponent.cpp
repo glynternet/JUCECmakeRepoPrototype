@@ -56,7 +56,7 @@ namespace AudioApp {
 
     void OSCComponent::connectOSCSender(const String& address) {
         auto target = address + ":" + OSCPortString;
-        senderConnected = sender.connect (address, OSCPort);
+        senderConnected = sender.connect(address, OSCPort);
         if (!senderConnected) {
             logger.error("Error: could not connect to UDP port " + OSCPortString);
             return;
