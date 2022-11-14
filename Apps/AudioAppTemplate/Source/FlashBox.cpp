@@ -5,16 +5,14 @@
 #include "FlashBox.h"
 
 namespace AudioApp {
-    static const int fadeIncrements = 16;
-
     FlashBox::FlashBox() {
         juce::Timer::startTimerHz(60);
     }
 
     void FlashBox::flash(float duration) {
-        Repeat::repeatFunc(duration/fadeIncrements, fadeIncrements, [this](int i){
-            this->updateColour(juce::Colours::white.interpolatedWith(juce::Colours::grey, (float) i / float(fadeIncrements-1)));
-        });
+        flashStart = juce::Time::getMillisecondCounterHiRes();
+        flashDuration = duration;
+        brightness = 1;
     };
 
     void FlashBox::paint(Graphics &g) {
@@ -22,13 +20,20 @@ namespace AudioApp {
     }
 
     void FlashBox::timerCallback() {
-        if (dirty.exchange(false)) {
-            repaint();
+        // if brightness is 0, there is no flash in progress, return
+        if (brightness == 0) {
+            return;
         }
-    }
 
-    void FlashBox::updateColour(juce::Colour newColour) {
-        colour = newColour;
-        dirty = true;
+        auto now = juce::Time::getMillisecondCounterHiRes();
+        auto timeSinceFlash = now - flashStart;
+        if (timeSinceFlash > flashDuration) {
+            brightness = 0;
+            return;
+        }
+
+        brightness = 1.0f - ((float)timeSinceFlash / flashDuration);
+        colour = juce::Colours::grey.interpolatedWith(juce::Colours::white, brightness);
+        repaint();
     }
 }
