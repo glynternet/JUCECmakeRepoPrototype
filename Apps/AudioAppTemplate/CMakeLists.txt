@@ -8,6 +8,7 @@ juce_generate_juce_header(${TargetName})
 # I think this only needs to be the .cpp files
 target_sources(${TargetName} PRIVATE
         Source/AudioSourceComponent.cpp
+        Source/FlashBox.cpp
         Source/LogOutputComponent.cpp
         Source/Main.cpp
         Source/MainComponent.cpp
