@@ -6,7 +6,6 @@
 #define JUCECMAKEREPO_FLASHBOX_H
 
 #include "CommonHeader.h"
-#include "Repeat.h"
 
 namespace AudioApp {
     class FlashBox : public juce::Component, juce::Timer {

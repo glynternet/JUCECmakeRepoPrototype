@@ -3,7 +3,6 @@
 #include <cmath>
 #include "CommonHeader.h"
 #include "../Libs/BTrack/BTrack.h"
-#include "Repeat.h"
 
 namespace AudioApp
 {
