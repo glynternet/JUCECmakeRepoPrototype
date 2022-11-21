@@ -36,15 +36,12 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::changeListenerCallback (juce::ChangeBroadcaster *source)
     {
-        logger.info("Change listened callback triggered");
+        logger.debug("Change listener callback triggered");
         if (source == &transport)
         {
-            if (transport.isPlaying())
-            {
+            if (transport.isPlaying()) {
                 transportStateChanged(Playing);
-            }
-            else
-            {
+            } else {
                 transportStateChanged(Stopped);
             }
         }
@@ -146,12 +143,14 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
                 case Stopped:
                     logger.info("Stopped");
                     playButton.setEnabled(true);
+                    stopButton.setEnabled(false);
                     transport.setPosition(0.0);
                     break;
 
                 case Playing:
                     logger.info("Playing");
-                    playButton.setEnabled(true);
+                    playButton.setEnabled(false);
+                    stopButton.setEnabled(true);
                     break;
 
                 case Starting:
