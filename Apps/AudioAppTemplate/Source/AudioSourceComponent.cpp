@@ -110,7 +110,6 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::chooserClosed(const juce::FileChooser& chooser){
         juce::File file (chooser.getResult());
-
         logger.debug("File chooser closed");
 
         juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
