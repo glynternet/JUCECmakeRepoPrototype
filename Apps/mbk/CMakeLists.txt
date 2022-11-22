@@ -1,8 +1,8 @@
-project(AudioAppTemplate VERSION 0.0.1)
+project(mbk VERSION 0.0.1)
 
 set (TargetName ${PROJECT_NAME})
 
-juce_add_gui_app(${TargetName} PRODUCT_NAME "Audio App Template")
+juce_add_gui_app(${TargetName} PRODUCT_NAME "mbk")
 juce_generate_juce_header(${TargetName})
 
 # I think this only needs to be the .cpp files
