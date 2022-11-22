@@ -2,6 +2,8 @@
 
 namespace AudioApp
 {
+    #define FLASH_PROPORTION 0.5f
+
     MainComponent::MainComponent() {
         setAudioChannels(2,2);
 
@@ -13,11 +15,11 @@ namespace AudioApp
 
         tempoAnalyser.onBeat = [this](double period) {
             tempoSynthesizer.beat(period);
-            tempoAnalyserFlash.flash(0.75f * (float) period);
+            tempoAnalyserFlash.flash(FLASH_PROPORTION * (float) period);
         };
         tempoSynthesizer.onSynthesizedBeat = [this](double period) {
             oscComponent.sendBeatMessage(period);
-            tempoSynthesizerFlash.flash(0.75f * (float) period);
+            tempoSynthesizerFlash.flash(FLASH_PROPORTION * (float) period);
         };
         addAndMakeVisible(tempoAnalyserFlash);
         addAndMakeVisible(tempoSynthesizer);
