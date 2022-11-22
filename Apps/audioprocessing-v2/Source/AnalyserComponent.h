@@ -476,7 +476,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
             logMessage("Sample rate: " + String(device->getCurrentSampleRate()) + " Hz");
             logMessage("Block size: " + String(device->getCurrentBufferSizeSamples()) + " samples");
             logMessage("Bit depth: " + String(device->getCurrentBitDepth()));
-            logMessage("Active input channels: " +
+            logMessage("Active input indices: " +
                        getListOfActiveBits(device->getActiveInputChannels()));
         } else {
             logMessage("No audio device open");
