@@ -20,7 +20,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
                     openButton.setVisible(true);
                 } else {
                     if (state != Stopped) {
-                        stopButtonClicked();
+                        transportStateChanged(Stopping);
                     }
                     playButton.setVisible(false);
                     stopButton.setVisible(false);
@@ -34,11 +34,11 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         openButton.onClick = [this] {  openButtonClicked(); };
         addAndMakeVisible(&openButton);
 
-        playButton.onClick = [this] { playButtonClicked(); };
+        playButton.onClick = [this] { transportStateChanged(Starting); };
         playButton.setEnabled(true);
         addAndMakeVisible(&playButton);
 
-        stopButton.onClick = [this] { stopButtonClicked(); };
+        stopButton.onClick = [this] { transportStateChanged(Stopping); };
         stopButton.setEnabled(false);
         addAndMakeVisible(&stopButton);
 
@@ -174,18 +174,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         logger.debug("Reader prepared");
     }
 
-    void AudioSourceComponent::playButtonClicked()
-    {
-        transportStateChanged(Starting);
-    }
-
-    void AudioSourceComponent::stopButtonClicked()
-    {
-        transportStateChanged(Stopping);
-    }
-
-    void AudioSourceComponent::transportStateChanged(TransportState newState)
-    {
+    void AudioSourceComponent::transportStateChanged(TransportState newState) {
         if (newState != state)
         {
             state = newState;

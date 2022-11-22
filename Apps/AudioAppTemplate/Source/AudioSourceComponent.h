@@ -44,8 +44,6 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
         void chooserClosed(const juce::FileChooser& chooser);
-        void playButtonClicked();
-        void stopButtonClicked();
         void transportStateChanged(TransportState newState);
         juce::TextButton openButton;
         juce::TextButton playButton;
