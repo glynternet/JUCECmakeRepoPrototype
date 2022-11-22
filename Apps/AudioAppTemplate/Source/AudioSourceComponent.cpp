@@ -162,12 +162,14 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         if (reader != nullptr)
         {
             //get the file ready to play
-            std::unique_ptr<juce::AudioFormatReaderSource> tempSource (new juce::AudioFormatReaderSource (reader, true));
+            std::unique_ptr<juce::AudioFormatReaderSource> sourceReader (new juce::AudioFormatReaderSource (reader, true));
 
-            transport.setSource(tempSource.get());
+            transport.setSource(sourceReader.get());
             transportStateChanged(Stopped);
 
-            playSource.reset(tempSource.release());
+            // I believe this needs to be here so that the tempSource is not deleted until playSource is deleted,
+            // which will happen when the AudioSourceComponent is deleted.
+            playSource = std::move(sourceReader);
         }
         logger.debug("Reader prepared");
     }
