@@ -31,7 +31,7 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
         juce::AudioDeviceSelectorComponent selector {
             deviceManager, 2, 2, 2, 2, false, false, true, false};
 
-        // File play
+        // File transport
         enum TransportState
         {
             Stopped,
@@ -39,22 +39,22 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
             Stopping,
             Playing
         };
-
         TransportState state;
-
         void openButtonClicked();
         std::unique_ptr<juce::FileChooser> fileChooser_;
+        juce::AudioFormatManager formatManager;
         void chooserClosed(const juce::FileChooser& chooser);
         void playButtonClicked();
         void stopButtonClicked();
         void transportStateChanged(TransportState newState);
-
         juce::TextButton openButton;
         juce::TextButton playButton;
         juce::TextButton stopButton;
-
-        juce::AudioFormatManager formatManager;
         std::unique_ptr<juce::AudioFormatReaderSource> playSource;
         juce::AudioTransportSource transport;
+
+        // Source selection
+        bool filePlayerEnabled = false;
+        juce::ToggleButton sourceToggle {"enable file player"} ;
     };
 }
