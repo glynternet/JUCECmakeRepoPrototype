@@ -166,7 +166,7 @@ class FilePlayerTransportComponent : public Component, private ChangeListener, p
         int millisDisplay = millis % 1000;
         int secondsDisplay = (millis / 1000) % 60;
         int minutesDisplay = (millis / 60000) % 10000;
-        sprintf(buffer, "%4d:%02d:%03d", minutesDisplay, secondsDisplay, millisDisplay);
+        sprintf_s(buffer, "%4d:%02d:%03d", minutesDisplay, secondsDisplay, millisDisplay);
         return std::string(buffer);
     }
 
