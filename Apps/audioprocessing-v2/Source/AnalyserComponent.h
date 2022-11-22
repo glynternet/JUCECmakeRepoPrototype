@@ -430,14 +430,10 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
     // ====================================================
 
     void timerCallback(int ID) override {
-        switch (ID) {
-            case fftTimerID: {
-                fftTimerCallback();
-                // also do CPU Usage here but move elsewhere later
-                updateCPULabel();
-            } break;
-            default:
-                break;
+        if (ID == fftTimerID) {
+            fftTimerCallback();
+            // also do CPU Usage here but move elsewhere later
+            updateCPULabel();
         }
     }
 
