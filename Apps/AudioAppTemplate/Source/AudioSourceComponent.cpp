@@ -1,19 +1,18 @@
 #include "AudioSourceComponent.h"
 
-namespace AudioApp
-{
+namespace AudioApp {
 
-    #define BUTTONS_GAP 10
-    #define BUTTONS_HEIGHT 30
+#define BUTTONS_GAP 10
+#define BUTTONS_HEIGHT 30
 
-AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManager, Logger& logger)
-    : deviceManager(deviceManager), logger(logger), state(Stopped), openButton("Open"), playButton("Play"), stopButton("Stop")
-{
-        sourceToggle.onStateChange = [this]{
+    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
+            : deviceManager(deviceManager), logger(logger), state(Stopped), openButton("Open"), playButton("Play"),
+              stopButton("Stop") {
+        sourceToggle.onStateChange = [this] {
             bool newFilePlayerEnabled = sourceToggle.getToggleState();
             if (newFilePlayerEnabled != filePlayerEnabled) {
                 filePlayerEnabled = newFilePlayerEnabled;
-                this->logger.debug("Updated filePlayerEnabled to: "+ std::to_string(filePlayerEnabled));
+                this->logger.debug("Updated filePlayerEnabled to: " + std::to_string(filePlayerEnabled));
                 if (filePlayerEnabled) {
                     playButton.setVisible(true);
                     stopButton.setVisible(true);
@@ -31,7 +30,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         };
         addAndMakeVisible(&sourceToggle);
 
-        openButton.onClick = [this] {  openButtonClicked(); };
+        openButton.onClick = [this] { openButtonClicked(); };
         addAndMakeVisible(&openButton);
 
         playButton.onClick = [this] { transportStateChanged(Starting); };
@@ -48,7 +47,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         addAndMakeVisible(selector);
     }
 
-    void AudioSourceComponent::paint(Graphics&) {}
+    void AudioSourceComponent::paint(Graphics &) {}
 
     void AudioSourceComponent::resized() {
         auto bounds = getLocalBounds();
@@ -68,17 +67,15 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
         bounds.removeFromBottom(BUTTONS_GAP);
         sourceToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
-            .withTrimmedRight(BUTTONS_GAP)
-            .withTrimmedLeft(BUTTONS_GAP));
+                                       .withTrimmedRight(BUTTONS_GAP)
+                                       .withTrimmedLeft(BUTTONS_GAP));
 
         selector.setBounds(bounds);
     }
 
-    void AudioSourceComponent::changeListenerCallback (juce::ChangeBroadcaster *source)
-    {
+    void AudioSourceComponent::changeListenerCallback(juce::ChangeBroadcaster *source) {
         logger.debug("Change listener callback triggered");
-        if (source == &transport)
-        {
+        if (source == &transport) {
             if (transport.isPlaying()) {
                 transportStateChanged(Playing);
             } else {
@@ -96,8 +93,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         // I THINK THIS IS NOT NEEDED BECAUSE RESOURCES ARE RELEASED IN THE MAINCOMPONENT
     }
 
-    void AudioSourceComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
-    {
+    void AudioSourceComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) {
         if (filePlayerEnabled) {
             transport.getNextAudioBlock(bufferToFill);
 
@@ -108,7 +104,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
             }
         } else {
             // example from https://docs.juce.com/master/tutorial_processing_audio_input.html
-            auto* device = deviceManager.getCurrentAudioDevice();
+            auto *device = deviceManager.getCurrentAudioDevice();
             const auto activeInputChannels = device->getActiveInputChannels();
 
             // BigInteger::getHighestBit returns -1 when value is 0,
@@ -121,7 +117,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
             }
         }
 
-        const auto* inputData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
+        const auto *inputData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
 
         // as prescribed in BTrack README: https://github.com/adamstark/BTrack
         // TODO(glynternet): is there a float version of BTrack so that we can avoid this conversion of float to double and avoid creating a vector?
@@ -135,34 +131,34 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
         frameValues2 = frameValues;
     }
 
-    double* AudioSourceComponent::getFrameValues() {
+    double *AudioSourceComponent::getFrameValues() {
         return frameValues2.data();
     }
 
-    void AudioSourceComponent::openButtonClicked()
-    {
+    void AudioSourceComponent::openButtonClicked() {
         logger.debug("Open button clicked");
-        fileChooser_ = std::make_unique<juce::FileChooser> (("Choose a Patch to open..."),
-                                                           juce::File::getSpecialLocation(juce::File::userMusicDirectory),
-                                                           // TODO: MP3 doesn't seem to work on z30-a linux.
-                                                           //   Does it work on any other machine OS combo?
+        fileChooser_ = std::make_unique<juce::FileChooser>(("Choose a Patch to open..."),
+                                                           juce::File::getSpecialLocation(
+                                                                   juce::File::userMusicDirectory),
+                // TODO: MP3 doesn't seem to work on z30-a linux.
+                //   Does it work on any other machine OS combo?
                                                            "*.wav");
 
-        fileChooser_->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        fileChooser_->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                                   [this](const juce::FileChooser &fileChooser) {
                                       this->chooserClosed(fileChooser);
                                   });
     }
 
-    void AudioSourceComponent::chooserClosed(const juce::FileChooser& chooser){
-        juce::File file (chooser.getResult());
+    void AudioSourceComponent::chooserClosed(const juce::FileChooser &chooser) {
+        juce::File file(chooser.getResult());
         logger.debug("File chooser closed");
 
-        juce::AudioFormatReader* reader = formatManager.createReaderFor(file);
-        if (reader != nullptr)
-        {
+        juce::AudioFormatReader *reader = formatManager.createReaderFor(file);
+        if (reader != nullptr) {
             //get the file ready to play
-            std::unique_ptr<juce::AudioFormatReaderSource> sourceReader (new juce::AudioFormatReaderSource (reader, true));
+            std::unique_ptr<juce::AudioFormatReaderSource> sourceReader(
+                    new juce::AudioFormatReaderSource(reader, true));
 
             transport.setSource(sourceReader.get());
             transportStateChanged(Stopped);
@@ -175,8 +171,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     }
 
     void AudioSourceComponent::transportStateChanged(TransportState newState) {
-        if (newState != state)
-        {
+        if (newState != state) {
             state = newState;
 
             switch (state) {
