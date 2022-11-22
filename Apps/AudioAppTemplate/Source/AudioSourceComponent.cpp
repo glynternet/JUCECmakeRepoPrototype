@@ -2,9 +2,35 @@
 
 namespace AudioApp
 {
+
+    #define BUTTONS_GAP 10
+    #define BUTTONS_HEIGHT 30
+
 AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManager, Logger& logger)
     : deviceManager(deviceManager), logger(logger), state(Stopped), openButton("Open"), playButton("Play"), stopButton("Stop")
 {
+        sourceToggle.onStateChange = [this]{
+            bool newFilePlayerEnabled = sourceToggle.getToggleState();
+            if (newFilePlayerEnabled != filePlayerEnabled) {
+                filePlayerEnabled = newFilePlayerEnabled;
+                this->logger.debug("Updated filePlayerEnabled to: "+ std::to_string(filePlayerEnabled));
+                if (filePlayerEnabled) {
+                    playButton.setVisible(true);
+                    stopButton.setVisible(true);
+                    openButton.setVisible(true);
+                } else {
+                    if (state != Stopped) {
+                        stopButtonClicked();
+                    }
+                    playButton.setVisible(false);
+                    stopButton.setVisible(false);
+                    openButton.setVisible(false);
+                }
+                resized();
+            }
+        };
+        addAndMakeVisible(&sourceToggle);
+
         openButton.onClick = [this] {  openButtonClicked(); };
         addAndMakeVisible(&openButton);
 
@@ -25,13 +51,27 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     void AudioSourceComponent::paint(Graphics&) {}
 
     void AudioSourceComponent::resized() {
-        auto selectorBounds = getLocalBounds().withTrimmedBottom(50);
-        selector.setBounds(selectorBounds);
-        int buttonWidth = (getWidth() - 40) / 3;
-        int buttonsY = selectorBounds.getBottom() + 10;
-        openButton.setBounds(10, buttonsY, buttonWidth, 30);
-        playButton.setBounds(20 + buttonWidth, buttonsY, buttonWidth, 30);
-        stopButton.setBounds(30 + 2 * buttonWidth, buttonsY, buttonWidth, 30);
+        auto bounds = getLocalBounds();
+
+        if (filePlayerEnabled) {
+            bounds.removeFromBottom(BUTTONS_GAP);
+            auto transportButtonsBounds = bounds.removeFromBottom(BUTTONS_HEIGHT)
+                    .withTrimmedLeft(BUTTONS_GAP)
+                    .withTrimmedRight(BUTTONS_GAP);
+            auto buttonWidth = (transportButtonsBounds.getWidth() - 2 * BUTTONS_GAP) / 3;
+            openButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
+            transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
+            playButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
+            transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
+            stopButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
+        }
+
+        bounds.removeFromBottom(BUTTONS_GAP);
+        sourceToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
+            .withTrimmedRight(BUTTONS_GAP)
+            .withTrimmedLeft(BUTTONS_GAP));
+
+        selector.setBounds(bounds);
     }
 
     void AudioSourceComponent::changeListenerCallback (juce::ChangeBroadcaster *source)
@@ -58,17 +98,30 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     void AudioSourceComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
     {
-        // TODO(glynternet): some logic around handling file vs device input.
-        transport.getNextAudioBlock(bufferToFill);
+        if (filePlayerEnabled) {
+            transport.getNextAudioBlock(bufferToFill);
 
-        if (bufferToFill.buffer->getNumChannels() == 0) {
-            logger.error("No channels in buffer to fill");
-            bufferToFill.clearActiveBufferRegion();
-            return;
+            if (bufferToFill.buffer->getNumChannels() == 0) {
+                logger.error("No channels in buffer to fill");
+                bufferToFill.clearActiveBufferRegion();
+                return;
+            }
+        } else {
+            // example from https://docs.juce.com/master/tutorial_processing_audio_input.html
+            auto* device = deviceManager.getCurrentAudioDevice();
+            const auto activeInputChannels = device->getActiveInputChannels();
+
+            // BigInteger::getHighestBit returns -1 when value is 0,
+            // where no input channels would be available.
+            if (activeInputChannels.getHighestBit() == -1) {
+                return;
+            }
+            if (!activeInputChannels[0]) {
+                return;
+            }
         }
 
         const auto* inputData = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
-        auto* outputData = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
 
         // as prescribed in BTrack README: https://github.com/adamstark/BTrack
         // TODO(glynternet): is there a float version of BTrack so that we can avoid this conversion of float to double and avoid creating a vector?
@@ -77,10 +130,6 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
             frameValues[i] = inputData[i];
-
-            // TODO(glynternet): some logic around handling file vs device input.
-            //   If from file, the transport will have already written to the output portion of the buffer.
-            outputData[i] = inputData[i];
         }
 
         frameValues2 = frameValues;
