@@ -137,7 +137,7 @@ namespace AudioApp {
 
     void AudioSourceComponent::openButtonClicked() {
         logger.debug("Open button clicked");
-        fileChooser_ = std::make_unique<juce::FileChooser>(("Choose a Patch to open..."),
+        fileChooser_ = std::make_unique<juce::FileChooser>(("Choose a .wav to open..."),
                                                            juce::File::getSpecialLocation(
                                                                    juce::File::userMusicDirectory),
                 // TODO: MP3 doesn't seem to work on z30-a linux.
