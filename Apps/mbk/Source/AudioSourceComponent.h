@@ -7,37 +7,34 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
-namespace AudioApp
-{
-class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener
-    {
+namespace AudioApp {
+    class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener {
     public:
-        explicit AudioSourceComponent(juce::AudioDeviceManager& deviceManager, Logger& logger);
+        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger);
 
-        void paint(juce::Graphics& g) override;
+        void paint(juce::Graphics &g) override;
         void resized() override;
 
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
         void releaseResources() override;
-        void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+        void getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) override;
 
         // get frame values from last block of audio processed
-        double* getFrameValues();
+        double *getFrameValues();
 
     private:
         std::vector<double> frameValues2;
-        Logger& logger;
+        Logger &logger;
 
-        juce::AudioDeviceManager& deviceManager;
+        juce::AudioDeviceManager &deviceManager;
 
-        void changeListenerCallback (juce::ChangeBroadcaster *source) override;
+        void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 
-        juce::AudioDeviceSelectorComponent selector {
-            deviceManager, 2, 2, 2, 2, false, false, true, false};
+        juce::AudioDeviceSelectorComponent selector{
+                deviceManager, 2, 2, 2, 2, false, false, true, false};
 
         // File transport
-        enum TransportState
-        {
+        enum TransportState {
             Stopped,
             Starting,
             Stopping,
@@ -47,7 +44,7 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
         void openButtonClicked();
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
-        void chooserClosed(const juce::FileChooser& chooser);
+        void chooserClosed(const juce::FileChooser &chooser);
         void transportStateChanged(TransportState newState);
         juce::TextButton openButton;
         juce::TextButton playButton;
@@ -57,6 +54,8 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
 
         // Source selection
         bool filePlayerEnabled = false;
-        juce::ToggleButton sourceToggle {"enable file player"} ;
+        juce::ToggleButton sourceToggle{"enable file player"};
+
+        juce::ToggleButton monitorOutputToggle{"monitor output"};
     };
 }
