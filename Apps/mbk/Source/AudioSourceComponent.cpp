@@ -30,6 +30,8 @@ namespace AudioApp {
         };
         addAndMakeVisible(&sourceToggle);
 
+        addAndMakeVisible(&monitorOutputToggle);
+
         openButton.onClick = [this] { openButtonClicked(); };
         addAndMakeVisible(&openButton);
 
@@ -69,6 +71,9 @@ namespace AudioApp {
         sourceToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
                                        .withTrimmedRight(BUTTONS_GAP)
                                        .withTrimmedLeft(BUTTONS_GAP));
+        monitorOutputToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
+                                              .withTrimmedRight(BUTTONS_GAP)
+                                              .withTrimmedLeft(BUTTONS_GAP));
 
         selector.setBounds(bounds);
     }
@@ -126,6 +131,11 @@ namespace AudioApp {
 
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
             frameValues[i] = inputData[i];
+        }
+
+        // TODO(glynternet): profile using getToggleState vs saving to a bool when state changes and then reading the bool
+        if (!monitorOutputToggle.getToggleState()) {
+            bufferToFill.clearActiveBufferRegion();
         }
 
         frameValues2 = frameValues;
