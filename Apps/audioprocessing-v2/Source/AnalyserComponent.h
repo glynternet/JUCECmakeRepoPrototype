@@ -64,19 +64,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     AnalyserComponent() {
         addAndMakeVisible(audioSource);
 
-        addAndMakeVisible(diagnosticsBox);
-        diagnosticsBox.setMultiLine(true);
-        diagnosticsBox.setReturnKeyStartsNewLine(true);
-        diagnosticsBox.setReadOnly(true);
-        diagnosticsBox.setScrollbarsShown(true);
-        diagnosticsBox.setCaretVisible(false);
-        diagnosticsBox.setPopupMenuEnabled(true);
-        diagnosticsBox.setColour(TextEditor::backgroundColourId, Colour(0x32ffffff));
-        diagnosticsBox.setColour(TextEditor::outlineColourId, Colour(0x1c000000));
-        diagnosticsBox.setColour(TextEditor::shadowColourId, Colour(0x16000000));
-
-        cpuUsageLabel.setText("CPU Usage", dontSendNotification);
-        cpuUsageText.setJustificationType(Justification::right);
+        cpuUsageText.setJustificationType(Justification::left);
         addAndMakeVisible(&cpuUsageLabel);
         addAndMakeVisible(&cpuUsageText);
 
@@ -87,7 +75,6 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
             audioSource.setVisible(visible);
-            diagnosticsBox.setVisible(visible);
             processingBandSlider.setVisible(visible);
             shaperInSlider.setVisible(visible);
             movingAverageSlider.setVisible(visible);
@@ -132,44 +119,32 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     void resized() override {
         auto bounds = getLocalBounds();
 
-        auto valueHistoryRect = bounds.removeFromTop(proportionOfHeight(0.5f));
-        valueHistoryComp.setBounds(valueHistoryRect);
+        resizeAudioSettings(bounds.removeFromLeft(500));
+        valueHistoryComp.setBounds(bounds);
 
-        resizeAudioSettings(bounds);
-        resizeSliderGroup();
+        resizeSliderGroup(bounds);
         remoteAddressComp.setBounds(getLocalBounds().removeFromBottom(20).removeFromRight(200));
     }
 
-    void resizeSliderGroup() {
+    void resizeSliderGroup(Rectangle<int> container) {
         constexpr int leftMargin = 10;
         constexpr int topMargin = 10;
         constexpr int height = 40;
-        const int rightEdge = proportionOfWidth(1.0f - 0.35f);
-        int width = rightEdge - leftMargin;
-        drawValueHistoryToggle.setBounds(leftMargin, topMargin, width, height);
-        processingBandSlider.setBounds(leftMargin, topMargin + 1 * height, width, height);
-        shaperInSlider.setBounds(leftMargin, topMargin + 2 * height, width, height);
-        movingAverageSlider.setBounds(leftMargin, topMargin + 3 * height, width, height);
-        decayLengthSlider.setBounds(leftMargin, topMargin + 4 * height, width, height);
-        timerFrequencySlider.setBounds(leftMargin, topMargin + 5 * height, width, height);
+        const int width = container.proportionOfWidth(0.65f);
+        const auto leftEdge = container.getPosition().getX() + leftMargin;
+        drawValueHistoryToggle.setBounds(leftEdge, topMargin, width, height);
+        processingBandSlider.setBounds(leftEdge, topMargin + 1 * height, width, height);
+        shaperInSlider.setBounds(leftEdge, topMargin + 2 * height, width, height);
+        movingAverageSlider.setBounds(leftEdge, topMargin + 3 * height, width, height);
+        decayLengthSlider.setBounds(leftEdge, topMargin + 4 * height, width, height);
+        timerFrequencySlider.setBounds(leftEdge, topMargin + 5 * height, width, height);
     }
 
     void resizeAudioSettings(Rectangle<int> container) {
-        // get left portion of rectangle for audio device selector
-        // this also removes that section from the rect
-        Rectangle<int> adscBounds = container.removeFromLeft(container.proportionOfWidth(0.6f));
-        audioSource.setBounds(adscBounds);
-
-        // reduce by given amount, creating a border kinda
-        container.reduce(10, 10);
-
-        // create space for cpi usage label
-        auto topLine(container.removeFromTop(20));
-        cpuUsageLabel.setBounds(topLine.removeFromLeft(topLine.getWidth() / 2));
-        cpuUsageText.setBounds(topLine);
-        container.removeFromTop(20);
-
-        diagnosticsBox.setBounds(container);
+        auto cpuSpace = container.removeFromBottom(20);
+        cpuUsageLabel.setBounds(cpuSpace.removeFromLeft(100));
+        cpuUsageText.setBounds(cpuSpace);
+        audioSource.setBounds(container);
     }
 
     //==============================================================================
@@ -250,10 +225,6 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
 
 
    private:
-    // ====================================================
-    // GUI
-    // ====================================================
-
     void setupProcessingBandSlider(LabelledSlider& slider) {
         addAndMakeVisible(slider);
         Slider& innerSlider = slider.getSlider();
@@ -344,13 +315,6 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
 
     void startTimerHz(int timerID, float Hz) { startTimer(timerID, (int) (1000.0f / Hz)); }
 
-    // ====================================================
-
-    void logMessage(const String& m) {
-        diagnosticsBox.moveCaretToEnd();
-        diagnosticsBox.insertTextAtCaret(m + newLine);
-    }
-
     // ===============================
     // OSC functions
     // ===============================
@@ -387,9 +351,8 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     StdoutLogger logger {};
     AudioApp::AudioSourceComponent audioSource { deviceManager, (AudioApp::Logger &)logger };
 
-    Label cpuUsageLabel;
+    Label cpuUsageLabel { "CPU Usage", "CPU Usage" };
     Label cpuUsageText;
-    TextEditor diagnosticsBox;
 
     ValueShaper valueShaper { 0.0f, 1.0f, 0.0f, 1.0f };
     LabelledSlider shaperInSlider { "Range In" };
