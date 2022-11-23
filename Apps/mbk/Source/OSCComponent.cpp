@@ -31,7 +31,7 @@ namespace AudioApp {
 
     void OSCComponent::resized() {
         auto bounds = getLocalBounds().reduced(10);
-        connectOSCButton.setBounds(bounds.removeFromRight(bounds.getWidth() / 2));
+        connectOSCButton.setBounds(bounds.removeFromRight(bounds.proportionOfWidth(0.5f)));
         targetAddress.setBounds(bounds);
     }
 

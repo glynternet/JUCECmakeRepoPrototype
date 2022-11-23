@@ -45,9 +45,7 @@
 *******************************************************************************/
 
 #pragma once
-#include "AudioInputSettingsComponent.h"
 #include "AvvaOSCSender.h"
-#include "FilePlayerTransportComponent.h"
 #include "JuceHeader.h"
 #include "LabelledSlider.h"
 #include "Loudness.h"
@@ -56,23 +54,18 @@
 #include "TailOff.h"
 #include "ValueHistoryComponent.h"
 #include "ValueShaper.h"
+#include "../../mbk/Source/AudioSourceComponent.h"
+#include "../../mbk/Source/Logger.h"
+#include "StdoutLogger.h"
 
 //==============================================================================
-class AnalyserComponent : public AudioAppComponent, private MultiTimer, public ChangeListener {
+class AnalyserComponent : public AudioAppComponent, private MultiTimer {
    public:
+    StdoutLogger logger {};
     AnalyserComponent()
         : forwardFFT(fftOrder),
           window(fftSize, dsp::WindowingFunction<float>::hann),
-          audioDeviceSelectorComp(deviceManager,
-                                  0,       // minimum input channels
-                                  256,     // maximum input channels
-                                  0,       // minimum output channels
-                                  256,     // maximum output channels
-                                  false,   // ability to select midi inputs
-                                  false,   // ability to select midi output device
-                                  false,   // treat channels as stereo pairs
-                                  false),  // hide advanced options
-          filePlayerTransportComp(25),
+          audioSource(deviceManager, (AudioApp::Logger &)logger),
           processingBandSlider("Frequency Band"),
           shaperInSlider("Range In"),
           valueShaper(0.0f, 1.0f, 0.0f, 1.0f),
@@ -80,10 +73,9 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
           movingAverage(movingAverageInitialWindow),
           decayLengthSlider("Decay Length"),
           decayLength(initialDecayExponent),
-          drawValueHistoryToggle("Draw Controls"),
-          timerFrequencySlider("Process Rate")
+          drawValueHistoryToggle("Draw Controls")
     {
-        addAndMakeVisible(audioDeviceSelectorComp);
+        addAndMakeVisible(audioSource);
 
         addAndMakeVisible(diagnosticsBox);
         diagnosticsBox.setMultiLine(true);
@@ -107,14 +99,12 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         drawValueHistoryToggle.onStateChange = [this](){
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
-            audioDeviceSelectorComp.setVisible(visible);
+            audioSource.setVisible(visible);
             diagnosticsBox.setVisible(visible);
             processingBandSlider.setVisible(visible);
             shaperInSlider.setVisible(visible);
             movingAverageSlider.setVisible(visible);
             decayLengthSlider.setVisible(visible);
-            filePlayerTransportComp.setVisible(visible);
-            audioInputSettingsComp.setVisible(visible);
             remoteAddressComp.setVisible(visible);
             cpuUsageLabel.setVisible(visible);
             cpuUsageText.setVisible(visible);
@@ -124,15 +114,12 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         setSize(700, 500);
 
         setAudioChannels(2, 2);
-        deviceManager.addChangeListener(this);
 
         setupProcessingBandSlider(processingBandSlider);
         setupShaperInSlider(shaperInSlider);
         setupMovingAverageSlider(movingAverageSlider);
         setupDecayLengthSlider(decayLengthSlider);
 
-        addAndMakeVisible(&filePlayerTransportComp);
-        addAndMakeVisible(&audioInputSettingsComp);
         addAndMakeVisible(&remoteAddressComp);
         remoteAddressComp.onTextChange = [this](String text){setRemoteAddressFromString(text);};
 
@@ -141,41 +128,14 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         Slider &slider = timerFrequencySlider.getSlider();
         slider.setRange(5, 60);
         slider.setValue(initialTimerHz,dontSendNotification);
+        // TODO(glynternet): do we need to stop the old timer or does doing this just change the frequency?
         slider.onValueChange = [this, &slider](){
             startTimerHz(fftTimerID, (float)slider.getValue());
         };
         startTimerHz(fftTimerID, initialTimerHz);
-
-        filePlayerTransportComp.OnPlayPauseClick = [this](FilePlayer::TransportState state){
-            if (!sender.isConnected()) {
-                std::cout << "Sender not connected. Unable to send play button event message\n";
-                return;
-            }
-            switch (state) {
-            case FilePlayer::TransportState::Stopped:
-                sender.sendFileStopped();  // TODO: handle failed sends
-                break;
-            case FilePlayer::TransportState::Starting:
-                break;
-            case FilePlayer::TransportState::Playing:
-                sender.sendFilePlaying();  // TODO: handle failed sends
-                break;
-            case FilePlayer::TransportState::Pausing:
-                break;
-            case FilePlayer::TransportState::Paused:
-                sender.sendFilePaused();
-                break;
-            case FilePlayer::TransportState::Stopping:
-                break;
-            default:
-                break;
-            }
-            return;
-        };
     }
 
     ~AnalyserComponent() {
-        deviceManager.removeChangeListener(this);
         shutdownAudio();
     }
 
@@ -183,27 +143,13 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
     // Component functions
 
     void resized() override {
-        auto rect = getLocalBounds();
+        auto bounds = getLocalBounds();
 
-        auto valueHistoryRect = rect.removeFromTop(proportionOfHeight(0.5f));
+        auto valueHistoryRect = bounds.removeFromTop(proportionOfHeight(0.5f));
         valueHistoryComp.setBounds(valueHistoryRect);
 
-        // copy valueHistoryRect before doing removes
-        auto audioInputSettingsRect = valueHistoryRect;
-        audioInputSettingsComp.setBounds(
-            audioInputSettingsRect.removeFromBottom(50).removeFromRight(125));
-        audioInputSettingsComp.addChangeListener(this);
-
-        audioSettingsRect = rect;
-        resizeAudioSettings(audioSettingsRect);
-
+        resizeAudioSettings(bounds);
         resizeSliderGroup();
-
-        // copy valueHistoryRect before doing removes
-        auto transportControlRect = valueHistoryRect;
-        filePlayerTransportComp.setBounds(
-            transportControlRect.removeFromBottom(70).removeFromLeft(125));
-
         remoteAddressComp.setBounds(getLocalBounds().removeFromBottom(20).removeFromRight(200));
     }
 
@@ -225,7 +171,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         // get left portion of rectangle for audio device selector
         // this also removes that section from the rect
         Rectangle<int> adscBounds = container.removeFromLeft(container.proportionOfWidth(0.6f));
-        audioDeviceSelectorComp.setBounds(adscBounds);
+        audioSource.setBounds(adscBounds);
 
         // reduce by given amount, creating a border kinda
         container.reduce(10, 10);
@@ -243,39 +189,20 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
     // AudioAppComponent functions
 
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override {
-        filePlayerTransportComp.getFilePlayer().prepareToPlay(samplesPerBlockExpected, sampleRate);
+        audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
     }
 
-    void releaseResources() override { filePlayerTransportComp.getFilePlayer().releaseResources(); }
+    void releaseResources() override { audioSource.releaseResources(); }
 
     void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override {
         if (bufferToFill.buffer->getNumChannels() <= 0) return;
-
-        switch (audioInputSettingsComp.getSelectedInput()) {
-        case AudioInputSettingsComponent::AudioInput::noneSelected:
-                // output nothing
-                bufferToFill.clearActiveBufferRegion();
-                return;
-            case AudioInputSettingsComponent::AudioInput::fromFile: {
-                filePlayerTransportComp.getFilePlayer().getNextAudioBlock(bufferToFill);
-            } break;
-            case AudioInputSettingsComponent::AudioInput::fromDevice:
-                // buffer has already been filled with input data
-                break;
-            default:
-                // TODO: throw something?
-                return;
-        }
-
-        // Currently only processing a single channel
-        auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
-
+        audioSource.getNextAudioBlock(bufferToFill);
+        // TODO(glynternet): This isn't great, we're copying all of the frames to another vector just to extract them.
+        //   We either want to hook driectly into getNextAudioBlock or take the frame values and push all of
+        //   them at the same time into the Fifo buffer? Not sure, a thing for another day.
+        double *frameValues = audioSource.getFrameValues();
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
-            pushNextSampleIntoFifo(channelData[i]);
-        }
-
-        if (!audioInputSettingsComp.isMonitoringInput()) {
-            bufferToFill.clearActiveBufferRegion();
+            pushNextSampleIntoFifo(frameValues[i]);
         }
     }
 
@@ -291,7 +218,10 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         // if the fifo contains enough data, set a flag to say
         // that the next frame should now be rendered..
         if (fifoIndex == fftSize) {
+            // TODO(glynternet): log here if we the block hasn't been cleared since last ready.
+            // TODO(glynternet): if is already ready, maybe we still want to overwrite?
             if (!nextFFTBlockReady) {
+                // TODO(glynternet): do we need to zeromem here?
                 zeromem(fftData, sizeof(fftData));
                 memcpy(fftData, fifo, sizeof(fftData));
                 nextFFTBlockReady = true;
@@ -391,39 +321,6 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         };
     }
 
-    // ====================================================
-    // ChangeListener functions
-    // ====================================================
-
-    void changeListenerCallback(ChangeBroadcaster* source) override {
-        if (source == &deviceManager) {
-            deviceManagerChangeCallback();
-            return;
-        }
-
-        if (source == &audioInputSettingsComp) {
-            updateFilePlayerState();
-        }
-    }
-
-    void updateFilePlayerState() {
-        switch (audioInputSettingsComp.getSelectedInput()) {
-            case AudioInputSettingsComponent::AudioInput::noneSelected:
-                filePlayerTransportComp.setVisible(false);
-                return;
-            case AudioInputSettingsComponent::AudioInput::fromFile: {
-                filePlayerTransportComp.setVisible(true);
-            } break;
-            case AudioInputSettingsComponent::AudioInput::fromDevice:
-                filePlayerTransportComp.setVisible(false);
-                break;
-            default:
-                // TODO: throw something?
-                return;
-        }
-    }
-
-    void deviceManagerChangeCallback() { dumpDeviceInfo(); }
 
     // ====================================================
     // MultiTimer functions
@@ -458,64 +355,30 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
         cpuUsageText.setText(String(cpu, 6) + " %", dontSendNotification);
     }
 
-    float HzToPeriodMilliseconds(float Hz) { return 1000.0f / Hz; }
-
-    void startTimerHz(int timerID, float Hz) { startTimer(timerID, (int)HzToPeriodMilliseconds(Hz)); }
+    void startTimerHz(int timerID, float Hz) { startTimer(timerID, (int) (1000.0f / Hz)); }
 
     // ====================================================
-
-    void dumpDeviceInfo() {
-        diagnosticsBox.clear();
-        logMessage("Current audio device type: " +
-                   (deviceManager.getCurrentDeviceTypeObject() != nullptr
-                        ? deviceManager.getCurrentDeviceTypeObject()->getTypeName()
-                        : "<none>"));
-
-        if (auto* device = deviceManager.getCurrentAudioDevice()) {
-            logMessage("Current audio device: " + device->getName().quoted());
-            logMessage("Sample rate: " + String(device->getCurrentSampleRate()) + " Hz");
-            logMessage("Block size: " + String(device->getCurrentBufferSizeSamples()) + " samples");
-            logMessage("Bit depth: " + String(device->getCurrentBitDepth()));
-            logMessage("Active input indices: " +
-                       getListOfActiveBits(device->getActiveInputChannels()));
-        } else {
-            logMessage("No audio device open");
-        }
-    }
 
     void logMessage(const String& m) {
         diagnosticsBox.moveCaretToEnd();
         diagnosticsBox.insertTextAtCaret(m + newLine);
     }
 
-    static String getListOfActiveBits(const BigInteger& b) {
-        StringArray bits;
-
-        for (auto i = 0; i <= b.getHighestBit(); ++i)
-            if (b[i]) bits.add(String(i));
-
-        return bits.joinIntoString(", ");
-    }
-
     // ===============================
     // OSC functions
     // ===============================
 
-    void setRemoteAddressFromString(String text) {
+    void setRemoteAddressFromString(const String& text) {
         if (sender.connect(text, 9000)) {
             std::cout
                 << "AvvaOSCSender successfully connected to local socket, ready to send to "
                 << text << ":9000\n";
             return;
         }
-        showConnectionErrorMessage("Error: could not connect to UDP port 9000.");
+        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Connection error",
+                                         "Error: could not connect to UDP port 9000.", "OK");
         remoteAddressComp.setText("unable to connect", dontSendNotification);
         std::cout << "Unable to connect to sender at " << text << ":9000\n";
-    }
-
-    void showConnectionErrorMessage(const String& messageText) {
-         AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Connection error", messageText,
-                                         "OK");
     }
 
     AvvaOSCSender sender;
@@ -534,10 +397,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
     int fifoIndex = 0;
     bool nextFFTBlockReady = false;
 
-    AudioDeviceSelectorComponent audioDeviceSelectorComp;
-    Rectangle<int> audioSettingsRect;
-    AudioInputSettingsComponent audioInputSettingsComp;
-    FilePlayerTransportComponent filePlayerTransportComp;
+    AudioApp::AudioSourceComponent audioSource;
 
     Label cpuUsageLabel;
     Label cpuUsageText;
@@ -562,6 +422,6 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer, public C
     static constexpr double initialProcessingBandHigh = 0.2;
 
     ToggleButton drawValueHistoryToggle;
-    LabelledSlider timerFrequencySlider;
+    LabelledSlider timerFrequencySlider { "Process rate" };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnalyserComponent)
 };
