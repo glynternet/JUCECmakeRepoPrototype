@@ -42,11 +42,9 @@ namespace AudioApp {
         // Where ipow(2, 8) is 256. For synthesis, this value has 1 taken off it and fits into a uint8,
         // which is what is used for the scheduledBeat creating loop.
         // Anything greater would overflow.
-#define POSITIVE_MULTIPLE_COUNT 8
+#define POSITIVE_MULTIPLE_COUNT 6
 #define TOTAL_MULTIPLE_COUNT POSITIVE_MULTIPLE_COUNT+1+NEGATIVE_MULTIPLE_COUNT
         juce::ShapeButton multipleButtons[TOTAL_MULTIPLE_COUNT]{
-                {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
-                {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
