@@ -35,7 +35,7 @@ namespace AudioApp {
         targetAddress.setBounds(bounds);
     }
 
-    void OSCComponent::paint(Graphics &) {}
+    void OSCComponent::paint(juce::Graphics &) {}
 
     bool OSCComponent::send(const juce::OSCMessage &message) {
         if (senderConnected) {
@@ -57,7 +57,7 @@ namespace AudioApp {
         }
     }
 
-    void OSCComponent::connectOSCSender(const String &address) {
+    void OSCComponent::connectOSCSender(const juce::String &address) {
         auto target = address + ":" + OSCPortString;
         auto success = sender.connect(address, OSCPort);
         if (!success) {

@@ -62,7 +62,7 @@ namespace AudioApp
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::paint(Graphics& g) {
+    void TempoSynthesizerComponent::paint(juce::Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     }
 

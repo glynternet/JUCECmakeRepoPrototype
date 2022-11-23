@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cmath>
-#include "CommonHeader.h"
 #include "AudioSourceComponent.h"
 #include "FlashBox.h"
 #include "LogOutputComponent.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 #include "TempoSynthesizerComponent.h"
+#include <juce_audio_utils/juce_audio_utils.h>
 
 namespace AudioApp
 {
@@ -21,7 +21,7 @@ public:
     void releaseResources() override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
 
-    void paint(Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:

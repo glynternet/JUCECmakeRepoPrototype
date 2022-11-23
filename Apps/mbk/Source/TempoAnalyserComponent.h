@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include "CommonHeader.h"
+#include <functional>
 #include "../Libs/BTrack/BTrack.h"
 
 namespace AudioApp

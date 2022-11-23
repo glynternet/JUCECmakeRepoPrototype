@@ -11,7 +11,7 @@ constexpr bool isMobile()
 #endif
 }
 
-MainWindow::MainWindow(const String& name)
+MainWindow::MainWindow(const juce::String& name)
     : DocumentWindow(name, getBackgroundColour(), allButtons)
 {
     setUsingNativeTitleBar(true);
@@ -33,7 +33,7 @@ void MainWindow::closeButtonPressed()
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
-Colour MainWindow::getBackgroundColour()
+juce::Colour MainWindow::getBackgroundColour()
 {
     return juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(
         ResizableWindow::backgroundColourId);

@@ -39,13 +39,11 @@ namespace AudioApp
         setSize (400, 700);
     }
 
-    MainComponent::~MainComponent()
-    {
+    MainComponent::~MainComponent() {
         shutdownAudio();
     }
 
-    void MainComponent::paint(Graphics& g)
-    {
+    void MainComponent::paint(juce::Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     }
 

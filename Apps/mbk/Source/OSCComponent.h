@@ -5,8 +5,8 @@
 #ifndef JUCECMAKEREPO_OSCCOMPONENT_H
 #define JUCECMAKEREPO_OSCCOMPONENT_H
 
-#include "CommonHeader.h"
 #include "Logger.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_osc/juce_osc.h>
 
 namespace AudioApp {
@@ -14,14 +14,14 @@ namespace AudioApp {
     public:
         explicit OSCComponent(Logger &logger);
 
-        void paint(Graphics &) override;
+        void paint(juce::Graphics &) override;
 
         void resized() override;
 
         bool send(const juce::OSCMessage &message);
 
     private:
-        void connectOSCSender(const String &);
+        void connectOSCSender(const juce::String &);
 
         void disconnectOSCSender();
 

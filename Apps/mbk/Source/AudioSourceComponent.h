@@ -1,7 +1,11 @@
 #pragma once
 
-#include "CommonHeader.h"
 #include "Logger.h"
+#include <juce_graphics/juce_graphics.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
 namespace AudioApp
 {
@@ -10,7 +14,7 @@ class AudioSourceComponent : public juce::AudioSource, public juce::Component, p
     public:
         explicit AudioSourceComponent(juce::AudioDeviceManager& deviceManager, Logger& logger);
 
-        void paint(Graphics& g) override;
+        void paint(juce::Graphics& g) override;
         void resized() override;
 
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
