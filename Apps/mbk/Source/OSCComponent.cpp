@@ -36,10 +36,9 @@ namespace AudioApp {
     }
 
     void OSCComponent::resized() {
-        auto addressArea = getLocalBounds().expanded(-10);
-        auto connectButtonBounds = addressArea.removeFromRight(addressArea.getWidth() / 2);
-        targetAddress.setBounds(addressArea);
-        connectOSCButton.setBounds(connectButtonBounds);
+        auto bounds = getLocalBounds().reduced(10);
+        connectOSCButton.setBounds(bounds.removeFromRight(bounds.getWidth() / 2));
+        targetAddress.setBounds(bounds);
     }
 
     void OSCComponent::paint(Graphics &) {}
