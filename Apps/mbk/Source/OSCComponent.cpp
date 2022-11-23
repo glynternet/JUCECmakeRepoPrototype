@@ -50,7 +50,7 @@ namespace AudioApp {
                 logger.error("Error sending message: "+ e.description);
             }
         } else {
-            logger.info("Sender not connected. Unable to send beat message.");
+            logger.debug("Sender not connected. Unable to send beat message.");
         }
     }
 
