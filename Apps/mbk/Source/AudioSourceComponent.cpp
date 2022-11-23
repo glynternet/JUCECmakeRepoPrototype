@@ -129,6 +129,7 @@ namespace AudioApp {
         // TODO(glynternet): if the above todo is not possible, can we reuse this vector to avoid having to create a new one every audio block?
         std::vector<double> frameValues(bufferToFill.numSamples);
 
+        // TODO(glynternet): is it quicker to use std::copy here?
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
             frameValues[i] = inputData[i];
         }
