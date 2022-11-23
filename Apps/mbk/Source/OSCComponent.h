@@ -12,7 +12,7 @@ namespace AudioApp {
         explicit OSCComponent(Logger& logger);
         void paint(Graphics&) override;
         void resized() override;
-        void sendBeatMessage(double duration);
+        bool send(const juce::OSCMessage& message);
     private:
         void connectOSCSender(const String&);
         void disconnectOSCSender();

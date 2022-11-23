@@ -3,16 +3,10 @@
 //
 
 #include "OSCComponent.h"
-#include <memory>
 
 namespace AudioApp {
     static const int OSCPort = 9000;
     static const std::string OSCPortString = std::to_string(OSCPort);
-
-    // the value 123 is provided to create the element in the arguments slice and it's always mutated before any message is sent.
-    static const std::unique_ptr<juce::OSCMessage> clockMessage = std::make_unique<juce::OSCMessage>("/clock",
-                                                                                                     (juce::String) "millisPerBeat",
-                                                                                                     (float) 123);
 
     OSCComponent::OSCComponent(Logger &l) : logger(l) {
         targetAddress.setJustificationType(juce::Justification::centred);
@@ -43,22 +37,23 @@ namespace AudioApp {
 
     void OSCComponent::paint(Graphics &) {}
 
-    void OSCComponent::sendBeatMessage(double period) {
+    bool OSCComponent::send(const juce::OSCMessage &message) {
         if (senderConnected) {
             try {
-                // modify period argument of message
-                (*clockMessage)[1] = (float) period;
-                if (sender.send(*clockMessage)) {
+                if (sender.send(message)) {
                     logger.debug("Message sent");
-                } else {
-                    logger.error("Error sending message");
+                    return true;
                 }
+                logger.error("Error sending message");
+                return false;
             }
             catch (const juce::OSCException &e) {
                 logger.error("Error sending message: " + e.description);
+                return false;
             }
         } else {
             logger.debug("Sender not connected. Unable to send beat message.");
+            return false;
         }
     }
 

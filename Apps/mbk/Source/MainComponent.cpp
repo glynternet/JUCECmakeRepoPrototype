@@ -17,8 +17,19 @@ namespace AudioApp
             tempoSynthesizer.beat(period);
             tempoAnalyserFlash.flash(FLASH_PROPORTION * (float) period);
         };
+
+        // the value 123 is provided to create the element in the arguments slice and it's always mutated before any message is sent.
+        static const std::unique_ptr<juce::OSCMessage> clockMessage = std::make_unique<juce::OSCMessage>("/clock",
+                                                                                                         (juce::String) "millisPerBeat",
+                                                                                                         (float) 123);
+
         tempoSynthesizer.onSynthesizedBeat = [this](double period) {
-            oscComponent.sendBeatMessage(period);
+            // modify period argument of message
+            // TODO: don't modify here, this will be problematic when there are lodas of message being sent, probably
+            (*clockMessage)[1] = (float) period;
+            if (!oscComponent.send(*clockMessage)) {
+                logger.debug("Beat message not sent");
+            }
             tempoSynthesizerFlash.flash(FLASH_PROPORTION * (float) period);
         };
         addAndMakeVisible(tempoAnalyserFlash);
