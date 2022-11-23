@@ -15,11 +15,13 @@ namespace AudioApp {
         void sendBeatMessage(double duration);
     private:
         void connectOSCSender(const String&);
+        void disconnectOSCSender();
+        void setSenderConnectedState(bool connected);
 
         Logger& logger;
 
-        juce::Label targetAddress;
-        juce::TextButton connectOSCButton;
+        juce::Label targetAddress {"targetAddress", "127.0.0.1" };
+        juce::TextButton connectOSCButton { "Connect OSC" };
         // Probably worth taking a look at the AVVAOSCSender class from the legacy repo
         juce::OSCSender sender;
         bool senderConnected = false;

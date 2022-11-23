@@ -10,57 +10,88 @@ namespace AudioApp {
     static const std::string OSCPortString = std::to_string(OSCPort);
 
     // the value 123 is provided to create the element in the arguments slice and it's always mutated before any message is sent.
-    static const std::unique_ptr<juce::OSCMessage> clockMessage = std::make_unique<juce::OSCMessage>("/clock", (juce::String)"millisPerBeat", (float)123);
+    static const std::unique_ptr<juce::OSCMessage> clockMessage = std::make_unique<juce::OSCMessage>("/clock",
+                                                                                                     (juce::String) "millisPerBeat",
+                                                                                                     (float) 123);
 
-    OSCComponent::OSCComponent(Logger& l): logger(l), targetAddress("targetAddress", "127.0.0.1"), connectOSCButton("Connect OSC") {
+    OSCComponent::OSCComponent(Logger &l) : logger(l) {
         targetAddress.setJustificationType(juce::Justification::centred);
         targetAddress.setEditable(true, false, true);
-        targetAddress.onEditorShow = [this]{
+        targetAddress.onEditorShow = [this] {
             connectOSCButton.setEnabled(false);
         };
-        targetAddress.onEditorHide = [this]{
+        targetAddress.onEditorHide = [this] {
             connectOSCButton.setEnabled(targetAddress.getText().length() > 0);
         };
-        connectOSCButton.onClick = [this] { connectOSCSender(targetAddress.getText(true)); };
+        connectOSCButton.onClick = [this] {
+            if (senderConnected) {
+                disconnectOSCSender();
+            } else {
+                connectOSCSender(targetAddress.getText(true));
+            }
+        };
+        setSenderConnectedState(false);
         addAndMakeVisible(connectOSCButton);
         addAndMakeVisible(targetAddress);
     }
 
     void OSCComponent::resized() {
         auto addressArea = getLocalBounds().expanded(-10);
-        auto connectButtonBounds = addressArea.removeFromRight(addressArea.getWidth()/2);
+        auto connectButtonBounds = addressArea.removeFromRight(addressArea.getWidth() / 2);
         targetAddress.setBounds(addressArea);
         connectOSCButton.setBounds(connectButtonBounds);
     }
 
-    void OSCComponent::paint(Graphics&) {}
+    void OSCComponent::paint(Graphics &) {}
 
     void OSCComponent::sendBeatMessage(double period) {
         if (senderConnected) {
             try {
                 // modify period argument of message
-                (*clockMessage)[1] = (float)period;
+                (*clockMessage)[1] = (float) period;
                 if (sender.send(*clockMessage)) {
                     logger.debug("Message sent");
                 } else {
                     logger.error("Error sending message");
                 }
             }
-            catch (const juce::OSCException& e) {
-                logger.error("Error sending message: "+ e.description);
+            catch (const juce::OSCException &e) {
+                logger.error("Error sending message: " + e.description);
             }
         } else {
             logger.debug("Sender not connected. Unable to send beat message.");
         }
     }
 
-    void OSCComponent::connectOSCSender(const String& address) {
+    void OSCComponent::connectOSCSender(const String &address) {
         auto target = address + ":" + OSCPortString;
-        senderConnected = sender.connect(address, OSCPort);
-        if (!senderConnected) {
-            logger.error("Error: could not connect to UDP port " + OSCPortString);
+        auto success = sender.connect(address, OSCPort);
+        if (!success) {
+            logger.error("Error connecting OSC to " + target);
             return;
         }
-        logger.info("Connected OSC sender to " + address + ":" + OSCPortString);
+        setSenderConnectedState(true);
+        logger.info("Connected OSC to " + target);
+    }
+
+    void OSCComponent::disconnectOSCSender() {
+        auto success = sender.disconnect();
+        if (!success) {
+            logger.error("Error disconnecting OSC");
+            return;
+        }
+        setSenderConnectedState(false);
+        logger.info("Disconnected OSC");
+    }
+
+    void OSCComponent::setSenderConnectedState(bool connected) {
+        senderConnected = connected;
+        if (senderConnected) {
+            connectOSCButton.setButtonText("Disconnect OSC");
+            connectOSCButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+        } else {
+            connectOSCButton.setButtonText("Connect OSC");
+            connectOSCButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+        }
     }
 }
