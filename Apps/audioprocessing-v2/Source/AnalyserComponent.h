@@ -61,20 +61,7 @@
 //==============================================================================
 class AnalyserComponent : public AudioAppComponent, private MultiTimer {
    public:
-    StdoutLogger logger {};
-    AnalyserComponent()
-        : forwardFFT(fftOrder),
-          window(fftSize, dsp::WindowingFunction<float>::hann),
-          audioSource(deviceManager, (AudioApp::Logger &)logger),
-          processingBandSlider("Frequency Band"),
-          shaperInSlider("Range In"),
-          valueShaper(0.0f, 1.0f, 0.0f, 1.0f),
-          movingAverageSlider("Window Size"),
-          movingAverage(movingAverageInitialWindow),
-          decayLengthSlider("Decay Length"),
-          decayLength(initialDecayExponent),
-          drawValueHistoryToggle("Draw Controls")
-    {
+    AnalyserComponent() {
         addAndMakeVisible(audioSource);
 
         addAndMakeVisible(diagnosticsBox);
@@ -111,7 +98,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
             timerFrequencySlider.setVisible(visible);
         };
 
-        setSize(700, 500);
+        setSize(900, 500);
 
         setAudioChannels(2, 2);
 
@@ -389,39 +376,40 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     enum { fftTimerID };
     enum { fftOrder = 8, fftSize = 1 << fftOrder };
 
-    dsp::FFT forwardFFT;
-    dsp::WindowingFunction<float> window;
+    dsp::FFT forwardFFT { fftOrder };
+    dsp::WindowingFunction<float> window { fftSize, dsp::WindowingFunction<float>::hann };
 
     float fifo[fftSize];
     float fftData[2 * fftSize];
     int fifoIndex = 0;
     bool nextFFTBlockReady = false;
 
-    AudioApp::AudioSourceComponent audioSource;
+    StdoutLogger logger {};
+    AudioApp::AudioSourceComponent audioSource { deviceManager, (AudioApp::Logger &)logger };
 
     Label cpuUsageLabel;
     Label cpuUsageText;
     TextEditor diagnosticsBox;
 
-    ValueShaper valueShaper;
-    LabelledSlider shaperInSlider;
+    ValueShaper valueShaper { 0.0f, 1.0f, 0.0f, 1.0f };
+    LabelledSlider shaperInSlider { "Range In" };
 
-    TailOff decayLength;
-    LabelledSlider decayLengthSlider;
+    TailOff decayLength { initialDecayExponent };
+    LabelledSlider decayLengthSlider { "Decay Length" };
     static constexpr float initialDecayExponent = 0.5f;
 
     ValueHistoryComponent valueHistoryComp;
-    MovingAverage movingAverage;
-    LabelledSlider movingAverageSlider;
+    MovingAverage movingAverage { movingAverageInitialWindow };
+    LabelledSlider movingAverageSlider { "Window Size" };
     static constexpr int movingAverageInitialWindow = 2;
 
-    LabelledSlider processingBandSlider;
+    LabelledSlider processingBandSlider { "Frequency Band" };
     double processingBandIndexLow = initialProcessingBandLow;
     static constexpr double initialProcessingBandLow = 0.0;
     double processingBandIndexHigh = initialProcessingBandHigh;
     static constexpr double initialProcessingBandHigh = 0.2;
 
-    ToggleButton drawValueHistoryToggle;
+    ToggleButton drawValueHistoryToggle { "Draw Controls" };
     LabelledSlider timerFrequencySlider { "Process rate" };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnalyserComponent)
 };
