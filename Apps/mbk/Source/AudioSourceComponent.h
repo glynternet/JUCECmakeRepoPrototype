@@ -31,7 +31,7 @@ namespace AudioApp {
         void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 
         juce::AudioDeviceSelectorComponent selector{
-                deviceManager, 2, 2, 2, 2, false, false, true, false};
+                deviceManager, 1, 2, 1, 2, false, false, false, false};
 
         // File transport
         enum TransportState {
