@@ -5,7 +5,9 @@
 #ifndef JUCECMAKEREPO_FLASHBOX_H
 #define JUCECMAKEREPO_FLASHBOX_H
 
-#include "CommonHeader.h"
+#include <atomic>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_graphics/juce_graphics.h>
 
 namespace AudioApp {
     class FlashBox : public juce::Component, juce::Timer {
@@ -13,7 +15,7 @@ namespace AudioApp {
         explicit FlashBox();
 
         void flash(float duration);
-        void paint(Graphics& g);
+        void paint(juce::Graphics& g);
         void timerCallback() override;
     private:
         double flashStart;
@@ -21,7 +23,7 @@ namespace AudioApp {
         float brightness;
 
         std::atomic<bool> dirty{};
-        Colour colour = juce::Colours::grey;
+        juce::Colour colour = juce::Colours::grey;
     };
 }
 

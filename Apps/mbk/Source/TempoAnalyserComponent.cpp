@@ -1,12 +1,12 @@
 #include "TempoAnalyserComponent.h"
+#include <juce_core/juce_core.h>
 
-namespace AudioApp
-{
+namespace AudioApp {
     TempoAnalyserComponent::TempoAnalyserComponent() {
         lastTime = juce::Time::getMillisecondCounterHiRes();
     }
 
-    void TempoAnalyserComponent::processAudioFrame (double* frame) {
+    void TempoAnalyserComponent::processAudioFrame(double *frame) {
         btrack.processAudioFrame(frame);
         if (btrack.beatDueInCurrentFrame()) {
             auto current = juce::Time::getMillisecondCounterHiRes();
@@ -18,7 +18,7 @@ namespace AudioApp
         }
     }
 
-    void TempoAnalyserComponent::updateSamplePerBlockExpected(int samplePerBlockExpected){
+    void TempoAnalyserComponent::updateSamplePerBlockExpected(int samplePerBlockExpected) {
         btrack.updateHopAndFrameSize(samplePerBlockExpected / 2, samplePerBlockExpected);
     }
 }

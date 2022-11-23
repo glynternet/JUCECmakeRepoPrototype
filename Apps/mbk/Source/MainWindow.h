@@ -7,11 +7,11 @@ namespace AudioApp
 class MainWindow : public juce::DocumentWindow
 {
 public:
-    MainWindow(const String& name);
+    MainWindow(const juce::String& name);
 
 private:
     void closeButtonPressed() override;
-    Colour getBackgroundColour();
+    juce::Colour getBackgroundColour();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
 };

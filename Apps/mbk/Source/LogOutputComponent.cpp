@@ -39,7 +39,7 @@ namespace AudioApp
         }
     }
 
-    void LogOutputComponent::paint(Graphics& g) {
+    void LogOutputComponent::paint(juce::Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
         if (playing) {
             label.setText(content, juce::dontSendNotification);
@@ -55,16 +55,16 @@ namespace AudioApp
         levelButton.setBounds(pauseBounds.translated(-buttonWidth, 0));
     }
 
-    void LogOutputComponent::debug(const String& message) {
+    void LogOutputComponent::debug(const juce::String& message) {
         if (this->debugLevel)
             log(leveledMessage{"DEBUG", message.toStdString() });
     }
 
-    void LogOutputComponent::info(const String& message) {
+    void LogOutputComponent::info(const juce::String& message) {
         log(leveledMessage{"INFO", message.toStdString() });
     }
 
-    void LogOutputComponent::error(const String& message) {
+    void LogOutputComponent::error(const juce::String& message) {
         log(leveledMessage{"ERROR", message.toStdString() });
     }
 

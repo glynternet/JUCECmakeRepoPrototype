@@ -5,11 +5,11 @@ namespace AudioApp
 class GuiAppTemplateApplication : public juce::JUCEApplication
 {
 public:
-    const String getApplicationName() override { return JUCE_APPLICATION_NAME_STRING; }
-    const String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
+    const juce::String getApplicationName() override { return JUCE_APPLICATION_NAME_STRING; }
+    const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
-    void initialise(const String& /*commandLine*/) override {
+    void initialise(const juce::String& /*commandLine*/) override {
         mainWindow = std::make_unique<MainWindow>(getApplicationName());
     }
 
@@ -17,7 +17,7 @@ public:
 
     void systemRequestedQuit() override { quit(); }
 
-    void anotherInstanceStarted(const String& /*commandLine*/) override {}
+    void anotherInstanceStarted(const juce::String& /*commandLine*/) override {}
 
 private:
     std::unique_ptr<MainWindow> mainWindow;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "CommonHeader.h"
-#include "Logger.h"
 #include <cmath>
 #include <ctime>
+#include "Logger.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 namespace AudioApp
 {
@@ -16,11 +16,11 @@ namespace AudioApp
     public:
         LogOutputComponent();
 
-        void paint(Graphics& g) override;
+        void paint(juce::Graphics& g) override;
         void resized() override;
-        void debug(const String &message) override;
-        void info(const String &message) override;
-        void error(const String &message) override;
+        void debug(const juce::String &message) override;
+        void info(const juce::String &message) override;
+        void error(const juce::String &message) override;
         void timerCallback() override;
 
     private:

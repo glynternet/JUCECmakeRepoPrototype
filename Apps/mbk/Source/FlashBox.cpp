@@ -15,7 +15,7 @@ namespace AudioApp {
         brightness = 1;
     };
 
-    void FlashBox::paint(Graphics &g) {
+    void FlashBox::paint(juce::Graphics &g) {
         g.fillAll(colour);
     }
 

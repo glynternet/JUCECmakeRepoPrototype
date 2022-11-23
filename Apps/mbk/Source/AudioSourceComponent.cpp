@@ -47,7 +47,7 @@ namespace AudioApp {
         addAndMakeVisible(selector);
     }
 
-    void AudioSourceComponent::paint(Graphics &) {}
+    void AudioSourceComponent::paint(juce::Graphics &) {}
 
     void AudioSourceComponent::resized() {
         auto bounds = getLocalBounds();
