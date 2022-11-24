@@ -56,7 +56,7 @@
 #include "ValueShaper.h"
 #include "../../mbk/Source/AudioSourceComponent.h"
 #include "../../mbk/Source/Logger.h"
-#include "StdoutLogger.h"
+#include "../../mbk/Source/StdoutLogger.h"
 
 //==============================================================================
 class AnalyserComponent : public AudioAppComponent, private MultiTimer {
@@ -349,7 +349,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     bool nextFFTBlockReady = false;
 
     StdoutLogger logger {};
-    AudioApp::AudioSourceComponent audioSource { deviceManager, (AudioApp::Logger &)logger };
+    AudioApp::AudioSourceComponent audioSource { deviceManager, logger };
 
     Label cpuUsageLabel { "CPU Usage", "CPU Usage" };
     Label cpuUsageText;

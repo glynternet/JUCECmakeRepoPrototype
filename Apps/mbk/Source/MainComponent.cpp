@@ -61,16 +61,14 @@ namespace AudioApp
         logger.setBounds(area);
     }
 
-    void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
-    {
+    void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
         audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
         tempoAnalyser.updateSamplePerBlockExpected(samplesPerBlockExpected);
     }
 
     void MainComponent::releaseResources() {}
 
-    void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
-    {
+    void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
         audioSource.getNextAudioBlock(bufferToFill);
         tempoAnalyser.processAudioFrame(audioSource.getFrameValues());
     }

@@ -5,9 +5,10 @@
 #ifndef JUCECMAKEREPO_STDOUTLOGGER_H
 #define JUCECMAKEREPO_STDOUTLOGGER_H
 
-#include "../../mbk/Source/Logger.h"
+#include "Logger.h"
 
-class StdoutLogger : AudioApp::Logger {
+class StdoutLogger : public AudioApp::Logger {
+public:
     void debug(const juce::String &message);
     void info(const juce::String &message);
     void error(const juce::String &message);
