@@ -79,7 +79,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
             shaperInSlider.setVisible(visible);
             movingAverageSlider.setVisible(visible);
             decayLengthSlider.setVisible(visible);
-            remoteAddressComp.setVisible(visible);
+            addressComponent.setVisible(visible);
             cpuUsageLabel.setVisible(visible);
             cpuUsageText.setVisible(visible);
             timerFrequencySlider.setVisible(visible);
@@ -94,8 +94,8 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         setupMovingAverageSlider(movingAverageSlider);
         setupDecayLengthSlider(decayLengthSlider);
 
-        addAndMakeVisible(&remoteAddressComp);
-        remoteAddressComp.onTextChange = [this](String text){setRemoteAddressFromString(text);};
+        addAndMakeVisible(&addressComponent);
+        addressComponent.onTextChange = [this](String text){setRemoteAddressFromString(text);};
 
         addAndMakeVisible(&timerFrequencySlider);
         constexpr float initialTimerHz = 30.f;
@@ -123,7 +123,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         valueHistoryComp.setBounds(bounds);
 
         resizeSliderGroup(bounds);
-        remoteAddressComp.setBounds(getLocalBounds().removeFromBottom(20).removeFromRight(200));
+        addressComponent.setBounds(getLocalBounds().removeFromBottom(20).removeFromRight(200));
     }
 
     void resizeSliderGroup(Rectangle<int> container) {
@@ -328,12 +328,12 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         }
         AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Connection error",
                                          "Error: could not connect to UDP port 9000.", "OK");
-        remoteAddressComp.setText("unable to connect", dontSendNotification);
+        addressComponent.setText("unable to connect", dontSendNotification);
         std::cout << "Unable to connect to sender at " << text << ":9000\n";
     }
 
     AvvaOSCSender sender;
-    RemoteAddressComponent remoteAddressComp;
+    RemoteAddressComponent addressComponent;
 
     // ===============================
 
