@@ -204,8 +204,8 @@ private:
         auto &innerSlider = slider.getSlider();
         innerSlider.setSliderStyle(Slider::TwoValueHorizontal);
         innerSlider.setRange(-0.1f, 1.1f);
-        innerSlider.setMinValue(0.0f);
-        innerSlider.setMaxValue(1.0f);
+        innerSlider.setMinValue(0.1f);
+        innerSlider.setMaxValue(0.8f);
         innerSlider.setSkewFactor(0.3f);  // TODO: change this from a relatively arbitrary value
 
         slider.onValueChange = [this, &slider]() {
