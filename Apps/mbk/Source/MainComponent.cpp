@@ -1,11 +1,10 @@
 #include "MainComponent.h"
 
-namespace AudioApp
-{
-    #define FLASH_PROPORTION 0.5f
+namespace AudioApp {
+#define FLASH_PROPORTION 0.5f
 
     MainComponent::MainComponent() {
-        setAudioChannels(2,2);
+        setAudioChannels(2, 2);
 
         getLookAndFeel().setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
 
@@ -36,19 +35,18 @@ namespace AudioApp
         addAndMakeVisible(tempoSynthesizer);
         addAndMakeVisible(tempoSynthesizerFlash);
 
-        setSize (400, 700);
+        setSize(400, 700);
     }
 
     MainComponent::~MainComponent() {
         shutdownAudio();
     }
 
-    void MainComponent::paint(juce::Graphics& g) {
+    void MainComponent::paint(juce::Graphics &g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     }
 
-    void MainComponent::resized()
-    {
+    void MainComponent::resized() {
         auto area = getLocalBounds();
         logger.debug("resized: " + area.toString());
 
@@ -68,7 +66,7 @@ namespace AudioApp
 
     void MainComponent::releaseResources() {}
 
-    void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) {
+    void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) {
         audioSource.getNextAudioBlock(bufferToFill);
         tempoAnalyser.processAudioFrame(audioSource.getFrameValues());
     }
