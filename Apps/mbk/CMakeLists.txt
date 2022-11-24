@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0048 NEW)
 project(mbk VERSION 0.0.1)
 
 set (TargetName ${PROJECT_NAME})
