@@ -117,9 +117,15 @@ namespace AudioApp {
             // BigInteger::getHighestBit returns -1 when value is 0,
             // where no input channels would be available.
             if (activeInputChannels.getHighestBit() == -1) {
+                std::vector<double> frameValues(bufferToFill.numSamples);
+                std::fill(frameValues.begin(), frameValues.end(), 0);
+                frameValues2 = frameValues;
                 return;
             }
             if (!activeInputChannels[0]) {
+                std::vector<double> frameValues(bufferToFill.numSamples);
+                std::fill(frameValues.begin(), frameValues.end(), 0);
+                frameValues2 = frameValues;
                 return;
             }
         }
