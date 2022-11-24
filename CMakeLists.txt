@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-
-
+cmake_policy(SET CMP0048 NEW)
 project(JUCECMakeRepo)
 
 #First, we'll add the CMake folder, incase we'll need to find_package later:
