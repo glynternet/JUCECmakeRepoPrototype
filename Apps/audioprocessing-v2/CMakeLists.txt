@@ -10,7 +10,7 @@ target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainWindow.cpp
         Source/TailOff.cpp
-        Source/StdoutLogger.cpp
+        ../mbk/Source/StdoutLogger.cpp
         ../mbk/Source/AudioSourceComponent.cpp
         )
 

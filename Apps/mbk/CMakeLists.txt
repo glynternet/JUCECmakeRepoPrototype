@@ -14,6 +14,7 @@ target_sources(${TargetName} PRIVATE
         Source/MainComponent.cpp
         Source/MainWindow.cpp
         Source/OSCComponent.cpp
+        Source/StdoutLogger.cpp
         Source/TempoAnalyserComponent.cpp
         Source/TempoSynthesizerComponent.cpp
         Libs/BTrack/BTrack.cpp
