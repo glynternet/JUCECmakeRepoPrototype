@@ -104,14 +104,6 @@ public:
             loudnessAnalyser.setProcessRateHz((int) slider.getValue());
         };
 
-        loudnessAnalyser.onLoudnessResult = [this](float level) {
-            // always show level in history component
-            valueHistoryComp.addLevel(level);
-            if (sender.isConnected() && level != _lastLevelSent) {
-                sender.sendLoudness(level);  // TODO: handle failed sends
-                _lastLevelSent = level;
-            }
-        };
         startTimerHz(30.f);
     }
 
