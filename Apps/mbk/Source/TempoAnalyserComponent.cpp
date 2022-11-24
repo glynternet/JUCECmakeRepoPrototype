@@ -7,6 +7,7 @@ namespace AudioApp {
     }
 
     void TempoAnalyserComponent::processAudioFrame(double *frame) {
+        if (frame == nullptr) return;
         btrack.processAudioFrame(frame);
         if (btrack.beatDueInCurrentFrame()) {
             auto current = juce::Time::getMillisecondCounterHiRes();
