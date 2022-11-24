@@ -8,6 +8,24 @@ namespace AudioApp {
     AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
             : deviceManager(deviceManager), logger(logger), state(Stopped), openButton("Open"), playButton("Play"),
               stopButton("Stop") {
+
+
+        openButton.onClick = [this] { openButtonClicked(); };
+        addAndMakeVisible(&openButton);
+
+        playButton.onClick = [this] { transportStateChanged(Starting); };
+        playButton.setEnabled(true);
+        addAndMakeVisible(&playButton);
+
+        stopButton.onClick = [this] { transportStateChanged(Stopping); };
+        stopButton.setEnabled(false);
+        addAndMakeVisible(&stopButton);
+
+        formatManager.registerBasicFormats();
+        transport.addChangeListener(this);
+
+        addAndMakeVisible(selector);
+
         sourceToggle.onStateChange = [this] {
             bool newFilePlayerEnabled = sourceToggle.getToggleState();
             if (newFilePlayerEnabled != filePlayerEnabled) {
@@ -31,22 +49,6 @@ namespace AudioApp {
         addAndMakeVisible(&sourceToggle);
 
         addAndMakeVisible(&monitorOutputToggle);
-
-        openButton.onClick = [this] { openButtonClicked(); };
-        addAndMakeVisible(&openButton);
-
-        playButton.onClick = [this] { transportStateChanged(Starting); };
-        playButton.setEnabled(true);
-        addAndMakeVisible(&playButton);
-
-        stopButton.onClick = [this] { transportStateChanged(Stopping); };
-        stopButton.setEnabled(false);
-        addAndMakeVisible(&stopButton);
-
-        formatManager.registerBasicFormats();
-        transport.addChangeListener(this);
-
-        addAndMakeVisible(selector);
     }
 
     void AudioSourceComponent::paint(juce::Graphics &) {}

@@ -52,7 +52,7 @@ namespace AudioApp
         auto area = getLocalBounds();
         logger.debug("resized: " + area.toString());
 
-        audioSource.setBounds(area.removeFromTop(390));
+        audioSource.setBounds(area.removeFromTop(410));
         oscComponent.setBounds(area.removeFromBottom(50));
         tempoSynthesizer.setBounds(area.removeFromBottom(25));
         auto tempoFlashes = area.removeFromBottom(25);
