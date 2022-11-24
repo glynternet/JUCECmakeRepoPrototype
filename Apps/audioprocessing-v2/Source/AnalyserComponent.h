@@ -45,22 +45,20 @@
 *******************************************************************************/
 
 #pragma once
+
 #include "AvvaOSCSender.h"
 #include "JuceHeader.h"
 #include "LabelledSlider.h"
-#include "Loudness.h"
-#include "MovingAverage.h"
+#include "LoudnessAnalyser.h"
 #include "RemoteAddressComponent.h"
-#include "TailOff.h"
 #include "ValueHistoryComponent.h"
-#include "ValueShaper.h"
 #include "../../mbk/Source/AudioSourceComponent.h"
 #include "../../mbk/Source/Logger.h"
 #include "../../mbk/Source/StdoutLogger.h"
 
 //==============================================================================
-class AnalyserComponent : public AudioAppComponent, private MultiTimer {
-   public:
+class AnalyserComponent : public AudioAppComponent, juce::Timer {
+public:
     AnalyserComponent() {
         addAndMakeVisible(audioSource);
 
@@ -70,8 +68,8 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
 
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(&drawValueHistoryToggle);
-        drawValueHistoryToggle.setToggleState(true,dontSendNotification);
-        drawValueHistoryToggle.onStateChange = [this](){
+        drawValueHistoryToggle.setToggleState(true, dontSendNotification);
+        drawValueHistoryToggle.onStateChange = [this]() {
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
             audioSource.setVisible(visible);
@@ -82,7 +80,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
             addressComponent.setVisible(visible);
             cpuUsageLabel.setVisible(visible);
             cpuUsageText.setVisible(visible);
-            timerFrequencySlider.setVisible(visible);
+            processRateSlider.setVisible(visible);
         };
 
         setSize(900, 500);
@@ -95,22 +93,34 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         setupDecayLengthSlider(decayLengthSlider);
 
         addAndMakeVisible(&addressComponent);
-        addressComponent.onTextChange = [this](String text){setRemoteAddressFromString(text);};
+        addressComponent.onTextChange = [this](String text) { setRemoteAddressFromString(text); };
 
-        addAndMakeVisible(&timerFrequencySlider);
-        constexpr float initialTimerHz = 30.f;
-        Slider &slider = timerFrequencySlider.getSlider();
-        slider.setRange(5, 60);
-        slider.setValue(initialTimerHz,dontSendNotification);
+        addAndMakeVisible(&processRateSlider);
+        Slider &slider = processRateSlider.getSlider();
+        slider.setRange(5, 70);
+        slider.setValue(initialProcessRateHz, dontSendNotification);
         // TODO(glynternet): do we need to stop the old timer or does doing this just change the frequency?
-        slider.onValueChange = [this, &slider](){
-            startTimerHz(fftTimerID, (float)slider.getValue());
+        slider.onValueChange = [this, &slider]() {
+            loudnessAnalyser.setProcessRateHz((int) slider.getValue());
         };
-        startTimerHz(fftTimerID, initialTimerHz);
+
+        loudnessAnalyser.onLoudnessResult = [this](float level) {
+            // always show level in history component
+            valueHistoryComp.addLevel(level);
+            if (sender.isConnected() && level != _lastLevelSent) {
+                sender.sendLoudness(level);  // TODO: handle failed sends
+                _lastLevelSent = level;
+            }
+        };
+        startTimerHz(30.f);
     }
 
     ~AnalyserComponent() {
         shutdownAudio();
+    }
+
+    void timerCallback() {
+        updateCPULabel();
     }
 
     //==============================================================================
@@ -137,7 +147,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         shaperInSlider.setBounds(leftEdge, topMargin + 2 * height, width, height);
         movingAverageSlider.setBounds(leftEdge, topMargin + 3 * height, width, height);
         decayLengthSlider.setBounds(leftEdge, topMargin + 4 * height, width, height);
-        timerFrequencySlider.setBounds(leftEdge, topMargin + 5 * height, width, height);
+        processRateSlider.setBounds(leftEdge, topMargin + 5 * height, width, height);
     }
 
     void resizeAudioSettings(Rectangle<int> container) {
@@ -156,7 +166,7 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
 
     void releaseResources() override { audioSource.releaseResources(); }
 
-    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override {
+    void getNextAudioBlock(const AudioSourceChannelInfo &bufferToFill) override {
         if (bufferToFill.buffer->getNumChannels() <= 0) return;
         audioSource.getNextAudioBlock(bufferToFill);
         // TODO(glynternet): This isn't great, we're copying all of the frames to another vector just to extract them.
@@ -164,118 +174,66 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
         //   them at the same time into the Fifo buffer? Not sure, a thing for another day.
         double *frameValues = audioSource.getFrameValues();
         for (auto i = 0; i < bufferToFill.numSamples; ++i) {
-            pushNextSampleIntoFifo(frameValues[i]);
+            loudnessAnalyser.pushNextSampleIntoFifo(frameValues[i]);
         }
     }
 
     //==============================================================================
-    void paint(Graphics& g) override {
+    void paint(Graphics &g) override {
         // black background
         g.fillAll(Colours::black);
     }
 
-    //==========================
-
-    void pushNextSampleIntoFifo(float sample) noexcept {
-        // if the fifo contains enough data, set a flag to say
-        // that the next frame should now be rendered..
-        if (fifoIndex == fftSize) {
-            // TODO(glynternet): log here if we the block hasn't been cleared since last ready.
-            // TODO(glynternet): if is already ready, maybe we still want to overwrite?
-            if (!nextFFTBlockReady) {
-                // TODO(glynternet): do we need to zeromem here?
-                zeromem(fftData, sizeof(fftData));
-                memcpy(fftData, fifo, sizeof(fftData));
-                nextFFTBlockReady = true;
-            }
-            fifoIndex = 0;
-        }
-        fifo[fifoIndex++] = sample;
-    }
-
-    // calculateLevel from the FFT data
-    float calculateLevel() {
-        auto maxIndex = fftSize / 2;
-        // TODO: work out a better "crossover" point as the frequency scale isn't linear
-        const int indexLow = (int)((float)maxIndex * processingBandIndexLow);
-        const int indexHigh = (int)((float)maxIndex * processingBandIndexHigh);
-
-        auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
-
-        level = valueShaper.shape(level);
-        movingAverage.add(level);
-        level = decayLength.getValue(movingAverage.getAverage());
-        return level < 0.0001f ? 0.0f : level;
-    }
-
-    // calculateLoudness will calculate the loudness for a given range of gain values of an FFT calculation
-    float calculateLoudness(float* data, int dataSize) {
-        const auto mindB = -100.0f;
-        const auto maxdB = 0.0f;
-
-        /*
-            why is this value calculated?!?!
-            Maybe it's something to do with the maximum/minimum level that an FFT calculation
-           can result in?
-        */
-        float fftSizeInDB = Decibels::gainToDecibels((float)fftSize);
-
-        return Loudness::Calculate(data, dataSize, mindB, maxdB, fftSizeInDB);
-    }
-
-
-   private:
-    void setupProcessingBandSlider(LabelledSlider& slider) {
+private:
+    void setupProcessingBandSlider(LabelledSlider &slider) {
         addAndMakeVisible(slider);
-        Slider& innerSlider = slider.getSlider();
+        Slider &innerSlider = slider.getSlider();
         innerSlider.setSliderStyle(Slider::TwoValueHorizontal);
         innerSlider.setRange(0.0f, 1.0f);
         innerSlider.setSkewFactor(0.5f);  // TODO: change this from a relatively arbitrary value
         innerSlider.setMinValue(initialProcessingBandLow);
         innerSlider.setMaxValue(initialProcessingBandHigh);
         slider.onValueChange = [this, &innerSlider] {
-            processingBandIndexLow = innerSlider.getMinValue();
-            processingBandIndexHigh = innerSlider.getMaxValue();
+            this->loudnessAnalyser.processingBandIndexLow = innerSlider.getMinValue();
+            this->loudnessAnalyser.processingBandIndexHigh = innerSlider.getMaxValue();
         };
     }
 
-    void setupShaperInSlider(LabelledSlider& slider) {
+    void setupShaperInSlider(LabelledSlider &slider) {
         addAndMakeVisible(&slider);
-        auto& innerSlider = slider.getSlider();
+        auto &innerSlider = slider.getSlider();
         innerSlider.setSliderStyle(Slider::TwoValueHorizontal);
         innerSlider.setRange(-0.1f, 1.1f);
         innerSlider.setMinValue(0.0f);
         innerSlider.setMaxValue(1.0f);
         innerSlider.setSkewFactor(0.3f);  // TODO: change this from a relatively arbitrary value
-        
+
         slider.onValueChange = [this, &slider]() {
-            auto min = slider.getSlider().getMinValue();
-            auto max = slider.getSlider().getMaxValue();
-            valueShaper.setInMin((float)min);
-            valueShaper.setInMax((float)max);
+            loudnessAnalyser.valueShaper.setInMin((float) slider.getSlider().getMinValue());
+            loudnessAnalyser.valueShaper.setInMax((float) slider.getSlider().getMaxValue());
         };
     }
 
-    void setupMovingAverageSlider(LabelledSlider& slider) {
+    void setupMovingAverageSlider(LabelledSlider &slider) {
         addAndMakeVisible(&slider);
-        auto& innerSlider = slider.getSlider();
+        auto &innerSlider = slider.getSlider();
         innerSlider.setValue(movingAverageInitialWindow);
         innerSlider.setRange(1, 7, 1);
         slider.onValueChange = [this, &innerSlider]() {
-            movingAverage.setPeriod((int)innerSlider.getValue());
+            loudnessAnalyser.movingAverage.setPeriod((int) innerSlider.getValue());
         };
     }
 
-    void setupDecayLengthSlider(LabelledSlider& slider) {
+    void setupDecayLengthSlider(LabelledSlider &slider) {
         addAndMakeVisible(&slider);
-        auto& innerSlider = slider.getSlider();
+        auto &innerSlider = slider.getSlider();
         innerSlider.setValue(initialDecayExponent);
         innerSlider.setRange(TailOff::minExponent, TailOff::maxExponent);
         innerSlider.setSkewFactorFromMidPoint(
-            jmap(0.90f, TailOff::minExponent, TailOff::maxExponent));
+                jmap(0.90f, TailOff::minExponent, TailOff::maxExponent));
         slider.onValueChange = [this, &innerSlider]() {
             auto exponent = innerSlider.getValue();
-            decayLength.setExponent((float)exponent);
+            loudnessAnalyser.decayLength.setExponent((float) exponent);
         };
     }
 
@@ -284,46 +242,22 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
     // MultiTimer functions
     // ====================================================
 
-    void timerCallback(int ID) override {
-        if (ID == fftTimerID) {
-            fftTimerCallback();
-            // also do CPU Usage here but move elsewhere later
-            updateCPULabel();
-        }
-    }
-
     float _lastLevelSent = -10.f; // set to strange value to start off with
 
-    void fftTimerCallback() {
-        if (!nextFFTBlockReady) return;
-        window.multiplyWithWindowingTable(fftData, fftSize);
-        forwardFFT.performFrequencyOnlyForwardTransform(fftData);
-        auto level = calculateLevel();
-        // always show level in history component
-        valueHistoryComp.addLevel(level);
-        if (sender.isConnected() && level != _lastLevelSent) {
-            sender.sendLoudness(level);  // TODO: handle failed sends
-            _lastLevelSent = level;
-        }
-        nextFFTBlockReady = false;
-    }
-
     void updateCPULabel() {
-        auto cpu = deviceManager.getCpuUsage() * 100.0f;
-        cpuUsageText.setText(String(cpu, 6) + " %", dontSendNotification);
+        const auto cpuPercent = deviceManager.getCpuUsage() * 100.0f;
+        cpuUsageText.setText(String(cpuPercent, 6) + " %", dontSendNotification);
     }
-
-    void startTimerHz(int timerID, float Hz) { startTimer(timerID, (int) (1000.0f / Hz)); }
 
     // ===============================
     // OSC functions
     // ===============================
 
-    void setRemoteAddressFromString(const String& text) {
+    void setRemoteAddressFromString(const String &text) {
         if (sender.connect(text, 9000)) {
             std::cout
-                << "AvvaOSCSender successfully connected to local socket, ready to send to "
-                << text << ":9000\n";
+                    << "AvvaOSCSender successfully connected to local socket, ready to send to "
+                    << text << ":9000\n";
             return;
         }
         AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Connection error",
@@ -337,42 +271,39 @@ class AnalyserComponent : public AudioAppComponent, private MultiTimer {
 
     // ===============================
 
-    enum { fftTimerID };
-    enum { fftOrder = 8, fftSize = 1 << fftOrder };
+    LoudnessAnalyser loudnessAnalyser{[this](float level) {
+        // always show level in history component
+        valueHistoryComp.addLevel(level);
+        // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
+        //  last then not sending it.
+        if (sender.isConnected() && level != _lastLevelSent) {
+            sender.sendLoudness(level);  // TODO: handle failed sends
+            _lastLevelSent = level;
+        }
+    }, initialProcessRateHz, initialProcessingBandLow, initialProcessingBandHigh, movingAverageInitialWindow, initialDecayExponent};
 
-    dsp::FFT forwardFFT { fftOrder };
-    dsp::WindowingFunction<float> window { fftSize, dsp::WindowingFunction<float>::hann };
+    StdoutLogger logger{};
+    AudioApp::AudioSourceComponent audioSource{deviceManager, logger};
 
-    float fifo[fftSize];
-    float fftData[2 * fftSize];
-    int fifoIndex = 0;
-    bool nextFFTBlockReady = false;
-
-    StdoutLogger logger {};
-    AudioApp::AudioSourceComponent audioSource { deviceManager, logger };
-
-    Label cpuUsageLabel { "CPU Usage", "CPU Usage" };
+    Label cpuUsageLabel{"CPU Usage", "CPU Usage"};
     Label cpuUsageText;
 
-    ValueShaper valueShaper { 0.0f, 1.0f, 0.0f, 1.0f };
-    LabelledSlider shaperInSlider { "Range In" };
+    LabelledSlider shaperInSlider{"Range In"};
 
-    TailOff decayLength { initialDecayExponent };
-    LabelledSlider decayLengthSlider { "Decay Length" };
-    static constexpr float initialDecayExponent = 0.5f;
+    static constexpr float initialProcessRateHz = 50.f;
+    LabelledSlider processRateSlider{"Process rate"};
+
+    LabelledSlider decayLengthSlider{"Decay Length"};
+    static constexpr float initialDecayExponent = 0.8f;
 
     ValueHistoryComponent valueHistoryComp;
-    MovingAverage movingAverage { movingAverageInitialWindow };
-    LabelledSlider movingAverageSlider { "Window Size" };
+    LabelledSlider movingAverageSlider{"Window Size"};
     static constexpr int movingAverageInitialWindow = 2;
 
-    LabelledSlider processingBandSlider { "Frequency Band" };
-    double processingBandIndexLow = initialProcessingBandLow;
-    static constexpr double initialProcessingBandLow = 0.0;
-    double processingBandIndexHigh = initialProcessingBandHigh;
-    static constexpr double initialProcessingBandHigh = 0.2;
+    LabelledSlider processingBandSlider{"Frequency Band"};
+    static constexpr double initialProcessingBandLow = 0.02;
+    static constexpr double initialProcessingBandHigh = 0.13;
 
-    ToggleButton drawValueHistoryToggle { "Draw Controls" };
-    LabelledSlider timerFrequencySlider { "Process rate" };
+    ToggleButton drawValueHistoryToggle{"Draw Controls"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnalyserComponent)
 };
