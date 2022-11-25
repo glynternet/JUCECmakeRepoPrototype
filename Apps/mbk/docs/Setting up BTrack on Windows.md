@@ -5,13 +5,13 @@
 C:\Users\glynh\avva\projects\JUCECmakeRepoPrototype\Apps\AudioAppTemplate\Libs\BTrack\OnsetDetectionFunction.h(26): fatal error C1083: Cannot open include file: 'fftw3.h': No such file or directory
 ```
 
-This is because the BTrack is trying to use the fftw library and the header file cannoty be found.
+This is because the BTrack is trying to use the fftw library and the header file cannot be found.
 
 Trying to get the FFTW library and fix this.
 
 Fetching FFTW from http://www.fftw.org/install/windows.html
 
-In there page they mention "lib", which is available as part of VS 2019 and found in the _Developer PowerShell for VS 2019_ (which has bash-esque commands like `ls`, `cd`).
+In their page they mention "lib", which is available as part of VS 2019 and found in the _Developer PowerShell for VS 2019_ (which has bash-esque commands like `ls`, `cd`).
 
 When it comes to linter errors for BTrack, another option would be to try to add a build system to BTrack so that I don't have to deal with any code issues (syntax, linting, etc.) within that repo but that seems like quite a task for me right now.
 
@@ -32,7 +32,7 @@ This solved the issues of not being able to locate the header file and moved ont
 ```
 C:\Users\glynh\avva\projects\JUCECmakeRepoPrototype\Apps\AudioAppTemplate\Source\MainComponent.cpp(40): warning C4100: 'sampleRate': unreferenced formal parameter
 ```
-`unreferenced formal parameter` just means that the parameter is unused fixed my removing parameter name.
+`unreferenced formal parameter` just means that the parameter is unused fixed by removing parameter name.
 
 ```
 C:\Users\glynh\avva\projects\JUCECmakeRepoPrototype\Apps\AudioAppTemplate\Source\MainComponent.cpp(69): error C2131: expression did not evaluate to a constant
