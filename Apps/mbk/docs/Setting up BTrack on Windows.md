@@ -11,7 +11,9 @@ Trying to get the FFTW library and fix this.
 
 Fetching FFTW from http://www.fftw.org/install/windows.html
 
-In their page they mention "lib", which is available as part of VS 2019 and found in the _Developer PowerShell for VS 2019_ (which has bash-esque commands like `ls`, `cd`).
+In their page they mention "lib", which is available as part of VS 2019 and can only be user by running it within _Developer PowerShell for VS 2019_ (which has bash-esque commands like `ls`, `cd`).
+There may be a way to install this without installing the whole Visual Studio Code IDE/Suite
+Find _Developer Powershell for VS 2019_ by hitting windows key then typing the name.
 
 When it comes to linter errors for BTrack, another option would be to try to add a build system to BTrack so that I don't have to deal with any code issues (syntax, linting, etc.) within that repo but that seems like quite a task for me right now.
 
