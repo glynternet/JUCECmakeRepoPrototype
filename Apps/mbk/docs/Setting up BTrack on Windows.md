@@ -180,7 +180,8 @@ set_target_properties(Allegro PROPERTIES
     IMPORTED_IMPLIB "${DEPENDENCIES_DIR}/allegro/lib/allegro.lib"
     INTERFACE_INCLUDE_DIRECTORIES "${DEPENDENCIES_DIR}/allegro/include"
 )
-and then you just use it like
+
+# and then you just use it like
 
 target_link_libraries(core … Allegro)
 ```
@@ -270,7 +271,7 @@ rm -rf ./cmake ./CMakeLists.txt ./tools ./test
 
 ### Got fftw to work
 
-Saw that the error message was shoing fftw3.lib, checked for exact file in the `../../../../dependencies/fftw3.3.5-dll32` directory and saw that the lib file there was called `libfftw3l-3.lib`. Not only was fftw3 wrong, but I'd compile the wrong lib.
+Saw that the error message was showing fftw3.lib, checked for exact file in the `../../../../dependencies/fftw3.3.5-dll32` directory and saw that the lib file there was called `libfftw3l-3.lib`. Not only was fftw3 wrong, but I'd compile the wrong lib.
 Recompiling the lib from the correct `.def` file...
 ```
 PS C:\Users\glynh\avva\dependencies\fftw3.3.5-dll32> lib /machine:x86 /def:libfftw3-3.def
@@ -283,7 +284,7 @@ Now we have `libfftw3-3.lib` created and can use `libfftw3-3` in the `target_lin
 
 ### Voila
 
-Now it works and I can backtrack to remove any kruft that I didn't want to do.
+Now it works, and I can backtrack to remove any cruft that I didn't want to do.
 
 ## References
 
