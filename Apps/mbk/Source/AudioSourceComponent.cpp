@@ -8,7 +8,7 @@ namespace AudioApp {
     AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
             : deviceManager(deviceManager), logger(logger) {
 
-        openButton.onClick = [this] { openButtonClicked(); };
+        openButton.onClick = [this] { openFileChooser(); };
         addAndMakeVisible(&openButton);
         playPauseButton.setEnabled(false);
         addAndMakeVisible(&playPauseButton);
@@ -151,7 +151,7 @@ namespace AudioApp {
         return frameValues2.data();
     }
 
-    void AudioSourceComponent::openButtonClicked() {
+    void AudioSourceComponent::openFileChooser() {
         logger.debug("Open button clicked");
         fileChooser_ = std::make_unique<juce::FileChooser>(("Choose a supported file to play..."),
                                                            juce::File::getSpecialLocation(

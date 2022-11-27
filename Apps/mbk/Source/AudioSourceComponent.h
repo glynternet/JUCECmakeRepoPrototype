@@ -45,7 +45,7 @@ namespace AudioApp {
         };
 
         TransportState state { FileNotLoaded };
-        void openButtonClicked();
+        void openFileChooser();
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
         void chooserClosed(const juce::FileChooser &chooser);
