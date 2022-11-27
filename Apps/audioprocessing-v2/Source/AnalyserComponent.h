@@ -51,11 +51,11 @@
 #include "LabelledSlider.h"
 #include "LoudnessAnalyser.h"
 #include "LoudnessAnalyserSettings.h"
-#include "RemoteAddressComponent.h"
 #include "ValueHistoryComponent.h"
 #include "../../mbk/Source/AudioSourceComponent.h"
 #include "../../mbk/Source/Logger.h"
 #include "../../mbk/Source/StdoutLogger.h"
+#include "../../mbk/Source/OSCComponent.h"
 
 //==============================================================================
 class AnalyserComponent : public AudioAppComponent, juce::Timer {
@@ -74,7 +74,6 @@ public:
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
             audioSource.setVisible(visible);
-            addressComponent.setVisible(visible);
             cpuUsageLabel.setVisible(visible);
             cpuUsageText.setVisible(visible);
         };
@@ -85,8 +84,7 @@ public:
 
         setAudioChannels(2, 2);
 
-        addAndMakeVisible(&addressComponent);
-        addressComponent.onTextChange = [this](const String &text) { setRemoteAddressFromString(text); };
+        addAndMakeVisible(&oscComponent);
 
         startTimerHz(30.f);
     }
@@ -105,19 +103,19 @@ public:
     void resized() override {
         auto bounds = getLocalBounds();
 
-        resizeAudioSettings(bounds.removeFromLeft(500));
-        valueHistoryComp.setBounds(bounds);
-        drawValueHistoryToggle.setBounds(bounds);
-        loudnessAnalyserSettings.setBounds(bounds.getProportion(juce::Rectangle(0.f, 0.f, 0.6f, 1.f)));
-        addressComponent.setBounds(getLocalBounds().removeFromBottom(20).removeFromRight(200));
-    }
-
-    void resizeAudioSettings(Rectangle<int> container) {
-        auto cpuSpace = container.removeFromBottom(20);
+        auto settingsBounds = bounds.removeFromLeft(500);
+        auto cpuSpace = settingsBounds.removeFromBottom(20);
         cpuUsageLabel.setBounds(cpuSpace.removeFromLeft(100));
         cpuUsageText.setBounds(cpuSpace);
-        audioSource.setBounds(container);
+        oscComponent.setBounds(settingsBounds.removeFromBottom(40));
+        audioSource.setBounds(settingsBounds);
+
+        valueHistoryComp.setBounds(bounds);
+        loudnessAnalyserSettings.setBounds(bounds.getProportion(juce::Rectangle(0.f, 0.f, 0.6f, 1.f)));
     }
+
+    //==============================================================================
+    // AudioAppComponent functions
 
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override {
         audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
@@ -150,29 +148,17 @@ public:
         cpuUsageText.setText(String(cpuPercent, 6) + " %", dontSendNotification);
     }
 
-    void setRemoteAddressFromString(const String &text) {
-        if (sender.connect(text, 9000)) {
-            std::cout
-                    << "AvvaOSCSender successfully connected to local socket, ready to send to "
-                    << text << ":9000\n";
-            return;
-        }
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Connection error",
-                                         "Error: could not connect to UDP port 9000.", "OK");
-        addressComponent.setText("unable to connect", dontSendNotification);
-        std::cout << "Unable to connect to sender at " << text << ":9000\n";
-    }
-
-    AvvaOSCSender sender;
-    RemoteAddressComponent addressComponent;
-
     // ===============================
+    // OSC functions
+    AudioApp::OSCComponent oscComponent { logger };
+    AvvaOSCSender sender { oscComponent };
+
     LoudnessAnalyser loudnessAnalyser{[this](float level) {
         // always show level in history component
         valueHistoryComp.addLevel(level);
         // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
         //  last then not sending it.
-        if (sender.isConnected() && level != _lastLevelSent) {
+        if (level != _lastLevelSent) {
             sender.sendLoudness(level);  // TODO: handle failed sends
             _lastLevelSent = level;
         }
@@ -185,7 +171,7 @@ public:
     StdoutLogger logger { false };
     AudioApp::AudioSourceComponent audioSource{deviceManager, logger};
 
-    Label cpuUsageLabel{"CPU Usage", "CPU Usage"};
+    Label cpuUsageLabel{"CPU usage", "CPU usage"};
     Label cpuUsageText;
 
     ValueHistoryComponent valueHistoryComp;

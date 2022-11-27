@@ -11,8 +11,9 @@ target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainWindow.cpp
         Source/TailOff.cpp
-        ../mbk/Source/StdoutLogger.cpp
         ../mbk/Source/AudioSourceComponent.cpp
+        ../mbk/Source/OSCComponent.cpp
+        ../mbk/Source/StdoutLogger.cpp
         )
 
 target_compile_definitions(${TargetName} PRIVATE

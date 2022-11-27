@@ -5,12 +5,13 @@
 #ifndef JUCECMAKEREPO_OSCCOMPONENT_H
 #define JUCECMAKEREPO_OSCCOMPONENT_H
 
-#include "Logger.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_osc/juce_osc.h>
+#include "Logger.h"
+#include "OSCSender.h"
 
 namespace AudioApp {
-    class OSCComponent : public juce::Component {
+class OSCComponent : public juce::Component, public OSCSender {
     public:
         explicit OSCComponent(Logger &logger);
 
@@ -31,7 +32,6 @@ namespace AudioApp {
 
         juce::Label targetAddress{"targetAddress", "127.0.0.1"};
         juce::TextButton connectOSCButton{"Connect OSC"};
-        // Probably worth taking a look at the AVVAOSCSender class from the legacy repo
         juce::OSCSender sender;
         bool senderConnected = false;
     };
