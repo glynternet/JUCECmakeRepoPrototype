@@ -5,8 +5,11 @@ namespace AudioApp {
 #define BUTTONS_GAP 10
 #define BUTTONS_HEIGHT 30
 
-    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
-            : deviceManager(deviceManager), logger(logger) {
+    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger,
+                                           std::function<void()> onPlaying,
+                                           std::function<void()> onPaused,
+                                           std::function<void()> onStopped)
+            : deviceManager(deviceManager), logger(logger), onPlaying(onPlaying), onPaused(onPaused), onStopped(onStopped) {
 
         openButton.onClick = [this] { openFileChooser(); };
         addAndMakeVisible(&openButton);
@@ -193,6 +196,7 @@ namespace AudioApp {
             switch (state) {
                 case Stopped:
                     logger.info("Stopped");
+                    if (onStopped != nullptr) onStopped();
                     playPauseButton.setButtonText("Play");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){
@@ -204,6 +208,7 @@ namespace AudioApp {
 
                 case Paused:
                     logger.info("Paused");
+                    if (onPaused != nullptr) onPaused();
                     playPauseButton.setButtonText("Play");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){
@@ -224,6 +229,7 @@ namespace AudioApp {
 
                 case Playing:
                     logger.info("Playing");
+                    if (onPlaying != nullptr) onPlaying();
                     playPauseButton.setButtonText("Pause");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){

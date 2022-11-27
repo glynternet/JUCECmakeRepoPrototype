@@ -10,7 +10,10 @@
 namespace AudioApp {
     class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener {
     public:
-        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger);
+        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger,
+                                      std::function<void()> onPlaying,
+                                      std::function<void()> onPaused,
+                                      std::function<void()> onStopped);
 
         void paint(juce::Graphics &g) override;
         void resized() override;
@@ -21,6 +24,10 @@ namespace AudioApp {
 
         // get frame values from last block of audio processed
         double *getFrameValues();
+
+        std::function<void()> onPlaying;
+        std::function<void()> onPaused;
+        std::function<void()> onStopped;
 
     private:
         std::vector<double> frameValues2;
