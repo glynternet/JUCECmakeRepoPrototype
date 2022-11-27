@@ -11,9 +11,9 @@ namespace AudioApp {
         openButton.onClick = [this] { openButtonClicked(); };
         addAndMakeVisible(&openButton);
 
-        playButton.onClick = [this] { transportStateChanged(Starting); };
-        playButton.setEnabled(true);
-        addAndMakeVisible(&playButton);
+        playPauseButton.onClick = [this] { transportStateChanged(Starting); };
+        playPauseButton.setEnabled(true);
+        addAndMakeVisible(&playPauseButton);
 
         stopButton.onClick = [this] { transportStateChanged(Stopping); };
         stopButton.setEnabled(false);
@@ -30,14 +30,14 @@ namespace AudioApp {
                 filePlayerEnabled = newFilePlayerEnabled;
                 this->logger.debug("Updated filePlayerEnabled to: " + std::to_string(filePlayerEnabled));
                 if (filePlayerEnabled) {
-                    playButton.setVisible(true);
+                    playPauseButton.setVisible(true);
                     stopButton.setVisible(true);
                     openButton.setVisible(true);
                 } else {
                     if (state != Stopped) {
                         transportStateChanged(Stopping);
                     }
-                    playButton.setVisible(false);
+                    playPauseButton.setVisible(false);
                     stopButton.setVisible(false);
                     openButton.setVisible(false);
                 }
@@ -62,7 +62,7 @@ namespace AudioApp {
             auto buttonWidth = (transportButtonsBounds.getWidth() - 2 * BUTTONS_GAP) / 3;
             openButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
             transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
-            playButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
+            playPauseButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
             transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
             stopButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
         }
@@ -83,7 +83,10 @@ namespace AudioApp {
         if (source == &transport) {
             if (transport.isPlaying()) {
                 transportStateChanged(Playing);
+            } else if (state == Pausing) {
+                transportStateChanged(Paused);
             } else {
+                // file transport has reached end or stopped for some other reason
                 transportStateChanged(Stopped);
             }
         }
@@ -194,27 +197,54 @@ namespace AudioApp {
             switch (state) {
                 case Stopped:
                     logger.info("Stopped");
-                    playButton.setEnabled(true);
+                    playPauseButton.setButtonText("Play");
+                    playPauseButton.setEnabled(true);
+                    playPauseButton.onClick = [this](){
+                        transportStateChanged(Starting);
+                    };
                     stopButton.setEnabled(false);
                     transport.setPosition(0.0);
                     break;
 
-                case Playing:
-                    logger.info("Playing");
-                    playButton.setEnabled(false);
-                    stopButton.setEnabled(true);
+                case Paused:
+                    logger.info("Paused");
+                    playPauseButton.setButtonText("Play");
+                    playPauseButton.setEnabled(true);
+                    playPauseButton.onClick = [this](){
+                        transportStateChanged(Starting);
+                    };
+                    // TODO(glynternet): handle clicking stop when paused:
+                    //  will probably need to handle this without a transport changed call back
+                    stopButton.setEnabled(false);
                     break;
 
                 case Starting:
                     logger.info("Starting");
                     stopButton.setEnabled(true);
-                    playButton.setEnabled(false);
+                    playPauseButton.setEnabled(false);
                     transport.start();
+                    break;
+
+                case Playing:
+                    logger.info("Playing");
+                    playPauseButton.setButtonText("Pause");
+                    playPauseButton.onClick = [this](){
+                        transportStateChanged(Pausing);
+                    };
+                    playPauseButton.setEnabled(true);
+                    stopButton.setEnabled(true);
                     break;
 
                 case Stopping:
                     logger.info("Stopping");
-                    playButton.setEnabled(true);
+                    playPauseButton.setEnabled(false);
+                    stopButton.setEnabled(false);
+                    transport.stop();
+                    break;
+
+                case Pausing:
+                    logger.info("Pausing");
+                    playPauseButton.setEnabled(false);
                     stopButton.setEnabled(false);
                     transport.stop();
                     break;

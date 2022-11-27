@@ -38,7 +38,9 @@ namespace AudioApp {
             Stopped,
             Starting,
             Stopping,
-            Playing
+            Playing,
+            Pausing,
+            Paused,
         };
 
         // TODO(glynternet): implement state FileAbsent (naming?)
@@ -50,7 +52,7 @@ namespace AudioApp {
         void transportStateChanged(TransportState newState);
 
         juce::TextButton openButton { "Open" };
-        juce::TextButton playButton { "Open" };
+        juce::TextButton playPauseButton { "Play" };
         juce::TextButton stopButton { "Stop" };
         std::unique_ptr<juce::AudioFormatReaderSource> playSource;
         juce::AudioTransportSource transport;
