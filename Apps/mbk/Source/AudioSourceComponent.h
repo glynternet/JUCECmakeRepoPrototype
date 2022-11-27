@@ -10,10 +10,7 @@
 namespace AudioApp {
     class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener {
     public:
-        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger,
-                                      std::function<void()> onPlaying,
-                                      std::function<void()> onPaused,
-                                      std::function<void()> onStopped);
+        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger);
 
         void paint(juce::Graphics &g) override;
         void resized() override;
