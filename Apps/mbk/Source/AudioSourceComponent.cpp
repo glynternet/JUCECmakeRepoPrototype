@@ -10,12 +10,8 @@ namespace AudioApp {
 
         openButton.onClick = [this] { openButtonClicked(); };
         addAndMakeVisible(&openButton);
-
-        playPauseButton.onClick = [this] { transportStateChanged(Starting); };
-        playPauseButton.setEnabled(true);
+        playPauseButton.setEnabled(false);
         addAndMakeVisible(&playPauseButton);
-
-        stopButton.onClick = [this] { transportStateChanged(Stopping); };
         stopButton.setEnabled(false);
         addAndMakeVisible(&stopButton);
 
