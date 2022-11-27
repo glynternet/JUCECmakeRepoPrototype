@@ -5,24 +5,21 @@ class AvvaOSCSender
 {
 private:
     AudioApp::OSCSender& _sender;
-    juce::OSCMessage loudnessTemplate;
-    juce::OSCMessage filePlayingTemplateMessage;
-    juce::OSCMessage filePausedTemplateMessage;
-    juce::OSCMessage fileStoppedTemplateMessage;
+
+    juce::OSCMessage loudnessTemplate {"/audio", String("loudness"), (int32) 0};
+    juce::OSCMessage filePlayingTemplateMessage {"/audio", String("filePlaying")};
+    juce::OSCMessage filePausedTemplateMessage {"/audio", String("filePaused")};
+    juce::OSCMessage fileStoppedTemplateMessage {"/audio", String("fileStopped")};
 
 public:
     explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender)
-        // TODO(glynternet): initialise these
-        : loudnessTemplate("/audio", String("loudness"), (int32) 0)
-        , filePlayingTemplateMessage("/audio", String("filePlaying"))
-        , filePausedTemplateMessage("/audio", String("filePaused"))
-        , fileStoppedTemplateMessage("/audio", String("fileStopped"))
-        , _sender(sender) {}
+        : _sender(sender)
+    {
+    }
 
-    ~AvvaOSCSender() {}
+    ~AvvaOSCSender() = default;
 
     // sendLoudness will send a loudness OSC message to the configured host.
-    // sendLoudness will not check that the sender is connected, for performance reasons.
     bool sendLoudness(float loudness)
     {
         auto message = loudnessTemplate;
@@ -30,24 +27,21 @@ public:
         return _sender.send(message);
     }
 
-    // sendFilePlaying will send a OSC message to the configured host.
-    // sendFilePlaying will not check that the sender is connected, for performance reasons.
+    // sendFilePlaying will send an OSC message to the configured host.
     bool sendFilePlaying()
     {
         auto message = filePlayingTemplateMessage;
         return _sender.send(message);
     }
 
-    // sendFilePaused will send a OSC message to the configured host.
-    // sendFilePaused will not check that the sender is connected, for performance reasons.
+    // sendFilePaused will send an OSC message to the configured host.
     bool sendFilePaused()
     {
         auto message = filePausedTemplateMessage;
         return _sender.send(message);
     }
 
-    // sendFileStopped will send a OSC message to the configured host.
-    // sendFileStopped will not check that the sender is connected, for performance reasons.
+    // sendFileStopped will send an OSC message to the configured host.
     bool sendFileStopped()
     {
         auto message = fileStoppedTemplateMessage;
