@@ -9,9 +9,14 @@
 
 class StdoutLogger : public AudioApp::Logger {
 public:
-    void debug(const juce::String &message);
-    void info(const juce::String &message);
-    void error(const juce::String &message);
+    StdoutLogger();
+    explicit StdoutLogger(bool debugMode);
+    void debug(const juce::String &message) override;
+    void info(const juce::String &message) override;
+    void error(const juce::String &message) override;
+    bool test;
+private:
+    bool _debug;
 };
 
 #endif //JUCECMAKEREPO_STDOUTLOGGER_H

@@ -182,7 +182,7 @@ public:
                                                        initialProcessingBandHigh, movingAverageInitialWindow,
                                                        initialDecayExponent};
 
-    StdoutLogger logger{};
+    StdoutLogger logger { false };
     AudioApp::AudioSourceComponent audioSource{deviceManager, logger};
 
     Label cpuUsageLabel{"CPU Usage", "CPU Usage"};
