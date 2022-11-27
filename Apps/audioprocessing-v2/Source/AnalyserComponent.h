@@ -46,7 +46,7 @@
 
 #pragma once
 
-#include "AvvaOSCSender.h"
+#include "../../mbk/Source/AvvaOSCSender.h"
 #include "JuceHeader.h"
 #include "LabelledSlider.h"
 #include "LoudnessAnalyser.h"
