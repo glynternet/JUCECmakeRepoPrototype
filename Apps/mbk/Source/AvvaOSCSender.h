@@ -1,6 +1,8 @@
 #include "JuceHeader.h"
 #include "OSCSender.h"
 
+namespace AudioApp
+{
 class AvvaOSCSender
 {
 private:
@@ -10,7 +12,8 @@ private:
     juce::OSCMessage filePlayingTemplateMessage {"/audio", String("filePlaying")};
     juce::OSCMessage filePausedTemplateMessage {"/audio", String("filePaused")};
     juce::OSCMessage fileStoppedTemplateMessage {"/audio", String("fileStopped")};
-    juce::OSCMessage clockMillisPerBeatTemplate { "/clock", (juce::String) "millisPerBeat" };
+    juce::OSCMessage clockMillisPerBeatTemplate {"/clock",
+                                                 (juce::String) "millisPerBeat"};
 
 public:
     explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender)
@@ -57,3 +60,4 @@ public:
         return _sender.send(message);
     }
 };
+}
