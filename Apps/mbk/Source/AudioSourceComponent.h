@@ -35,6 +35,7 @@ namespace AudioApp {
 
         // File transport
         enum TransportState {
+            FileNotLoaded,
             Stopped,
             Starting,
             Stopping,
@@ -43,8 +44,7 @@ namespace AudioApp {
             Paused,
         };
 
-        // TODO(glynternet): implement state FileAbsent (naming?)
-        TransportState state { Stopped };
+        TransportState state { FileNotLoaded };
         void openButtonClicked();
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
