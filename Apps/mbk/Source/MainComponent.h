@@ -27,11 +27,7 @@ public:
 
 private:
     LogOutputComponent logger;
-    AudioSourceComponent audioSource { deviceManager, logger,
-        [this](){oscSender.sendFilePlaying();},
-        [this](){oscSender.sendFilePaused();},
-        [this](){oscSender.sendFileStopped();},
-    };
+    AudioSourceComponent audioSource { deviceManager, logger };
     TempoAnalyserComponent tempoAnalyser;
     FlashBox tempoAnalyserFlash;
     TempoSynthesizerComponent tempoSynthesizer { logger };

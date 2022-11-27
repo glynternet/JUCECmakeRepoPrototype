@@ -151,7 +151,7 @@ public:
     // ===============================
     // OSC functions
     AudioApp::OSCComponent oscComponent { logger };
-    AvvaOSCSender sender { oscComponent };
+    AudioApp::AvvaOSCSender sender { oscComponent };
 
     LoudnessAnalyser loudnessAnalyser{[this](float level) {
         // always show level in history component
