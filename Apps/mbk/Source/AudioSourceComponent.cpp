@@ -6,9 +6,7 @@ namespace AudioApp {
 #define BUTTONS_HEIGHT 30
 
     AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
-            : deviceManager(deviceManager), logger(logger), state(Stopped), openButton("Open"), playButton("Play"),
-              stopButton("Stop") {
-
+            : deviceManager(deviceManager), logger(logger) {
 
         openButton.onClick = [this] { openButtonClicked(); };
         addAndMakeVisible(&openButton);
