@@ -5,11 +5,8 @@ namespace AudioApp {
 #define BUTTONS_GAP 10
 #define BUTTONS_HEIGHT 30
 
-    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger,
-                                           std::function<void()> onPlaying,
-                                           std::function<void()> onPaused,
-                                           std::function<void()> onStopped)
-            : deviceManager(deviceManager), logger(logger), onPlaying(onPlaying), onPaused(onPaused), onStopped(onStopped) {
+    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
+            : deviceManager(deviceManager), logger(logger) {
 
         openButton.onClick = [this] { openFileChooser(); };
         addAndMakeVisible(&openButton);

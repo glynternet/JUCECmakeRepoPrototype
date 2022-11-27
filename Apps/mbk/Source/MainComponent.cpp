@@ -12,6 +12,10 @@ namespace AudioApp {
         addAndMakeVisible(audioSource);
         addAndMakeVisible(oscComponent);
 
+        audioSource.onPlaying = [this](){oscSender.sendFilePlaying();};
+        audioSource.onPaused = [this](){oscSender.sendFilePaused();};
+        audioSource.onStopped = [this](){oscSender.sendFileStopped();};
+
         tempoAnalyser.onBeat = [this](double period) {
             tempoSynthesizer.beat(period);
             tempoAnalyserFlash.flash(FLASH_PROPORTION * (float) period);
