@@ -31,9 +31,7 @@ class ValueHistoryComponent : public Component {
         auto width = getLocalBounds().getWidth();
         auto height = getLocalBounds().getHeight();
 
-        if (drawAverageLevelHistory) {
-            drawHistoryLine(g, width, height);
-        }
+        drawHistoryLines(g, width, height);
         drawCurrentLevelIndicator(g, width, height);
         drawCurrentTimeIndicator(g, width, height);
     }
@@ -93,7 +91,6 @@ class ValueHistoryComponent : public Component {
     Slider historySizeSlider;
     Label historySizeLabel;
 
-    bool drawAverageLevelHistory = true;
     float avgLevelHistory[maxHistorySize] = {};
     int latestValueIndex = 0;
 };
