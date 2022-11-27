@@ -52,7 +52,7 @@ namespace AudioApp {
                 return false;
             }
         } else {
-            logger.debug("Sender not connected. Unable to send beat message.");
+            logger.debug("Sender not connected");
             return false;
         }
     }
@@ -61,6 +61,8 @@ namespace AudioApp {
         auto target = address + ":" + OSCPortString;
         auto success = sender.connect(address, OSCPort);
         if (!success) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Connection error",
+                                             "Error: could not connect to UDP port 9000.", "OK");
             logger.error("Error connecting OSC with target " + target);
             return;
         }
