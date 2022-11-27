@@ -213,26 +213,30 @@ namespace AudioApp {
                     playPauseButton.onClick = [this](){
                         transportStateChanged(Starting);
                     };
-                    // TODO(glynternet): handle clicking stop when paused:
-                    //  will probably need to handle this without a transport changed call back
-                    stopButton.setEnabled(false);
+                    stopButton.setEnabled(true);
+                    stopButton.onClick = [this]() {
+                        transportStateChanged(Stopped);
+                    };
                     break;
 
                 case Starting:
                     logger.info("Starting");
-                    stopButton.setEnabled(true);
                     playPauseButton.setEnabled(false);
+                    stopButton.setEnabled(true);
                     transport.start();
                     break;
 
                 case Playing:
                     logger.info("Playing");
                     playPauseButton.setButtonText("Pause");
+                    playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){
                         transportStateChanged(Pausing);
                     };
-                    playPauseButton.setEnabled(true);
                     stopButton.setEnabled(true);
+                    stopButton.onClick = [this]() {
+                        transportStateChanged(Stopping);
+                    };
                     break;
 
                 case Stopping:
