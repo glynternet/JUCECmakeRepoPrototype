@@ -33,7 +33,6 @@ class ValueHistoryComponent : public Component {
 
         drawHistoryLines(g, width, height);
         drawCurrentLevelIndicator(g, width, height);
-        drawCurrentTimeIndicator(g, width, height);
     }
 
     void resized() override {
@@ -54,38 +53,31 @@ class ValueHistoryComponent : public Component {
     }
 
    private:
-    void drawHistoryLine(Graphics& g, int width, int height) {
+    void drawHistoryLines(Graphics& g, int width, int height) {
+        // TODO(glynternet): no need calculate yFromCentre twice for each element
         for (int i = 1; i < historySize; ++i) {
             float x0 = x(i - 1, historySize, width);
             float x1 = x(i, historySize, width);
-
-            drawLineSegment(g, x0, x1, i, height, avgLevelHistory);
+            float halfHeight = (float)height/2;
+            float x0yFromCentre = yFromCentre(avgLevelHistory[i - 1], height);
+            float x1yFromCentre = yFromCentre(avgLevelHistory[i], height);
+            g.drawLine({x0,  halfHeight + x0yFromCentre, x1, halfHeight + x1yFromCentre});
+            g.drawLine({x0,  halfHeight - x0yFromCentre, x1, halfHeight - x1yFromCentre});
         }
     }
 
     void drawCurrentLevelIndicator(Graphics& g, int width, int height) {
-        float avgY = y(avgLevelHistory[latestValueIndex], height);
+        float yDelta = yFromCentre(avgLevelHistory[latestValueIndex], height);
         float timeX = x(latestValueIndex, historySize, width);
-        const float indicatorSize = 10.f;
-        float indicatorX = timeX - indicatorSize / 2.f;
-        float indicatorY = avgY - indicatorSize / 2.f;
-        g.fillEllipse(indicatorX, indicatorY, indicatorSize, indicatorSize);
-    }
-
-    void drawCurrentTimeIndicator(Graphics& g, int width, int height) {
-        auto timeX = x(latestValueIndex, historySize, width);
-        g.fillRect((int)timeX, (int)0, 2, height);
-    }
-
-    void drawLineSegment(Graphics& g, float x0, float x1, int index, int height, float levels[]) {
-        g.drawLine({x0, y(levels[index - 1], height), x1, y(levels[index], height)});
+        auto halfHeight = (float)height / 2.f;
+        g.drawLine({timeX,  halfHeight-yDelta, timeX, halfHeight+yDelta});
     }
 
     float x(int index, int datasetSize, int width) {
         return (float)jmap<int>(index, 0, datasetSize - 1, 0, width);
     }
 
-    float y(float value, int height) { return jmap(value, 0.0f, 1.0f, (float)height, 0.0f); }
+    float yFromCentre(float value, int height) { return jmap(value, 0.0f, 1.0f, 0.f, (float)height/2); }
 
     int historySize = 100;
     Slider historySizeSlider;
