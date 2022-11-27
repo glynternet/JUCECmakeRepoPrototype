@@ -1,5 +1,5 @@
 #include "JuceHeader.h"
-#include "../../mbk/Source/OSCSender.h"
+#include "OSCSender.h"
 
 class AvvaOSCSender
 {
@@ -10,6 +10,7 @@ private:
     juce::OSCMessage filePlayingTemplateMessage {"/audio", String("filePlaying")};
     juce::OSCMessage filePausedTemplateMessage {"/audio", String("filePaused")};
     juce::OSCMessage fileStoppedTemplateMessage {"/audio", String("fileStopped")};
+    juce::OSCMessage clockMillisPerBeatTemplate { "/clock", (juce::String) "millisPerBeat" };
 
 public:
     explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender)
@@ -19,7 +20,7 @@ public:
 
     ~AvvaOSCSender() = default;
 
-    // sendLoudness will send a loudness OSC message to the configured host.
+    // sendLoudness will send a loudness OSC message using the configured client.
     bool sendLoudness(float loudness)
     {
         auto message = loudnessTemplate;
@@ -27,24 +28,32 @@ public:
         return _sender.send(message);
     }
 
-    // sendFilePlaying will send an OSC message to the configured host.
+    // sendFilePlaying will send an OSC message using the configured client.
     bool sendFilePlaying()
     {
         auto message = filePlayingTemplateMessage;
         return _sender.send(message);
     }
 
-    // sendFilePaused will send an OSC message to the configured host.
+    // sendFilePaused will send an OSC message using the configured client.
     bool sendFilePaused()
     {
         auto message = filePausedTemplateMessage;
         return _sender.send(message);
     }
 
-    // sendFileStopped will send an OSC message to the configured host.
+    // sendFileStopped will send an OSC message using the configured client.
     bool sendFileStopped()
     {
         auto message = fileStoppedTemplateMessage;
+        return _sender.send(message);
+    }
+
+    // sendLoudness will send a millisPerBeat OSC message using the configured client.
+    bool sendClockMillisPerBeat(float millisPerBeat)
+    {
+        auto message = clockMillisPerBeatTemplate;
+        message.addFloat32(millisPerBeat);
         return _sender.send(message);
     }
 };

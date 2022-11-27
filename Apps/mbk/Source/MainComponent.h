@@ -8,6 +8,7 @@
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 #include "TempoSynthesizerComponent.h"
+#include "AvvaOSCSender.h"
 
 namespace AudioApp
 {
@@ -32,6 +33,7 @@ private:
     TempoSynthesizerComponent tempoSynthesizer { logger };
     FlashBox tempoSynthesizerFlash;
     OSCComponent oscComponent { logger };
+    AvvaOSCSender oscSender { oscComponent };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 }
