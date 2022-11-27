@@ -61,11 +61,11 @@ namespace AudioApp {
         auto target = address + ":" + OSCPortString;
         auto success = sender.connect(address, OSCPort);
         if (!success) {
-            logger.error("Error connecting OSC to " + target);
+            logger.error("Error connecting OSC with target " + target);
             return;
         }
         setSenderConnectedState(true);
-        logger.info("Connected OSC to " + target);
+        logger.info("Connected OSC with target " + target);
     }
 
     void OSCComponent::disconnectOSCSender() {
