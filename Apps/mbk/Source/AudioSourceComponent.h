@@ -40,15 +40,18 @@ namespace AudioApp {
             Stopping,
             Playing
         };
-        TransportState state;
+
+        // TODO(glynternet): implement state FileAbsent (naming?)
+        TransportState state { Stopped };
         void openButtonClicked();
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
         void chooserClosed(const juce::FileChooser &chooser);
         void transportStateChanged(TransportState newState);
-        juce::TextButton openButton;
-        juce::TextButton playButton;
-        juce::TextButton stopButton;
+
+        juce::TextButton openButton { "Open" };
+        juce::TextButton playButton { "Open" };
+        juce::TextButton stopButton { "Stop" };
         std::unique_ptr<juce::AudioFormatReaderSource> playSource;
         juce::AudioTransportSource transport;
 
