@@ -26,13 +26,12 @@ class ValueHistoryComponent : public Component {
     }
 
     void paint(Graphics& g) override {
-        g.fillAll(Colours::blueviolet);
+        g.fillAll(Colours::black);
 
         auto width = getLocalBounds().getWidth();
         auto height = getLocalBounds().getHeight();
 
         drawHistoryLines(g, width, height);
-        drawCurrentLevelIndicator(g, width, height);
     }
 
     void resized() override {
@@ -53,24 +52,24 @@ class ValueHistoryComponent : public Component {
     }
 
    private:
+
+    const Colour brightViolet           { 0xffba6bf5 };
+
     void drawHistoryLines(Graphics& g, int width, int height) {
         // TODO(glynternet): no need calculate yFromCentre twice for each element
-        for (int i = 1; i < historySize; ++i) {
-            float x0 = x(i - 1, historySize, width);
-            float x1 = x(i, historySize, width);
+        for (int i = 0; i < historySize-1; ++i) {
+            float x0 = width-x(i, historySize, width);
+            float x1 = width-x(i + 1, historySize, width);
             float halfHeight = (float)height/2;
-            float x0yFromCentre = yFromCentre(avgLevelHistory[i - 1], height);
-            float x1yFromCentre = yFromCentre(avgLevelHistory[i], height);
-            g.drawLine({x0,  halfHeight + x0yFromCentre, x1, halfHeight + x1yFromCentre});
-            g.drawLine({x0,  halfHeight - x0yFromCentre, x1, halfHeight - x1yFromCentre});
-        }
-    }
+            float x0yFromCentre = yFromCentre(avgLevelHistory[(historySize + latestValueIndex - i) % historySize], height);
+            float level = avgLevelHistory[(historySize + latestValueIndex - i - 1) % historySize];
+            const float x1yFromCentre = yFromCentre(level, height);
+            const float proportionOfWidthCompleted = x1 / (float) width;
 
-    void drawCurrentLevelIndicator(Graphics& g, int width, int height) {
-        float yDelta = yFromCentre(avgLevelHistory[latestValueIndex], height);
-        float timeX = x(latestValueIndex, historySize, width);
-        auto halfHeight = (float)height / 2.f;
-        g.drawLine({timeX,  halfHeight-yDelta, timeX, halfHeight+yDelta});
+            g.setColour(juce::Colours::transparentBlack.interpolatedWith(brightViolet, jmap(level * proportionOfWidthCompleted, 0.15f, 1.f)));
+            g.drawLine({x0,  halfHeight + x0yFromCentre, x1, halfHeight + x1yFromCentre}, 3);
+            g.drawLine({x0,  halfHeight - x0yFromCentre, x1, halfHeight - x1yFromCentre}, 3);
+        }
     }
 
     float x(int index, int datasetSize, int width) {
