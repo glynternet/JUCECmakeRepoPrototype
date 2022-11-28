@@ -89,11 +89,11 @@ public:
         startTimerHz(30.f);
     }
 
-    ~AnalyserComponent() {
+    ~AnalyserComponent() override {
         shutdownAudio();
     }
 
-    void timerCallback() {
+    void timerCallback() override {
         updateCPULabel();
     }
 
@@ -137,7 +137,6 @@ public:
 
     //==============================================================================
     void paint(Graphics &g) override {
-        // black background
         g.fillAll(Colours::black);
     }
 
