@@ -6,6 +6,7 @@
 #include "FlashBox.h"
 #include "LogOutputComponent.h"
 #include "Loudness/AnalyserComponent.h"
+#include "MultiLogger.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 #include "TempoSynthesizerComponent.h"
@@ -27,17 +28,20 @@ public:
     void resized() override;
 
 private:
-    LogOutputComponent logger;
-    OSCComponent oscComponent { logger };
-    AvvaOSCSender oscSender { oscComponent };
-    AudioSourceComponent audioSource { deviceManager, logger };
+    StdoutLogger stdoutLogger {true};
+    LogOutputComponent uiLogger;
+    MultiLogger logger {{&stdoutLogger, &uiLogger}};
+
+    OSCComponent oscComponent {logger};
+    AvvaOSCSender oscSender {oscComponent};
+    AudioSourceComponent audioSource {deviceManager, logger};
 
     TempoAnalyserComponent tempoAnalyser;
     FlashBox tempoAnalyserFlash;
-    TempoSynthesizerComponent tempoSynthesizer { logger };
+    TempoSynthesizerComponent tempoSynthesizer {logger};
     FlashBox tempoSynthesizerFlash;
 
-    Loudness::AnalyserComponent analyserComponent { oscSender };
+    Loudness::AnalyserComponent analyserComponent {oscSender};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
-}
+} // namespace AudioApp

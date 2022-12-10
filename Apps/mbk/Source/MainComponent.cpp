@@ -8,7 +8,7 @@ namespace AudioApp {
 
         getLookAndFeel().setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
 
-        addAndMakeVisible(logger);
+        addAndMakeVisible(uiLogger);
         addAndMakeVisible(audioSource);
         addAndMakeVisible(oscComponent);
 
@@ -49,7 +49,7 @@ namespace AudioApp {
 
         audioSource.setBounds(settings.removeFromTop(410));
         oscComponent.setBounds(settings.removeFromBottom(50));
-        logger.setBounds(settings);
+        uiLogger.setBounds(settings);
 
         tempoSynthesizer.setBounds(area.removeFromBottom(25));
         auto tempoFlashes = area.removeFromBottom(25);
