@@ -17,6 +17,7 @@ target_sources(${TargetName} PRIVATE
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
+        Source/MultiLogger.cpp
         Source/OSCComponent.cpp
         Source/StdoutLogger.cpp
         Source/TempoAnalyserComponent.cpp
