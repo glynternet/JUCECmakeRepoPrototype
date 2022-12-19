@@ -33,6 +33,9 @@ option(JUCE_BUILD_EXAMPLES "Build JUCE Examples" OFF)
 #Fetching JUCE from git
 #IF you want to instead point it to a local version, you can invoke CMake with
 #-DCPM_JUCE_SOURCE="Path_To_JUCE"
+#or use set(CPM_JUCE_SOURCE Path_To_JUCE)
+
+# TODO(glynternet): what is the best way to get this to not fail when there is no network connection? i.e. on a plane.
 CPMAddPackage(
         NAME JUCE
         GITHUB_REPOSITORY juce-framework/JUCE
