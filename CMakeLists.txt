@@ -36,7 +36,7 @@ option(JUCE_BUILD_EXAMPLES "Build JUCE Examples" OFF)
 CPMAddPackage(
         NAME JUCE
         GITHUB_REPOSITORY juce-framework/JUCE
-        GIT_TAG origin/develop)
+        GIT_TAG origin/master)
 
 #By default, we are building the provided plugin/app examples:
 option(BUILD_JUCE_PROTOTYPE_EXAMPES "Build JUCE prototype examples" ON)
