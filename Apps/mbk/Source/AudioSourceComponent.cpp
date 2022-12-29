@@ -43,12 +43,22 @@ namespace AudioApp {
         addAndMakeVisible(&sourceToggle);
 
         addAndMakeVisible(&monitorOutputToggle);
+
+        cpuUsageText.setJustificationType(juce::Justification::left);
+        addAndMakeVisible(&cpuUsageLabel);
+        addAndMakeVisible(&cpuUsageText);
+
+        startTimerHz(30.f);
     }
 
     void AudioSourceComponent::paint(juce::Graphics &) {}
 
     void AudioSourceComponent::resized() {
         auto bounds = getLocalBounds();
+
+        auto cpuSpace = bounds.removeFromBottom(20);
+        cpuUsageText.setBounds(cpuSpace.removeFromRight(100));
+        cpuUsageLabel.setBounds(cpuSpace);
 
         if (filePlayerEnabled) {
             bounds.removeFromBottom(BUTTONS_GAP);
@@ -86,6 +96,11 @@ namespace AudioApp {
                 transportStateChanged(Stopped);
             }
         }
+    }
+
+    void AudioSourceComponent::timerCallback() {
+        const auto cpuPercent = deviceManager.getCpuUsage() * 100.0f;
+        cpuUsageText.setText(juce::String(cpuPercent, 6) + " %", juce::dontSendNotification);
     }
 
     void AudioSourceComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
