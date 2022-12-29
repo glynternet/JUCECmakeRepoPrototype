@@ -12,6 +12,7 @@ target_sources(${TargetName} PRIVATE
         Source/MainWindow.cpp
         Source/Loudness/TailOff.cpp
         ../mbk/Source/AudioSourceComponent.cpp
+        ../mbk/Source/AvvaOSCSender.cpp
         ../mbk/Source/OSCComponent.cpp
         ../mbk/Source/StdoutLogger.cpp
         )
