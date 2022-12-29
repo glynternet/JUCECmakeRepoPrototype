@@ -7,7 +7,7 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "Source/Loudness/AnalyserComponent.h"
+#include "Source/MainComponent.h"
 
 class Application : public JUCEApplication {
    public:
