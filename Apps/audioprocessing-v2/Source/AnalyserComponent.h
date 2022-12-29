@@ -58,14 +58,10 @@
 #include "../../mbk/Source/OSCComponent.h"
 
 //==============================================================================
-class AnalyserComponent : public AudioAppComponent, juce::Timer {
+class AnalyserComponent : public AudioAppComponent {
 public:
     AnalyserComponent() {
         addAndMakeVisible(audioSource);
-
-        cpuUsageText.setJustificationType(Justification::left);
-        addAndMakeVisible(&cpuUsageLabel);
-        addAndMakeVisible(&cpuUsageText);
 
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(&drawValueHistoryToggle);
@@ -74,8 +70,6 @@ public:
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
             audioSource.setVisible(visible);
-            cpuUsageLabel.setVisible(visible);
-            cpuUsageText.setVisible(visible);
         };
 
         addAndMakeVisible(loudnessAnalyserSettings);
@@ -85,16 +79,10 @@ public:
         setAudioChannels(2, 2);
 
         addAndMakeVisible(&oscComponent);
-
-        startTimerHz(30.f);
     }
 
     ~AnalyserComponent() override {
         shutdownAudio();
-    }
-
-    void timerCallback() override {
-        updateCPULabel();
     }
 
     //==============================================================================
@@ -104,9 +92,6 @@ public:
         auto bounds = getLocalBounds();
 
         auto settingsBounds = bounds.removeFromLeft(500);
-        auto cpuSpace = settingsBounds.removeFromBottom(20);
-        cpuUsageLabel.setBounds(cpuSpace.removeFromLeft(100));
-        cpuUsageText.setBounds(cpuSpace);
         oscComponent.setBounds(settingsBounds.removeFromBottom(40));
         audioSource.setBounds(settingsBounds);
 
@@ -142,11 +127,6 @@ public:
 
     float _lastLevelSent = -10.f; // set to strange value to start off with
 
-    void updateCPULabel() {
-        const auto cpuPercent = deviceManager.getCpuUsage() * 100.0f;
-        cpuUsageText.setText(String(cpuPercent, 6) + " %", dontSendNotification);
-    }
-
     // ===============================
     // OSC functions
     AudioApp::OSCComponent oscComponent { logger };
@@ -169,9 +149,6 @@ public:
 
     StdoutLogger logger { false };
     AudioApp::AudioSourceComponent audioSource{deviceManager, logger};
-
-    Label cpuUsageLabel{"CPU usage", "CPU usage"};
-    Label cpuUsageText;
 
     ValueHistoryComponent valueHistoryComp;
 

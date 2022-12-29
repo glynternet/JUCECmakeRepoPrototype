@@ -8,7 +8,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 namespace AudioApp {
-    class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener {
+    class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener, juce::Timer {
     public:
         explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger);
 
@@ -18,6 +18,7 @@ namespace AudioApp {
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
         void releaseResources() override;
         void getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) override;
+        void timerCallback() override;
 
         // get frame values from last block of audio processed
         double *getFrameValues();
@@ -66,5 +67,8 @@ namespace AudioApp {
         juce::ToggleButton sourceToggle{"enable file player"};
 
         juce::ToggleButton monitorOutputToggle{"monitor output"};
+
+        juce::Label cpuUsageLabel{"CPU usage", "CPU usage"};
+        juce::Label cpuUsageText;
     };
 }
