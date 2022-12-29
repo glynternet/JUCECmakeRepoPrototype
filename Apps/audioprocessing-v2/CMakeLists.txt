@@ -6,11 +6,11 @@ juce_add_gui_app(${TargetName} PRODUCT_NAME "audioprocessing-v2")
 juce_generate_juce_header(${TargetName})
 
 target_sources(${TargetName} PRIVATE
-        Source/LoudnessAnalyser.cpp
-        Source/LabelledSlider.cpp
+        Source/Loudness/Analyser.cpp
+        Source/Components/LabelledSlider.cpp
         Source/Main.cpp
         Source/MainWindow.cpp
-        Source/TailOff.cpp
+        Source/Loudness/TailOff.cpp
         ../mbk/Source/AudioSourceComponent.cpp
         ../mbk/Source/OSCComponent.cpp
         ../mbk/Source/StdoutLogger.cpp

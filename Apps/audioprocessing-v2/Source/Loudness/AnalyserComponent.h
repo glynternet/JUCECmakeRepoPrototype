@@ -46,27 +46,31 @@
 
 #pragma once
 
-#include "../../mbk/Source/AvvaOSCSender.h"
+#include "../../../mbk/Source/AvvaOSCSender.h"
 #include "JuceHeader.h"
-#include "LabelledSlider.h"
-#include "LoudnessAnalyser.h"
-#include "LoudnessAnalyserSettings.h"
+#include "../Components/LabelledSlider.h"
+#include "Analyser.h"
+#include "AnalyserSettings.h"
 #include "ValueHistoryComponent.h"
-#include "../../mbk/Source/AudioSourceComponent.h"
-#include "../../mbk/Source/Logger.h"
-#include "../../mbk/Source/StdoutLogger.h"
-#include "../../mbk/Source/OSCComponent.h"
+#include "../../../mbk/Source/AudioSourceComponent.h"
+#include "../../../mbk/Source/Logger.h"
+#include "../../../mbk/Source/StdoutLogger.h"
+#include "../../../mbk/Source/OSCComponent.h"
 
-//==============================================================================
-class AnalyserComponent : public AudioAppComponent {
+namespace Loudness
+{
+class AnalyserComponent : public juce::AudioAppComponent
+{
 public:
-    AnalyserComponent() {
+    AnalyserComponent()
+    {
         addAndMakeVisible(audioSource);
 
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(&drawValueHistoryToggle);
         drawValueHistoryToggle.setToggleState(true, dontSendNotification);
-        drawValueHistoryToggle.onStateChange = [this]() {
+        drawValueHistoryToggle.onStateChange = [this]()
+        {
             bool visible = drawValueHistoryToggle.getToggleState();
             valueHistoryComp.setVisible(visible);
             audioSource.setVisible(visible);
@@ -81,14 +85,13 @@ public:
         addAndMakeVisible(&oscComponent);
     }
 
-    ~AnalyserComponent() override {
-        shutdownAudio();
-    }
+    ~AnalyserComponent() override { shutdownAudio(); }
 
     //==============================================================================
     // Component functions
 
-    void resized() override {
+    void resized() override
+    {
         auto bounds = getLocalBounds();
 
         auto settingsBounds = bounds.removeFromLeft(500);
@@ -96,59 +99,72 @@ public:
         audioSource.setBounds(settingsBounds);
 
         valueHistoryComp.setBounds(bounds);
-        loudnessAnalyserSettings.setBounds(bounds.getProportion(juce::Rectangle(0.f, 0.f, 0.6f, 1.f)));
+        loudnessAnalyserSettings.setBounds(
+            bounds.getProportion(juce::Rectangle(0.f, 0.f, 0.6f, 1.f)));
     }
 
     //==============================================================================
     // AudioAppComponent functions
 
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override {
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override
+    {
         audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
     }
 
     void releaseResources() override { audioSource.releaseResources(); }
 
-    void getNextAudioBlock(const AudioSourceChannelInfo &bufferToFill) override {
-        if (bufferToFill.buffer->getNumChannels() <= 0) return;
+    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override
+    {
+        if (bufferToFill.buffer->getNumChannels() <= 0)
+            return;
         audioSource.getNextAudioBlock(bufferToFill);
         // TODO(glynternet): This isn't great, we're copying all of the frames to another vector just to extract them.
         //   We either want to hook driectly into getNextAudioBlock or take the frame values and push all of
         //   them at the same time into the Fifo buffer? Not sure, a thing for another day.
-        double *frameValues = audioSource.getFrameValues();
-        for (auto i = 0; i < bufferToFill.numSamples; ++i) {
+        double* frameValues = audioSource.getFrameValues();
+        for (auto i = 0; i < bufferToFill.numSamples; ++i)
+        {
             loudnessAnalyser.pushNextSampleIntoFifo(frameValues[i]);
         }
     }
 
     //==============================================================================
-    void paint(Graphics &g) override {
-        g.fillAll(Colours::black);
-    }
+    void paint(Graphics& g) override { g.fillAll(Colours::black); }
 
     float _lastLevelSent = -10.f; // set to strange value to start off with
 
     // ===============================
     // OSC functions
-    AudioApp::OSCComponent oscComponent { logger };
-    AudioApp::AvvaOSCSender sender { oscComponent };
+    AudioApp::OSCComponent oscComponent {logger};
+    AudioApp::AvvaOSCSender sender {oscComponent};
 
-    LoudnessAnalyser loudnessAnalyser{[this](float level) {
-        // always show level in history component
-        valueHistoryComp.addLevel(level);
-        // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
-        //  last then not sending it.
-        if (level != _lastLevelSent) {
-            sender.sendLoudness(level);  // TODO: handle failed sends
-            _lastLevelSent = level;
-        }
-    }, initialProcessRateHz, initialProcessingBandLow, initialProcessingBandHigh, movingAverageInitialWindow,
-                                      initialDecayExponent};
-    LoudnessAnalyserSettings loudnessAnalyserSettings{loudnessAnalyser, initialProcessRateHz, initialProcessingBandLow,
-                                                       initialProcessingBandHigh, movingAverageInitialWindow,
+    Loudness::Analyser loudnessAnalyser {[this](float level)
+                                       {
+                                           // always show level in history component
+                                           valueHistoryComp.addLevel(level);
+                                           // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
+                                           //  last then not sending it.
+                                           if (level != _lastLevelSent)
+                                           {
+                                               sender.sendLoudness(
+                                                   level); // TODO: handle failed sends
+                                               _lastLevelSent = level;
+                                           }
+                                       },
+                                       initialProcessRateHz,
+                                       initialProcessingBandLow,
+                                       initialProcessingBandHigh,
+                                       movingAverageInitialWindow,
+                                       initialDecayExponent};
+    AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
+                                                       initialProcessRateHz,
+                                                       initialProcessingBandLow,
+                                                       initialProcessingBandHigh,
+                                                       movingAverageInitialWindow,
                                                        initialDecayExponent};
 
-    StdoutLogger logger { false };
-    AudioApp::AudioSourceComponent audioSource{deviceManager, logger};
+    StdoutLogger logger {false};
+    AudioApp::AudioSourceComponent audioSource {deviceManager, logger};
 
     ValueHistoryComponent valueHistoryComp;
 
@@ -158,6 +174,7 @@ public:
     static constexpr double initialProcessingBandLow = 0.02;
     static constexpr double initialProcessingBandHigh = 0.13;
 
-    ToggleButton drawValueHistoryToggle{"Draw Controls"};
+    ToggleButton drawValueHistoryToggle {"Draw Controls"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnalyserComponent)
 };
+} // namespace Loudness
