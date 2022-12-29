@@ -2,7 +2,10 @@
 
 #include <math.h>
 
-class TailOff {
+namespace Loudness
+{
+class TailOff
+{
 public:
     explicit TailOff(float);
 
@@ -19,4 +22,4 @@ private:
     float _exponent;
     float _previousValue;
 };
-
+} // namespace Loudness

@@ -2,14 +2,21 @@
 // Created by glynh on 24/11/2022.
 //
 
-#include "LoudnessAnalyser.h"
+#include "Analyser.h"
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "Loudness.h"
 
-LoudnessAnalyser::LoudnessAnalyser(std::function<void(float)> onLoudnessResult, float processRate, float processingBandIndexLow,
-                                   float processingBandIndexHigh, float movingAverageInitialWindow,
-                                   float initialDecayExponent) : movingAverage(movingAverageInitialWindow),
-                                                                 decayLength(initialDecayExponent) {
+namespace Loudness
+{
+Analyser::Analyser(std::function<void(float)> onLoudnessResult,
+                   float processRate,
+                   float processingBandIndexLow,
+                   float processingBandIndexHigh,
+                   float movingAverageInitialWindow,
+                   float initialDecayExponent)
+    : movingAverage(movingAverageInitialWindow)
+    , decayLength(initialDecayExponent)
+{
     // TODO(glynternet): how can we fix this clang warning?
     this->onLoudnessResult = onLoudnessResult;
     this->processingBandIndexLow = processingBandIndexLow;
@@ -19,21 +26,26 @@ LoudnessAnalyser::LoudnessAnalyser(std::function<void(float)> onLoudnessResult, 
     juce::Timer::startTimerHz(processRate);
 }
 
-void LoudnessAnalyser::timerCallback() {
+void Analyser::timerCallback()
+{
     fftTimerCallback();
 }
 
-void LoudnessAnalyser::setProcessRateHz(int rate) {
+void Analyser::setProcessRateHz(int rate)
+{
     startTimerHz(rate);
 }
 
-void LoudnessAnalyser::fftTimerCallback() {
+void Analyser::fftTimerCallback()
+{
     // TODO(glynternet): Can we do that atomic bool locking thing here?
-    if (!nextFFTBlockReady) return;
+    if (!nextFFTBlockReady)
+        return;
     window.multiplyWithWindowingTable(fftData, fftSize);
     forwardFFT.performFrequencyOnlyForwardTransform(fftData);
     auto level = calculateLevel();
-    if (onLoudnessResult != nullptr) {
+    if (onLoudnessResult != nullptr)
+    {
         onLoudnessResult(level);
     }
 
@@ -41,7 +53,8 @@ void LoudnessAnalyser::fftTimerCallback() {
 }
 
 // calculateLevel from the FFT data
-float LoudnessAnalyser::calculateLevel() {
+float Analyser::calculateLevel()
+{
     auto maxIndex = fftSize / 2;
     // TODO: work out a better "crossover" point as the frequency scale isn't linear
     const int indexLow = (int) ((float) maxIndex * processingBandIndexLow);
@@ -55,13 +68,16 @@ float LoudnessAnalyser::calculateLevel() {
     return level < 0.0001f ? 0.0f : level;
 }
 
-void LoudnessAnalyser::pushNextSampleIntoFifo(float sample) noexcept {
+void Analyser::pushNextSampleIntoFifo(float sample) noexcept
+{
     // if the fifo contains enough data, set a flag to say
     // that the next frame should now be rendered.
-    if (fifoIndex == fftSize) {
+    if (fifoIndex == fftSize)
+    {
         // TODO(glynternet): log here if we the block hasn't been cleared since last ready.
         // TODO(glynternet): if is already ready, maybe we still want to overwrite?
-        if (!nextFFTBlockReady) {
+        if (!nextFFTBlockReady)
+        {
             // TODO(glynternet): do we need to zeromem here?
             zeromem(fftData, sizeof(fftData));
             // TODO(glynternet): is fftData always the same size as fifo and does the memcpy work as expected?
@@ -74,7 +90,8 @@ void LoudnessAnalyser::pushNextSampleIntoFifo(float sample) noexcept {
 }
 
 // calculateLoudness will calculate the loudness for a given range of gain values of an FFT calculation
-float LoudnessAnalyser::calculateLoudness(float *data, int dataSize) {
+float Analyser::calculateLoudness(float* data, int dataSize)
+{
     const auto mindB = -100.0f;
     const auto maxdB = 0.0f;
 
@@ -87,3 +104,4 @@ float LoudnessAnalyser::calculateLoudness(float *data, int dataSize) {
 
     return Loudness::Calculate(data, dataSize, mindB, maxdB, fftSizeInDB);
 }
+} // namespace Loudness

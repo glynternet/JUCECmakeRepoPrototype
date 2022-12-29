@@ -4,6 +4,7 @@
 
 #include "TailOff.h"
 
+namespace Loudness {
 // TODO: is exponent the right name here?
 TailOff::TailOff(float exponent) { setExponent(exponent); }
 
@@ -29,4 +30,5 @@ float TailOff::getValue(float in) {
     float min = _previousValue * _exponent;
     _previousValue = fmax(in, min);
     return _previousValue;
+}
 }
