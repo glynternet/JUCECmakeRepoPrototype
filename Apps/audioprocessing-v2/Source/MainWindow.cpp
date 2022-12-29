@@ -15,7 +15,7 @@ MainWindow::MainWindow(const String& name)
     : DocumentWindow(name, getBackgroundColour(), allButtons)
 {
     setUsingNativeTitleBar(true);
-    setContentOwned(new Loudness::AnalyserComponent(), true);
+    setContentOwned(new MainComponent(), true);
 
     if (isMobile())
         setFullScreen(true);

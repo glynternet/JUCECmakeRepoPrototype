@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Loudness/AnalyserComponent.h"
+#include "MainComponent.h"
 
 namespace AudioApp
 {

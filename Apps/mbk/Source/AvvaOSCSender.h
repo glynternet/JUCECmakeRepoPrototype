@@ -1,3 +1,6 @@
+#ifndef JUCECMAKEREPO_AvvaOSCSender_H
+#define JUCECMAKEREPO_AvvaOSCSender_H
+
 #include "JuceHeader.h"
 #include "OSCSender.h"
 
@@ -16,48 +19,23 @@ private:
                                                  (juce::String) "millisPerBeat"};
 
 public:
-    explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender)
-        : _sender(sender)
-    {
-    }
-
-    ~AvvaOSCSender() = default;
+    explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender);
 
     // sendLoudness will send a loudness OSC message using the configured client.
-    bool sendLoudness(float loudness)
-    {
-        auto message = loudnessTemplate;
-        message.addFloat32(loudness);
-        return _sender.send(message);
-    }
+    bool sendLoudness(float loudness);
 
     // sendFilePlaying will send an OSC message using the configured client.
-    bool sendFilePlaying()
-    {
-        auto message = filePlayingTemplateMessage;
-        return _sender.send(message);
-    }
+    bool sendFilePlaying();
 
     // sendFilePaused will send an OSC message using the configured client.
-    bool sendFilePaused()
-    {
-        auto message = filePausedTemplateMessage;
-        return _sender.send(message);
-    }
+    bool sendFilePaused();
 
     // sendFileStopped will send an OSC message using the configured client.
-    bool sendFileStopped()
-    {
-        auto message = fileStoppedTemplateMessage;
-        return _sender.send(message);
-    }
+    bool sendFileStopped();
 
     // sendLoudness will send a millisPerBeat OSC message using the configured client.
-    bool sendClockMillisPerBeat(float millisPerBeat)
-    {
-        auto message = clockMillisPerBeatTemplate;
-        message.addFloat32(millisPerBeat);
-        return _sender.send(message);
-    }
+    bool sendClockMillisPerBeat(float millisPerBeat);
 };
-}
+} // namespace AudioApp
+
+#endif JUCECMAKEREPO_AvvaOSCSender_H
