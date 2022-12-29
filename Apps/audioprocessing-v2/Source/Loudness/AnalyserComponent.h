@@ -65,24 +65,12 @@ public:
     AnalyserComponent()
     {
         addAndMakeVisible(audioSource);
-
         addAndMakeVisible(&valueHistoryComp);
-        addAndMakeVisible(&drawValueHistoryToggle);
-        drawValueHistoryToggle.setToggleState(true, dontSendNotification);
-        drawValueHistoryToggle.onStateChange = [this]()
-        {
-            bool visible = drawValueHistoryToggle.getToggleState();
-            valueHistoryComp.setVisible(visible);
-            audioSource.setVisible(visible);
-        };
-
         addAndMakeVisible(loudnessAnalyserSettings);
+        addAndMakeVisible(&oscComponent);
 
         setSize(900, 500);
-
         setAudioChannels(2, 2);
-
-        addAndMakeVisible(&oscComponent);
     }
 
     ~AnalyserComponent() override { shutdownAudio(); }
@@ -174,7 +162,6 @@ public:
     static constexpr double initialProcessingBandLow = 0.02;
     static constexpr double initialProcessingBandHigh = 0.13;
 
-    ToggleButton drawValueHistoryToggle {"Draw Controls"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnalyserComponent)
 };
 } // namespace Loudness
