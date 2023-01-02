@@ -5,16 +5,16 @@
 #ifndef JUCECMAKEREPO_ANALYSERCOMPONENT_H
 #define JUCECMAKEREPO_ANALYSERCOMPONENT_H
 
-#include "../../../mbk/Source/AvvaOSCSender.h"
+#include "../AvvaOSCSender.h"
 #include "JuceHeader.h"
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
 #include "AnalyserSettings.h"
 #include "ValueHistoryComponent.h"
-#include "../../../mbk/Source/AudioSourceComponent.h"
-#include "../../../mbk/Source/Logger.h"
-#include "../../../mbk/Source/StdoutLogger.h"
-#include "../../../mbk/Source/OSCComponent.h"
+#include "../AudioSourceComponent.h"
+#include "../Logger.h"
+#include "../StdoutLogger.h"
+#include "../OSCComponent.h"
 
 namespace Loudness
 {
