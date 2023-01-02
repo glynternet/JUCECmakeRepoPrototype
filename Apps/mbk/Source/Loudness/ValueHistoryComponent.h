@@ -19,7 +19,7 @@ public:
         historySizeLabel.setText("History Size", dontSendNotification);
         historySizeLabel.attachToComponent(&historySizeSlider, true); // [4]
     }
-    ~ValueHistoryComponent() {}
+    ~ValueHistoryComponent() = default;
 
     static const int maxHistorySize = 500;
 
