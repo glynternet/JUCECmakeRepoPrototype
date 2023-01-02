@@ -11,9 +11,7 @@ public:
 
     float getValue(float);
 
-    float getExponent();
-
-    void setExponent(float);
+    void setMaxDecayCoefficient(float);
 
     static constexpr float maxExponent = 0.9999f;
     static constexpr float minExponent = 0.0f;
