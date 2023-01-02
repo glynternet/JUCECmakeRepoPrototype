@@ -9,8 +9,11 @@ juce_generate_juce_header(${TargetName})
 target_sources(${TargetName} PRIVATE
         Source/AvvaOSCSender.cpp
         Source/AudioSourceComponent.cpp
+        Source/Components/LabelledSlider.cpp
         Source/FlashBox.cpp
         Source/LogOutputComponent.cpp
+        Source/Loudness/Analyser.cpp
+        Source/Loudness/TailOff.cpp
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
@@ -49,6 +52,7 @@ target_link_libraries(${TargetName} PRIVATE
         juce::juce_recommended_warning_flags
         juce::juce_gui_basics
         juce::juce_osc
+        juce::juce_dsp
         shared_processing_code
         # Libraries extra to the ones from the JUCE CMake template ones above.
         # Windows: These are the required `.lib` files but `.lib` is omitted from the definitions below.

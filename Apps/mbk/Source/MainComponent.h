@@ -5,6 +5,7 @@
 #include "AudioSourceComponent.h"
 #include "FlashBox.h"
 #include "LogOutputComponent.h"
+#include "Loudness/AnalyserComponent.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 #include "TempoSynthesizerComponent.h"
@@ -27,13 +28,16 @@ public:
 
 private:
     LogOutputComponent logger;
+    OSCComponent oscComponent { logger };
+    AvvaOSCSender oscSender { oscComponent };
     AudioSourceComponent audioSource { deviceManager, logger };
+
     TempoAnalyserComponent tempoAnalyser;
     FlashBox tempoAnalyserFlash;
     TempoSynthesizerComponent tempoSynthesizer { logger };
     FlashBox tempoSynthesizerFlash;
-    OSCComponent oscComponent { logger };
-    AvvaOSCSender oscSender { oscComponent };
+
+    Loudness::AnalyserComponent analyserComponent { oscSender };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 }
