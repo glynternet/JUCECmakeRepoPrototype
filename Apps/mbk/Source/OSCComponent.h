@@ -19,7 +19,7 @@ class OSCComponent : public juce::Component, public OSCSender {
 
         void resized() override;
 
-        bool send(const juce::OSCMessage &message);
+        bool send(const juce::OSCMessage &message) override;
 
     private:
         void connectOSCSender(const juce::String &);

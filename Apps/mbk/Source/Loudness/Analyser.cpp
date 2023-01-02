@@ -19,8 +19,8 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResult,
 {
     // TODO(glynternet): how can we fix this clang warning?
     this->onLoudnessResult = onLoudnessResult;
-    this->processingBandIndexLow = processingBandIndexLow;
-    this->processingBandIndexHigh = processingBandIndexHigh;
+    this->processingBandLow = processingBandIndexLow;
+    this->processingBandHigh = processingBandIndexHigh;
     // TODO(glynternet): can we remove this timer and just process everytime we receive the thing?
     //  Then we can just update the visual counterpart with a timer?
     juce::Timer::startTimerHz(processRate);
@@ -57,8 +57,8 @@ float Analyser::calculateLevel()
 {
     auto maxIndex = fftSize / 2;
     // TODO: work out a better "crossover" point as the frequency scale isn't linear
-    const int indexLow = (int) ((float) maxIndex * processingBandIndexLow);
-    const int indexHigh = (int) ((float) maxIndex * processingBandIndexHigh);
+    const int indexLow = (int) ((float) maxIndex * processingBandLow);
+    const int indexHigh = (int) ((float) maxIndex * processingBandHigh);
 
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
