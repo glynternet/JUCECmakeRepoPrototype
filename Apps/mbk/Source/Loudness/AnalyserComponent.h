@@ -57,24 +57,26 @@ public:
     // OSC functions
     AudioApp::AvvaOSCSender sender;
 
-    Loudness::Analyser loudnessAnalyser {[this](float level)
-                                         {
-                                             // always show level in history component
-                                             valueHistoryComp.addLevel(level);
-                                             // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
-                                             //  last then not sending it.
-                                             if (level != _lastLevelSent)
-                                             {
-                                                 sender.sendLoudness(
-                                                     level); // TODO: handle failed sends
-                                                 _lastLevelSent = level;
-                                             }
-                                         },
-                                         initialProcessRateHz,
-                                         initialProcessingBandLow,
-                                         initialProcessingBandHigh,
-                                         movingAverageInitialWindow,
-                                         initialDecayExponent};
+    Loudness::Analyser loudnessAnalyser {
+        [this](float level)
+        {
+            // always show level in history component
+            valueHistoryComp.addLevel(level);
+            // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
+            //  last then not sending it.
+            if (level != _lastLevelSent)
+            {
+                // Only update _lastLevelSent if success sending.
+                // Error logging should be handled by the AvvaOSCSender.
+                if (sender.sendLoudness(level))
+                    _lastLevelSent = level;
+            }
+        },
+        initialProcessRateHz,
+        initialProcessingBandLow,
+        initialProcessingBandHigh,
+        movingAverageInitialWindow,
+        initialDecayExponent};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
                                                initialProcessRateHz,
                                                initialProcessingBandLow,
