@@ -28,9 +28,8 @@ public:
     void pushNextSampleIntoFifo(float sample) noexcept;
 
     std::function<void(float)> onLoudnessResult;
-    // TODO(glynternet): this isn't an index, sort out abstraction and naming
-    double processingBandIndexLow;
-    double processingBandIndexHigh;
+    double processingBandLow;
+    double processingBandHigh;
     ValueShaper valueShaper {0.0f, 1.0f, 0.0f, 1.0f};
     MovingAverage movingAverage;
     TailOff decayLength;

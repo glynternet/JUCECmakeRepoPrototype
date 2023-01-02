@@ -27,8 +27,8 @@ public:
                                   0.5f,
                                   [&loudnessAnalyser](const double low, const double high)
                                   {
-                                      loudnessAnalyser.processingBandIndexLow = low;
-                                      loudnessAnalyser.processingBandIndexHigh = high;
+                                      loudnessAnalyser.processingBandLow = low;
+                                      loudnessAnalyser.processingBandHigh = high;
                                   })
         ,
 
