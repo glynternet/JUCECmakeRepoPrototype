@@ -52,6 +52,7 @@ namespace AudioApp {
                 return false;
             }
         } else {
+            // TODO(glynternet): rate limit this specific message
             logger.debug("Sender not connected");
             return false;
         }
