@@ -51,7 +51,7 @@ public:
                     initialDecayExponent,
                     jmap(0.90f, TailOff::minExponent, TailOff::maxExponent),
                     [&loudnessAnalyser](const double exponent)
-                    { loudnessAnalyser.decayLength.setExponent((float) exponent); })
+                    { loudnessAnalyser.decayLength.setMaxDecayCoefficient((float) exponent); })
         ,
 
         movingAverage("Window Size",
