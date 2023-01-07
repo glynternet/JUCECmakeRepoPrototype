@@ -3,7 +3,7 @@
 #include <cmath>
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "AudioSourceComponent.h"
-#include "FlashBox.h"
+#include "Components/FlashBox.h"
 #include "LogOutputComponent.h"
 #include "Loudness/AnalyserComponent.h"
 #include "MultiLogger.h"
