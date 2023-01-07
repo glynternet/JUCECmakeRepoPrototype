@@ -10,7 +10,7 @@ target_sources(${TargetName} PRIVATE
         Source/AvvaOSCSender.cpp
         Source/AudioSourceComponent.cpp
         Source/Components/LabelledSlider.cpp
-        Source/FlashBox.cpp
+        Source/Components/FlashBox.cpp
         Source/LogOutputComponent.cpp
         Source/Loudness/Analyser.cpp
         Source/Loudness/TailOff.cpp
