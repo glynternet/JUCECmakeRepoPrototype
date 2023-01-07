@@ -11,15 +11,15 @@ target_sources(${TargetName} PRIVATE
         Source/AudioSourceComponent.cpp
         Source/Components/LabelledSlider.cpp
         Source/Components/FlashBox.cpp
-        Source/LogOutputComponent.cpp
+        Source/Components/LogOutputComponent.cpp
         Source/Loudness/Analyser.cpp
         Source/Loudness/TailOff.cpp
         Source/Main.cpp
         Source/MainComponent.cpp
         Source/MainWindow.cpp
-        Source/MultiLogger.cpp
+        Source/Logger/MultiLogger.cpp
         Source/OSCComponent.cpp
-        Source/StdoutLogger.cpp
+        Source/Logger/StdoutLogger.cpp
         Source/TempoAnalyserComponent.cpp
         Source/TempoSynthesizerComponent.cpp
         Libs/BTrack/BTrack.cpp

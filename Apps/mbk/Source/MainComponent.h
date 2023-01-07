@@ -4,9 +4,9 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "AudioSourceComponent.h"
 #include "Components/FlashBox.h"
-#include "LogOutputComponent.h"
+#include "Components/LogOutputComponent.h"
 #include "Loudness/AnalyserComponent.h"
-#include "MultiLogger.h"
+#include "Logger/MultiLogger.h"
 #include "OSCComponent.h"
 #include "TempoAnalyserComponent.h"
 #include "TempoSynthesizerComponent.h"

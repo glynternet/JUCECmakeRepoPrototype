@@ -2,8 +2,8 @@
 
 #include <cmath>
 #include "../Libs/BTrack/BTrack.h"
-#include "LogOutputComponent.h"
-#include "Logger.h"
+#include "Components/LogOutputComponent.h"
+#include "Logger/Logger.h"
 
 namespace AudioApp {
     class TempoSynthesizerComponent : public juce::Component, juce::HighResolutionTimer, juce::Timer {

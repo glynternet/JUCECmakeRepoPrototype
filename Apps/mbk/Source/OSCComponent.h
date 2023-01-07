@@ -7,7 +7,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_osc/juce_osc.h>
-#include "Logger.h"
+#include "Logger/Logger.h"
 #include "OSCSender.h"
 
 namespace AudioApp {
