@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <ctime>
-#include "Logger.h"
+#include "../Logger/Logger.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 namespace AudioApp
@@ -40,6 +40,6 @@ namespace AudioApp
 
         // Used to get time for prepending to log lines
         time_t now;
-        tm ltm;
+        tm ltm {};
     };
 }

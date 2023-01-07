@@ -12,8 +12,8 @@
 #include "AnalyserSettings.h"
 #include "ValueHistoryComponent.h"
 #include "../AudioSourceComponent.h"
-#include "../Logger.h"
-#include "../StdoutLogger.h"
+#include "../Logger/Logger.h"
+#include "../Logger/StdoutLogger.h"
 #include "../OSCComponent.h"
 
 namespace Loudness

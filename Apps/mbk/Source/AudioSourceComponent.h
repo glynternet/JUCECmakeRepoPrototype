@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.h"
+#include "Logger/Logger.h"
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
