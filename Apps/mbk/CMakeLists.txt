@@ -20,8 +20,8 @@ target_sources(${TargetName} PRIVATE
         Source/Logger/MultiLogger.cpp
         Source/OSCComponent.cpp
         Source/Logger/StdoutLogger.cpp
-        Source/TempoAnalyserComponent.cpp
-        Source/TempoSynthesizerComponent.cpp
+        Source/Beat/AnalyserComponent.cpp
+        Source/Beat/SynthesizerComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)
 

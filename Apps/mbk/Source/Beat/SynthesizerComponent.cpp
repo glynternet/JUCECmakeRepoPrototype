@@ -1,11 +1,11 @@
-#include "TempoSynthesizerComponent.h"
-#include "Math.h"
+#include "SynthesizerComponent.h"
+#include "../Math.h"
 
-namespace AudioApp
+namespace Beat
 {
     double durationPerSynthesizedBeat = 500;
 
-    TempoSynthesizerComponent::TempoSynthesizerComponent(Logger& l) : logger(l) {
+    SynthesizerComponent::SynthesizerComponent(AudioApp::Logger& l) : logger(l) {
         up.onClick = [this](){
             if (nextMultipleIndex < (TOTAL_MULTIPLE_COUNT - 1)) {
                 setNextMultipleIndex(nextMultipleIndex + 1);
@@ -43,7 +43,7 @@ namespace AudioApp
         juce::Timer::startTimerHz(60);
     }
 
-    void TempoSynthesizerComponent::setMultipleFromIndex(int m) {
+    void SynthesizerComponent::setMultipleFromIndex(int m) {
         multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multipleIndex = m;
         auto exponent = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
@@ -55,18 +55,18 @@ namespace AudioApp
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::setNextMultipleIndex(int m) {
+    void SynthesizerComponent::setNextMultipleIndex(int m) {
         multipleButtons[nextMultipleIndex].setOutline(juce::Colours::transparentWhite, 3);
         nextMultipleIndex = m;
         multipleButtons[nextMultipleIndex].setOutline(juce::Colours::white, 3);
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::paint(juce::Graphics& g) {
+    void SynthesizerComponent::paint(juce::Graphics& g) {
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     }
 
-    void TempoSynthesizerComponent::resized() {
+    void SynthesizerComponent::resized() {
         auto rect = getLocalBounds();
         up.setBounds(rect.removeFromRight(30));
         down.setBounds(rect.removeFromLeft(30));
@@ -75,13 +75,13 @@ namespace AudioApp
         }
     }
 
-    void TempoSynthesizerComponent::timerCallback() {
+    void SynthesizerComponent::timerCallback() {
         if (dirty.exchange(false)) {
             repaint();
         }
     }
 
-    void TempoSynthesizerComponent::hiResTimerCallback() {
+    void SynthesizerComponent::hiResTimerCallback() {
         while (!scheduledBeats.empty()) {
             auto soonest = scheduledBeats.front();
             // We call getMillisecondCounterHiRes() within this loop but are assuming that the loop
@@ -98,7 +98,7 @@ namespace AudioApp
     }
 
     // beat is called on the beat detected with period being the time between each call
-    void TempoSynthesizerComponent::beat(double period) {
+    void SynthesizerComponent::beat(double period) {
         auto timeOfBeat = juce::Time::getMillisecondCounterHiRes();
         inputBeatCount++;
         diffEwma = ewma(diffEwma, (double)period, 0.5);
@@ -136,7 +136,7 @@ namespace AudioApp
         dirty = true;
     }
 
-    void TempoSynthesizerComponent::synthesizedBeat(double duration) {
+    void SynthesizerComponent::synthesizedBeat(double duration) {
         if (onSynthesizedBeat != nullptr) {
             onSynthesizedBeat(duration);
         }

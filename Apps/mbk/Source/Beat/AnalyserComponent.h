@@ -2,13 +2,14 @@
 
 #include <cmath>
 #include <functional>
-#include "../Libs/BTrack/BTrack.h"
+#include "../../Libs/BTrack/BTrack.h"
 
-namespace AudioApp
+namespace Beat
 {
-    class TempoAnalyserComponent {
+    class AnalyserComponent
+{
     public:
-        TempoAnalyserComponent();
+        AnalyserComponent();
 
         void processAudioFrame(double *frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
