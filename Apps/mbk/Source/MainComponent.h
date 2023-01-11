@@ -8,8 +8,8 @@
 #include "Loudness/AnalyserComponent.h"
 #include "Logger/MultiLogger.h"
 #include "OSCComponent.h"
-#include "TempoAnalyserComponent.h"
-#include "TempoSynthesizerComponent.h"
+#include "Beat/AnalyserComponent.h"
+#include "Beat/SynthesizerComponent.h"
 #include "AvvaOSCSender.h"
 
 namespace AudioApp
@@ -36,9 +36,9 @@ private:
     AvvaOSCSender oscSender {oscComponent};
     AudioSourceComponent audioSource {deviceManager, logger};
 
-    TempoAnalyserComponent tempoAnalyser;
+    Beat::AnalyserComponent tempoAnalyser;
     FlashBox tempoAnalyserFlash;
-    TempoSynthesizerComponent tempoSynthesizer {logger};
+    Beat::SynthesizerComponent tempoSynthesizer {logger};
     FlashBox tempoSynthesizerFlash;
 
     Loudness::AnalyserComponent analyserComponent {oscSender};

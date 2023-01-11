@@ -1,14 +1,15 @@
 #pragma once
 
 #include <cmath>
-#include "../Libs/BTrack/BTrack.h"
-#include "Components/LogOutputComponent.h"
-#include "Logger/Logger.h"
+#include "../../Libs/BTrack/BTrack.h"
+#include "../Components/LogOutputComponent.h"
+#include "../Logger/Logger.h"
 
-namespace AudioApp {
-    class TempoSynthesizerComponent : public juce::Component, juce::HighResolutionTimer, juce::Timer {
+namespace Beat {
+    class SynthesizerComponent
+    : public juce::Component, juce::HighResolutionTimer, juce::Timer {
     public:
-        explicit TempoSynthesizerComponent(Logger &logger);
+        explicit SynthesizerComponent(AudioApp::Logger &logger);
 
         void paint(juce::Graphics &g) override;
         void resized() override;
@@ -21,7 +22,7 @@ namespace AudioApp {
         // receives the duration since last synthesized beat as a parameter.
         std::function<void(double)> onSynthesizedBeat;
     private:
-        Logger &logger;
+        AudioApp::Logger &logger;
 
         uint32_t inputBeatCount = 0;
 

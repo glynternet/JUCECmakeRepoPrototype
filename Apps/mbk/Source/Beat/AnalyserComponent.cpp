@@ -1,12 +1,12 @@
-#include "TempoAnalyserComponent.h"
+#include "AnalyserComponent.h"
 #include <juce_core/juce_core.h>
 
-namespace AudioApp {
-    TempoAnalyserComponent::TempoAnalyserComponent() {
+namespace Beat {
+    AnalyserComponent::AnalyserComponent() {
         lastTime = juce::Time::getMillisecondCounterHiRes();
     }
 
-    void TempoAnalyserComponent::processAudioFrame(double *frame) {
+    void AnalyserComponent::processAudioFrame(double *frame) {
         if (frame == nullptr) return;
         btrack.processAudioFrame(frame);
         if (btrack.beatDueInCurrentFrame()) {
@@ -19,7 +19,7 @@ namespace AudioApp {
         }
     }
 
-    void TempoAnalyserComponent::updateSamplePerBlockExpected(int samplePerBlockExpected) {
+    void AnalyserComponent::updateSamplePerBlockExpected(int samplePerBlockExpected) {
         btrack.updateHopAndFrameSize(samplePerBlockExpected / 2, samplePerBlockExpected);
     }
 }
