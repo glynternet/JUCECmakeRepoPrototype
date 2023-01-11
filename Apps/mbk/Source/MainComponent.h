@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <juce_audio_utils/juce_audio_utils.h>
 #include "AudioSourceComponent.h"
 #include "Components/FlashBox.h"
 #include "Components/LogOutputComponent.h"
@@ -28,9 +26,9 @@ public:
     void resized() override;
 
 private:
-    StdoutLogger stdoutLogger {true};
+    logger::StdoutLogger stdoutLogger {true};
     LogOutputComponent uiLogger;
-    MultiLogger logger {{&stdoutLogger, &uiLogger}};
+    logger::MultiLogger logger {{&stdoutLogger, &uiLogger}};
 
     OSCComponent oscComponent {logger};
     AvvaOSCSender oscSender {oscComponent};

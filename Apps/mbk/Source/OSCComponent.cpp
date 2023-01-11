@@ -8,7 +8,7 @@ namespace AudioApp {
     static const int OSCPort = 9000;
     static const std::string OSCPortString = std::to_string(OSCPort);
 
-    OSCComponent::OSCComponent(Logger &l) : logger(l) {
+    OSCComponent::OSCComponent(logger::Logger &l) : logger(l) {
         targetAddress.setJustificationType(juce::Justification::centred);
         targetAddress.setEditable(true, false, true);
         targetAddress.onEditorShow = [this] {

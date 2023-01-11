@@ -5,7 +5,7 @@ namespace AudioApp {
 #define BUTTONS_GAP 10
 #define BUTTONS_HEIGHT 30
 
-    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger)
+    AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, logger::Logger &logger)
             : deviceManager(deviceManager), logger(logger) {
 
         openButton.onClick = [this] { openFileChooser(); };
