@@ -5,7 +5,7 @@ namespace Beat
 {
     double durationPerSynthesizedBeat = 500;
 
-    SynthesizerComponent::SynthesizerComponent(AudioApp::Logger& l) : logger(l) {
+    SynthesizerComponent::SynthesizerComponent(logger::Logger& l) : logger(l) {
         up.onClick = [this](){
             if (nextMultipleIndex < (TOTAL_MULTIPLE_COUNT - 1)) {
                 setNextMultipleIndex(nextMultipleIndex + 1);

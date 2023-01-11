@@ -9,7 +9,7 @@ namespace Beat {
     class SynthesizerComponent
     : public juce::Component, juce::HighResolutionTimer, juce::Timer {
     public:
-        explicit SynthesizerComponent(AudioApp::Logger &logger);
+        explicit SynthesizerComponent(logger::Logger &logger);
 
         void paint(juce::Graphics &g) override;
         void resized() override;
@@ -22,7 +22,7 @@ namespace Beat {
         // receives the duration since last synthesized beat as a parameter.
         std::function<void(double)> onSynthesizedBeat;
     private:
-        AudioApp::Logger &logger;
+        logger::Logger &logger;
 
         uint32_t inputBeatCount = 0;
 

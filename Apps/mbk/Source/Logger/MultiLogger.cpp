@@ -4,7 +4,7 @@
 
 #include "MultiLogger.h"
 
-namespace AudioApp
+namespace logger
 {
 MultiLogger::MultiLogger(const std::vector<Logger*>& loggers){
     _loggers = loggers;

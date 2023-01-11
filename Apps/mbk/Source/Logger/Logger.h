@@ -3,7 +3,7 @@
 #include <juce_core/juce_core.h>
 #include <cmath>
 
-namespace AudioApp {
+namespace logger {
     class Logger {
     public:
         virtual void debug(const juce::String &message) = 0;
