@@ -13,7 +13,7 @@
 namespace AudioApp {
 class OSCComponent : public juce::Component, public OSCSender {
     public:
-        explicit OSCComponent(Logger &logger);
+        explicit OSCComponent(logger::Logger &logger);
 
         void paint(juce::Graphics &) override;
 
@@ -28,7 +28,7 @@ class OSCComponent : public juce::Component, public OSCSender {
 
         void setSenderConnectedState(bool connected);
 
-        Logger &logger;
+        logger::Logger &logger;
 
         juce::Label targetAddress{"targetAddress", "127.0.0.1"};
         juce::TextButton connectOSCButton{"Connect OSC"};

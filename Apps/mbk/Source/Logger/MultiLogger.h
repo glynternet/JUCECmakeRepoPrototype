@@ -7,7 +7,7 @@
 
 #include "Logger.h"
 
-namespace AudioApp
+namespace logger
 {
 
 class MultiLogger : public Logger

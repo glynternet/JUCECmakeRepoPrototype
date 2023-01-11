@@ -10,7 +10,7 @@
 namespace AudioApp {
     class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener, juce::Timer {
     public:
-        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, Logger &logger);
+        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, logger::Logger &logger);
 
         void paint(juce::Graphics &g) override;
         void resized() override;
@@ -29,7 +29,7 @@ namespace AudioApp {
 
     private:
         std::vector<double> frameValues2;
-        Logger &logger;
+        logger::Logger &logger;
 
         juce::AudioDeviceManager &deviceManager;
 
