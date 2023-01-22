@@ -70,22 +70,24 @@ private:
         // TODO(glynternet): no need calculate yFromCentre twice for each element
         for (int i = 0; i < historySize - 1; ++i)
         {
-            float x0 = width - x(i, historySize, width);
-            float x1 = width - x(i + 1, historySize, width);
-            float halfHeight = (float) height / 2;
-            float x0yFromCentre = yFromCentre(
-                avgLevelHistory[(historySize + latestValueIndex - i) % historySize],
-                height);
-            float level =
-                avgLevelHistory[(historySize + latestValueIndex - i - 1) % historySize];
-            const float x1yFromCentre = yFromCentre(level, height);
-            const float proportionOfWidthCompleted = x1 / (float) width;
+            const auto l0index = i;
+            const float l0X = width - x(l0index, historySize, width);
+            const float l0 = avgLevelHistory[(historySize + latestValueIndex - l0index) % historySize];
+            const auto l0YFromCentre = (float) proportionOfHeight(0.5f*l0);
 
+            const auto l1index = i + 1;
+            const float l1X = width - x(l1index, historySize, width);
+            const float l1 = avgLevelHistory[(historySize + latestValueIndex - l1index) % historySize];
+            const auto l1YFromCentre = (float) proportionOfHeight(0.5f*l1);
+
+            const float proportionOfWidthCompleted = l1X / (float) width;
             g.setColour(juce::Colours::transparentBlack.interpolatedWith(
-                brightViolet, jmap(level * proportionOfWidthCompleted, 0.15f, 1.f)));
-            g.drawLine({x0, halfHeight + x0yFromCentre, x1, halfHeight + x1yFromCentre},
+                brightViolet, jmap(l1 * proportionOfWidthCompleted, 0.15f, 1.f)));
+
+            float halfHeight = (float) height / 2;
+            g.drawLine({l0X, halfHeight + l0YFromCentre, l1X, halfHeight + l1YFromCentre},
                        3);
-            g.drawLine({x0, halfHeight - x0yFromCentre, x1, halfHeight - x1yFromCentre},
+            g.drawLine({l0X, halfHeight - l0YFromCentre, l1X, halfHeight - l1YFromCentre},
                        3);
         }
     }
@@ -93,11 +95,6 @@ private:
     float x(int index, int datasetSize, int width)
     {
         return (float) jmap<int>(index, 0, datasetSize - 1, 0, width);
-    }
-
-    float yFromCentre(float value, int height)
-    {
-        return jmap(value, 0.0f, 1.0f, 0.f, (float) height / 2);
     }
 
     int historySize = 100;
