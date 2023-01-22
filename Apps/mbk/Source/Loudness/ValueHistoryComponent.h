@@ -90,6 +90,15 @@ private:
             float l1YLower = halfHeight - l1YFromCentre;
             g.drawLine({l0X, l0YLower, l1X, l1YLower}, 3);
 
+            // TODO: can setGradientFill be used?
+            juce::Path path;
+            path.startNewSubPath (juce::Point<float> (l0X, l0YLower));
+//            path.lineTo (juce::Point<float> (l0X, l0YUpper));
+            path.lineTo (juce::Point<float> (l1X, l1YUpper));
+            path.lineTo (juce::Point<float> (l1X, l1YLower));
+            path.closeSubPath();
+            g.fillPath (path);
+
             l0X = l1X;
             l0YUpper = l1YUpper;
             l0YLower = l1YLower;
