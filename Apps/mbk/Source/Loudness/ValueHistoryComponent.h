@@ -67,34 +67,37 @@ private:
 
     void drawHistoryLines(Graphics& g, int width, int height)
     {
-        // TODO(glynternet): no need calculate yFromCentre twice for each element
-        for (int i = 0; i < historySize - 1; ++i)
-        {
-            const auto l0index = i;
-            const float l0X = width - x(l0index, historySize, width);
-            const float l0 = avgLevelHistory[(historySize + latestValueIndex - l0index) % historySize];
-            const auto l0YFromCentre = (float) proportionOfHeight(0.5f*l0);
+        const float halfHeight = (float) height / 2.f;
 
-            const auto l1index = i + 1;
-            const float l1X = width - x(l1index, historySize, width);
-            const float l1 = avgLevelHistory[(historySize + latestValueIndex - l1index) % historySize];
+        float l0X = (float) width - x(0, historySize);
+        const float l0 = avgLevelHistory[(historySize + latestValueIndex - 0) % historySize];
+        const auto l0YFromCentre = (float) proportionOfHeight(0.5f*l0);
+        auto l0YUpper = halfHeight+l0YFromCentre;
+        auto l0YLower = halfHeight-l0YFromCentre;
+
+        for (int i = 1; i < historySize; ++i) {
+            const float l1X = (float) width - x(i, historySize);
+            const float l1 = avgLevelHistory[(historySize + latestValueIndex - i) % historySize];
             const auto l1YFromCentre = (float) proportionOfHeight(0.5f*l1);
 
             const float proportionOfWidthCompleted = l1X / (float) width;
             g.setColour(juce::Colours::transparentBlack.interpolatedWith(
                 brightViolet, jmap(l1 * proportionOfWidthCompleted, 0.15f, 1.f)));
 
-            float halfHeight = (float) height / 2;
-            g.drawLine({l0X, halfHeight + l0YFromCentre, l1X, halfHeight + l1YFromCentre},
-                       3);
-            g.drawLine({l0X, halfHeight - l0YFromCentre, l1X, halfHeight - l1YFromCentre},
-                       3);
+            float l1YUpper = halfHeight + l1YFromCentre;
+            g.drawLine({l0X, l0YUpper, l1X, l1YUpper}, 3);
+
+            float l1YLower = halfHeight - l1YFromCentre;
+            g.drawLine({l0X, l0YLower, l1X, l1YLower}, 3);
+
+            l0X = l1X;
+            l0YUpper = l1YUpper;
+            l0YLower = l1YLower;
         }
     }
 
-    float x(int index, int datasetSize, int width)
-    {
-        return (float) jmap<int>(index, 0, datasetSize - 1, 0, width);
+    float x(int index, int datasetSize) {
+        return (float)proportionOfWidth((float)index/(float)(datasetSize-1));
     }
 
     int historySize = 100;
