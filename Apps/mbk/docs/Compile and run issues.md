@@ -26,11 +26,11 @@ It might just be easier to install Visual Studio Code on new install and hope th
 
 Installed Visual Studio from microsoft site and then restarting PC did not work for getting CLion to detect Visual Studio build toolchains.
 
-Trying instead to download toolchain through links that CLion provides:
+Trying instead to download toolchain through links that CLion provides:  
 ![Download through CLion](download_vscode_through_clion.png "Download through CLion")
 
-Using that installed, trying to include C++ build tools:
-![Desktop development with C++](Desktop development with C++.png "Desktop development with C++")
+Using that installed, trying to include C++ build tools:  
+![Desktop development with C++](desktop_development_with_cpp.png "Desktop development with C++")
 
 It's a fucking 2GB download and 8GB install, what a joke. Would be great to have a way to just install the required parts and not the whole thing but this is probably the easiest way.
 Looks like it might just be possible to install the C++ build tools from https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
