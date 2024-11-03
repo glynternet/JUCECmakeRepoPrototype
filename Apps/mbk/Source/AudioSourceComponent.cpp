@@ -128,16 +128,10 @@ namespace AudioApp {
 
             // BigInteger::getHighestBit returns -1 when value is 0,
             // where no input channels would be available.
-            if (activeInputChannels.getHighestBit() == -1) {
-                std::vector<double> frameValues(bufferToFill.numSamples);
-                std::fill(frameValues.begin(), frameValues.end(), 0);
-                frameValues2 = frameValues;
-                return;
-            }
-            if (!activeInputChannels[0]) {
-                std::vector<double> frameValues(bufferToFill.numSamples);
-                std::fill(frameValues.begin(), frameValues.end(), 0);
-                frameValues2 = frameValues;
+            if (activeInputChannels.getHighestBit() == -1 || !activeInputChannels[0]) {
+                std::vector<double> silence(bufferToFill.numSamples);
+                std::fill(silence.begin(), silence.end(), 0);
+                frame = silence;
                 return;
             }
         }
@@ -159,11 +153,11 @@ namespace AudioApp {
             bufferToFill.clearActiveBufferRegion();
         }
 
-        frameValues2 = frameValues;
+        frame = frameValues;
     }
 
     double *AudioSourceComponent::getFrameValues() {
-        return frameValues2.data();
+        return frame.data();
     }
 
     void AudioSourceComponent::openFileChooser() {

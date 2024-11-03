@@ -79,8 +79,7 @@ namespace AudioApp {
         //   We either want to hook directly into getNextAudioBlock or take the frame values and push all of
         //   them at the same time into the Fifo buffer? Not sure, a thing for another day.
         double* frameValues = audioSource.getFrameValues();
-        for (auto i = 0; i < bufferToFill.numSamples; ++i)
-        {
+        for (auto i = 0; i < bufferToFill.numSamples; ++i) {
             analyserComponent.pushNextSampleIntoFifo(frameValues[i]);
         }
     }

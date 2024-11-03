@@ -28,7 +28,7 @@ namespace AudioApp {
         std::function<void()> onStopped;
 
     private:
-        std::vector<double> frameValues2;
+        std::vector<double> frame;
         logger::Logger &logger;
 
         juce::AudioDeviceManager &deviceManager;
