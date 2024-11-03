@@ -181,12 +181,12 @@ namespace AudioApp {
                                   });
     }
 
-    double AudioSourceComponent::chooserClosed(const juce::FileChooser &chooser) {
+    void AudioSourceComponent::chooserClosed(const juce::FileChooser &chooser) {
         juce::File file(chooser.getResult());
         juce::AudioFormatReader *reader = formatManager.createReaderFor(file);
         if (reader == nullptr) {
             logger.info("No file chosen");
-            return -1;
+            return;
         }
 
         std::unique_ptr<juce::AudioFormatReaderSource> sourceReader(
@@ -195,16 +195,54 @@ namespace AudioApp {
         transport.setSource(sourceReader.get());
         transportStateChanged(Stopped);
 
+        double fileSampleRate = reader->sampleRate;
+        if (deviceManager.getCurrentAudioDevice()->getCurrentSampleRate() == fileSampleRate) {
+            logger.info("File loaded: name=" +
+                        file.getFullPathName().toStdString()
+                        + " format="+reader->getFormatName().toStdString()
+                        + " sampleRate="+std::to_string(fileSampleRate));
+            return;
+        }
+
+        const juce::Array<double>& supportedSampleRates =
+            deviceManager.getCurrentAudioDevice()->getAvailableSampleRates();
+        if (!supportedSampleRates.contains(fileSampleRate)) {
+            std::string msg =
+                "Current audio device does not support file sample rate, try changing audio device then reloading file: fileSampleRate="
+                    +std::to_string(fileSampleRate)+" supportedSampleRates:[";
+            switch (supportedSampleRates.size()) {
+                case 0:
+                    break;
+                case 1:
+                    msg += std::to_string(supportedSampleRates.getFirst());
+                    break;
+                default:
+                    msg += std::reduce(supportedSampleRates.begin(), supportedSampleRates.end(), (std::string)"", [](const std::string& accum, double next){
+                      return accum + (accum.empty() ? "" : ",") + std::to_string(next);
+                    }) + "]";
+                    break;
+            }
+            logger.error(msg);
+            return;
+        }
+
         // I believe this needs to be here so that the tempSource is not deleted until playSource is deleted,
         // which will happen when the AudioSourceComponent is deleted.
         playSource = std::move(sourceReader);
-        double sampleRate = reader->sampleRate;
-        logger.info("File loaded: name=" +
+
+        juce::AudioDeviceManager::AudioDeviceSetup deviceSetup = deviceManager.getAudioDeviceSetup();
+        deviceSetup.sampleRate = fileSampleRate;
+        const std::string& deviceSetupUpdateErrorMessage =
+            deviceManager.setAudioDeviceSetup(deviceSetup, true).toStdString();
+        if (!deviceSetupUpdateErrorMessage.empty()) {
+            logger.error("Error updating device sample rate to match file ("+std::to_string(fileSampleRate)+"): "+deviceSetupUpdateErrorMessage);
+            return;
+        }
+
+        logger.info("File loaded and sample rate updated: name=" +
                     file.getFullPathName().toStdString()
                     + " format="+reader->getFormatName().toStdString()
-                    + " fileSampleRate="+std::to_string(sampleRate)
-                    + " deviceSampleRate="+std::to_string(deviceManager.getCurrentAudioDevice()->getCurrentSampleRate()));
-        return sampleRate;
+                    + " sampleRate="+std::to_string(fileSampleRate));
     }
 
     void AudioSourceComponent::transportStateChanged(TransportState newState) {
