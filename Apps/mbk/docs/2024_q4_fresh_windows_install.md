@@ -2,18 +2,29 @@ Fresh install of legacy CLion
 
 Install legacy version of CLion, standard install from JetBrains site.
 
-01 opening project in 
-02 IDE loading CMake project, takes a while
-03 Add a Visual Studio build system (Using MinGW may actually work but JUCE has some warnings for in `juce_graphics.cpp` about it)
-04 Click Download to download visual studio and downloda the community version
-05 Install only the _Desktop development with C++_ tools.
-06 Make `dependencies` dir next to JUCECmakeRepoPrototype
-07 Downloaded 0.2.2 win32 and win64 from https://github.com/libsndfile/libsamplerate/releases/tag/0.2.2
-08 Extract libsamplerate into `dependencies` dir
-09 Download fft 64 bit v3.3.10 from https://www.fftw.org/download.html
-10 Create `dependencies/fftw3.3.10-dll64` dir
-11 Extract `fftw3.h` into fftw3 dir
-12 Build `libfftw3-3.lib`
+1. opening project in CLion
+![Open project in CLion](assets/01_open_project_in_clion.png)
+
+1. IDE loading CMake project, takes a while
+![Loading cmake project](assets/02_loading_cmake_project.png)
+
+1. Add a Visual Studio build system (Using MinGW may actually work but JUCE has some warnings for in `juce_graphics.cpp` about it)
+![Add visual studio build system](assets/03_add_cvisual_studio_build_system_1.png)
+![Add visual studio build system](assets/03_add_cvisual_studio_build_system_2.png)
+
+1. Click Download to download visual studio and downloda the community version
+![Download visual studio](assets/04_download_visual_studio.png)
+
+1. Install only the _Desktop development with C++_ tools.
+![Visual studio installs](assets/05_visual_studio_installed_tools_recognised.png)
+
+1. Make `dependencies` dir next to JUCECmakeRepoPrototype
+1. Downloaded 0.2.2 win32 and win64 from https://github.com/libsndfile/libsamplerate/releases/tag/0.2.2
+1. Extract libsamplerate into `dependencies` dir
+1. Download fft 64 bit v3.3.10 from https://www.fftw.org/download.html
+1. Create `dependencies/fftw3.3.10-dll64` dir
+1. Extract `fftw3.h` into fftw3 dir
+1. Build `libfftw3-3.lib`
 
 Opened _Developer Powershell for VS 2022_...
 ```
