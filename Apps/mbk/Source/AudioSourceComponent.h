@@ -53,7 +53,7 @@ namespace AudioApp {
         void openFileChooser();
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::AudioFormatManager formatManager;
-        double chooserClosed(const juce::FileChooser &chooser);
+        void chooserClosed(const juce::FileChooser &chooser);
         void transportStateChanged(TransportState newState);
 
         juce::TextButton openButton { "Open" };
