@@ -28,13 +28,13 @@ target_sources(${TargetName} PRIVATE
 # These are directories where headers are found, "something.h".
 # Here we have to include the fftw and libsamplerate (which fftw depends on)
 target_include_directories(${TargetName} PRIVATE
-        ../../../dependencies/libsamplerate-0.2.2-win64
+        ../../../dependencies/libsamplerate-0.2.2-win64/include
         ../../../dependencies/fftw3.3.10-dll64
         )
 
 # Windows: These are directories that include .lib files.
 target_link_directories(${TargetName} PRIVATE
-        ../../../dependencies/libsamplerate-0.2.2-win64
+        ../../../dependencies/libsamplerate-0.2.2-win64/lib
         ../../../dependencies/fftw3.3.10-dll64
         )
 
