@@ -104,7 +104,7 @@ namespace AudioApp {
     }
 
     void AudioSourceComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
-        logger.info("Preparing to play");
+        logger.info("Preparing to play: samplesPerBlockExpected="+std::to_string(samplesPerBlockExpected)+" sampleRate="+std::to_string(sampleRate));
         transport.prepareToPlay(samplesPerBlockExpected, sampleRate);
     }
 
@@ -181,24 +181,30 @@ namespace AudioApp {
                                   });
     }
 
-    void AudioSourceComponent::chooserClosed(const juce::FileChooser &chooser) {
+    double AudioSourceComponent::chooserClosed(const juce::FileChooser &chooser) {
         juce::File file(chooser.getResult());
-        logger.debug("File chooser closed");
-
         juce::AudioFormatReader *reader = formatManager.createReaderFor(file);
-        if (reader != nullptr) {
-            //get the file ready to play
-            std::unique_ptr<juce::AudioFormatReaderSource> sourceReader(
-                    new juce::AudioFormatReaderSource(reader, true));
-
-            transport.setSource(sourceReader.get());
-            transportStateChanged(Stopped);
-
-            // I believe this needs to be here so that the tempSource is not deleted until playSource is deleted,
-            // which will happen when the AudioSourceComponent is deleted.
-            playSource = std::move(sourceReader);
+        if (reader == nullptr) {
+            logger.info("No file chosen");
+            return -1;
         }
-        logger.debug("Reader prepared");
+
+        std::unique_ptr<juce::AudioFormatReaderSource> sourceReader(
+                new juce::AudioFormatReaderSource(reader, true));
+
+        transport.setSource(sourceReader.get());
+        transportStateChanged(Stopped);
+
+        // I believe this needs to be here so that the tempSource is not deleted until playSource is deleted,
+        // which will happen when the AudioSourceComponent is deleted.
+        playSource = std::move(sourceReader);
+        double sampleRate = reader->sampleRate;
+        logger.info("File loaded: name=" +
+                    file.getFullPathName().toStdString()
+                    + " format="+reader->getFormatName().toStdString()
+                    + " fileSampleRate="+std::to_string(sampleRate)
+                    + " deviceSampleRate="+std::to_string(deviceManager.getCurrentAudioDevice()->getCurrentSampleRate()));
+        return sampleRate;
     }
 
     void AudioSourceComponent::transportStateChanged(TransportState newState) {
