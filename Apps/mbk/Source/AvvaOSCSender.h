@@ -19,7 +19,7 @@ private:
                                                  (juce::String) "millisPerBeat"};
 
 public:
-    explicit AvvaOSCSender::AvvaOSCSender(AudioApp::OSCSender& sender);
+    explicit AvvaOSCSender(AudioApp::OSCSender& sender);
 
     // sendLoudness will send a loudness OSC message using the configured client.
     bool sendLoudness(float loudness);
