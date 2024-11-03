@@ -18,3 +18,5 @@ List of dlls missing:
 Switched compiler to visual studio code and deleted `cmake-build-debug`.
 Tried building mbk.
 _File_ -> _Rebuild CMake Project_
+Close CLion
+`git clean -xdf`
