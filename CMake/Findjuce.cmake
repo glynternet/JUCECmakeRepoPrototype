@@ -16,4 +16,4 @@ option(JUCE_BUILD_EXAMPLES "Build JUCE Examples" OFF)
 #-DCPM_JUCE_SOURCE="Path_To_JUCE"
 #or use set(CPM_JUCE_SOURCE Path_To_JUCE)
 # TODO(glynternet): what is the best way to get this to not fail when there is no network connection? i.e. on a plane.
-CPMAddPackage("gh:juce-framework/JUCE#7.0.4")
+CPMAddPackage("gh:juce-framework/JUCE#7.0.12")
