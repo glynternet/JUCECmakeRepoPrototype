@@ -1,4 +1,5 @@
 #include "AudioSourceComponent.h"
+#include "prettyprint.hpp"
 
 namespace AudioApp {
 
@@ -205,22 +206,19 @@ namespace AudioApp {
 
         const juce::Array<double>& supportedSampleRates =
             deviceManager.getCurrentAudioDevice()->getAvailableSampleRates();
-        if (!supportedSampleRates.contains(fileSampleRate)) {
+        if (supportedSampleRates.size() == 0) {
+            logger.error("Current audio device does not have any supported sample rates: fileSampleRate="
+                 +std::to_string(fileSampleRate)+" supportedSampleRates:");
+            return;
+        }
+        if (!supportedSampleRates.contains(fileSampleRate)){
             std::string msg =
                 "Current audio device does not support file sample rate, try changing audio device then reloading file: fileSampleRate="
-                    +std::to_string(fileSampleRate)+" supportedSampleRates:[";
-            switch (supportedSampleRates.size()) {
-                case 0:
-                    break;
-                case 1:
-                    msg += std::to_string(supportedSampleRates.getFirst());
-                    break;
-                default:
-                    msg += std::reduce(supportedSampleRates.begin(), supportedSampleRates.end(), (std::string)"", [](const std::string& accum, double next){
-                      return accum + (accum.empty() ? "" : ",") + std::to_string(next);
-                    }) + "]";
-                    break;
-            }
+                    +std::to_string(fileSampleRate)+" supportedSampleRates:";
+            // TODO(glynternet): how do we make std::to_string work with this instead?
+            std::ostringstream oss;
+            oss << std::vector<double>(supportedSampleRates.begin(), supportedSampleRates.end());
+            msg += oss.str();
             logger.error(msg);
             return;
         }
