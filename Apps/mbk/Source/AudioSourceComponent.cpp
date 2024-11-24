@@ -118,20 +118,25 @@ namespace AudioApp {
 
             if (bufferToFill.buffer->getNumChannels() == 0) {
                 logger.error("No channels in buffer to fill");
+                std::vector<double> silence(bufferToFill.numSamples);
+                std::fill(silence.begin(), silence.end(), 0);
+                frame = silence;
                 bufferToFill.clearActiveBufferRegion();
                 return;
             }
         } else {
             // example from https://docs.juce.com/master/tutorial_processing_audio_input.html
-            auto *device = deviceManager.getCurrentAudioDevice();
-            const auto activeInputChannels = device->getActiveInputChannels();
+            const auto activeInputChannels =
+                deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
 
             // BigInteger::getHighestBit returns -1 when value is 0,
             // where no input channels would be available.
             if (activeInputChannels.getHighestBit() == -1 || !activeInputChannels[0]) {
+                logger.error("No input channels");
                 std::vector<double> silence(bufferToFill.numSamples);
                 std::fill(silence.begin(), silence.end(), 0);
                 frame = silence;
+                bufferToFill.clearActiveBufferRegion();
                 return;
             }
         }
