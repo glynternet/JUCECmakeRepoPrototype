@@ -5,6 +5,7 @@
 #ifndef JUCECMAKEREPO_ANALYSER_H
 #define JUCECMAKEREPO_ANALYSER_H
 
+#include <atomic>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_dsp/juce_dsp.h>
 #include "ValueShaper.h"
@@ -39,7 +40,9 @@ private:
     float calculateLevel();
     float calculateLoudness(float* data, int dataSize);
 
-    bool nextFFTBlockReady = false;
+    // Atomic flag for thread-safe signaling between audio thread (pushNextSampleIntoFifo)
+    // and timer thread (fftTimerCallback)
+    std::atomic<bool> nextFFTBlockReady{false};
     dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
     dsp::FFT forwardFFT {fftOrder};
 

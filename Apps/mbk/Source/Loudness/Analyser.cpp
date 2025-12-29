@@ -38,7 +38,7 @@ void Analyser::setProcessRateHz(int rate)
 
 void Analyser::fftTimerCallback()
 {
-    // TODO(glynternet): Can we do that atomic bool locking thing here?
+    // nextFFTBlockReady is atomic - safe to read from timer thread while audio thread may write
     if (!nextFFTBlockReady)
         return;
     window.multiplyWithWindowingTable(fftData, fftSize);
