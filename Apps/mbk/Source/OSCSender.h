@@ -6,6 +6,7 @@
 namespace AudioApp {
     class OSCSender {
     public:
+        virtual ~OSCSender() = default;
         virtual bool send(const juce::OSCMessage &message) = 0;
     };
 }
