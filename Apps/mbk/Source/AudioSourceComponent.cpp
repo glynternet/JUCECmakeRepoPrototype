@@ -159,10 +159,16 @@ namespace AudioApp {
             bufferToFill.clearActiveBufferRegion();
         }
 
-        frame = frameValues;
+        {
+            const juce::SpinLock::ScopedLockType lock(frameLock);
+            frame = frameValues;
+        }
     }
 
     double *AudioSourceComponent::getFrameValues() {
+        // Note: caller must ensure they finish using the returned pointer before
+        // the next audio block is processed. Consider copying data instead.
+        const juce::SpinLock::ScopedLockType lock(frameLock);
         return frame.data();
     }
 

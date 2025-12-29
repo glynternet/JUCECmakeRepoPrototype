@@ -28,6 +28,8 @@ namespace AudioApp {
         std::function<void()> onStopped;
 
     private:
+        // frame is written by audio thread and read by message thread
+        juce::SpinLock frameLock;
         std::vector<double> frame;
         logger::Logger &logger;
 
