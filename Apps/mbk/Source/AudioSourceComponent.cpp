@@ -2,9 +2,8 @@
 #include "prettyprint.hpp"
 
 namespace AudioApp {
-
-#define BUTTONS_GAP 10
-#define BUTTONS_HEIGHT 30
+    static constexpr int buttonsGap = 10;
+    static constexpr int buttonsHeight = 30;
 
     AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager &deviceManager, logger::Logger &logger)
             : deviceManager(deviceManager), logger(logger) {
@@ -62,25 +61,25 @@ namespace AudioApp {
         cpuUsageLabel.setBounds(cpuSpace);
 
         if (filePlayerEnabled) {
-            bounds.removeFromBottom(BUTTONS_GAP);
-            auto transportButtonsBounds = bounds.removeFromBottom(BUTTONS_HEIGHT)
-                    .withTrimmedLeft(BUTTONS_GAP)
-                    .withTrimmedRight(BUTTONS_GAP);
-            auto buttonWidth = (transportButtonsBounds.getWidth() - 2 * BUTTONS_GAP) / 3;
+            bounds.removeFromBottom(buttonsGap);
+            auto transportButtonsBounds = bounds.removeFromBottom(buttonsHeight)
+                    .withTrimmedLeft(buttonsGap)
+                    .withTrimmedRight(buttonsGap);
+            auto buttonWidth = (transportButtonsBounds.getWidth() - 2 * buttonsGap) / 3;
             openButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
-            transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
+            transportButtonsBounds.removeFromLeft(buttonsGap);
             playPauseButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
-            transportButtonsBounds.removeFromLeft(BUTTONS_GAP);
+            transportButtonsBounds.removeFromLeft(buttonsGap);
             stopButton.setBounds(transportButtonsBounds.removeFromLeft(buttonWidth));
         }
 
-        bounds.removeFromBottom(BUTTONS_GAP);
-        sourceToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
-                                       .withTrimmedRight(BUTTONS_GAP)
-                                       .withTrimmedLeft(BUTTONS_GAP));
-        monitorOutputToggle.setBounds(bounds.removeFromBottom(BUTTONS_HEIGHT)
-                                              .withTrimmedRight(BUTTONS_GAP)
-                                              .withTrimmedLeft(BUTTONS_GAP));
+        bounds.removeFromBottom(buttonsGap);
+        sourceToggle.setBounds(bounds.removeFromBottom(buttonsHeight)
+                                       .withTrimmedRight(buttonsGap)
+                                       .withTrimmedLeft(buttonsGap));
+        monitorOutputToggle.setBounds(bounds.removeFromBottom(buttonsHeight)
+                                              .withTrimmedRight(buttonsGap)
+                                              .withTrimmedLeft(buttonsGap));
 
         selector.setBounds(bounds);
     }

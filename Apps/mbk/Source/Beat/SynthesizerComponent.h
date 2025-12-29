@@ -40,14 +40,16 @@ namespace Beat {
         int nextMultipleIndex = 2;
         juce::ShapeButton up{"up", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
         juce::ShapeButton down{"down", juce::Colours::lightgrey, juce::Colours::lightgrey, juce::Colours::lightgrey};
-#define NEGATIVE_MULTIPLE_COUNT 3
-        // POSITIVE_MULTIPLE_COUNT cannot be higher than 8 because it is used as an exponent for a base of 2.
+
+        static constexpr int negativeMultipleCount = 3;
+        // positiveMultipleCount cannot be higher than 8 because it is used as an exponent for a base of 2.
         // Where ipow(2, 8) is 256. For synthesis, this value has 1 taken off it and fits into a uint8,
         // which is what is used for the scheduledBeat creating loop.
         // Anything greater would overflow.
-#define POSITIVE_MULTIPLE_COUNT 6
-#define TOTAL_MULTIPLE_COUNT POSITIVE_MULTIPLE_COUNT+1+NEGATIVE_MULTIPLE_COUNT
-        juce::ShapeButton multipleButtons[TOTAL_MULTIPLE_COUNT]{
+        static constexpr int positiveMultipleCount = 6;
+        static constexpr int totalMultipleCount = positiveMultipleCount + 1 + negativeMultipleCount;
+
+        juce::ShapeButton multipleButtons[totalMultipleCount]{
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
                 {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},

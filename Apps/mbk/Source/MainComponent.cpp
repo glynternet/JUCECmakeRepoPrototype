@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 
 namespace AudioApp {
-#define FLASH_PROPORTION 0.5f
+    static constexpr float flashProportion = 0.5f;
 
     MainComponent::MainComponent() {
         setAudioChannels(2, 2);
@@ -18,12 +18,12 @@ namespace AudioApp {
 
         tempoAnalyser.onBeat = [this](double period) {
             tempoSynthesizer.beat(period);
-            tempoAnalyserFlash.flash(FLASH_PROPORTION * (float) period);
+            tempoAnalyserFlash.flash(flashProportion * (float) period);
         };
 
         tempoSynthesizer.onSynthesizedBeat = [this](double period) {
             oscSender.sendClockMillisPerBeat((float)period);
-            tempoSynthesizerFlash.flash(FLASH_PROPORTION * (float) period);
+            tempoSynthesizerFlash.flash(flashProportion * (float) period);
         };
         addAndMakeVisible(tempoAnalyserFlash);
         addAndMakeVisible(tempoSynthesizer);

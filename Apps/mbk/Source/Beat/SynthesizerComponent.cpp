@@ -5,7 +5,7 @@ namespace Beat
 {
     SynthesizerComponent::SynthesizerComponent(logger::Logger& l) : logger(l) {
         up.onClick = [this](){
-            if (nextMultipleIndex < (TOTAL_MULTIPLE_COUNT - 1)) {
+            if (nextMultipleIndex < (totalMultipleCount - 1)) {
                 setNextMultipleIndex(nextMultipleIndex + 1);
             }
         };
@@ -24,7 +24,7 @@ namespace Beat
         down.setShape(downShape, true, false, false);
         down.setOutline(juce::Colours::transparentWhite, 3);
         addAndMakeVisible(down);
-        for (int i = 0; i < TOTAL_MULTIPLE_COUNT; ++i) {
+        for (int i = 0; i < totalMultipleCount; ++i) {
             juce::ShapeButton &button = multipleButtons[i];
             button.onClick = [this, i]() {
                 setNextMultipleIndex(i);
@@ -44,7 +44,7 @@ namespace Beat
     void SynthesizerComponent::setMultipleFromIndex(int m) {
         multipleButtons[multipleIndex].setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         multipleIndex = m;
-        auto exponent = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
+        auto exponent = multipleIndex - negativeMultipleCount;
         if (exponent < 0) {
             exponent = -exponent;
         }
@@ -68,8 +68,8 @@ namespace Beat
         auto rect = getLocalBounds();
         up.setBounds(rect.removeFromRight(30));
         down.setBounds(rect.removeFromLeft(30));
-        for (int i = 0; i < TOTAL_MULTIPLE_COUNT; ++i) {
-            multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (TOTAL_MULTIPLE_COUNT - i)));
+        for (int i = 0; i < totalMultipleCount; ++i) {
+            multipleButtons[i].setBounds(rect.removeFromLeft(rect.getWidth() / (totalMultipleCount - i)));
         }
     }
 
@@ -109,7 +109,7 @@ namespace Beat
         }
 
         // map multipleIndex to a value where positive is upsampling and negative is downsampling a beat.
-        auto relativeMultiplierIndex = multipleIndex - NEGATIVE_MULTIPLE_COUNT;
+        auto relativeMultiplierIndex = multipleIndex - negativeMultipleCount;
 
         // upsampling
         if (relativeMultiplierIndex > 0) {
