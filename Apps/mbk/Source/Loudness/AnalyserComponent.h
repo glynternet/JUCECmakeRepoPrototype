@@ -16,7 +16,7 @@ namespace Loudness
 class AnalyserComponent : public juce::Component
 {
 public:
-    AnalyserComponent(AudioApp::AvvaOSCSender sender)
+    explicit AnalyserComponent(AudioApp::AvvaOSCSender& sender)
         : sender(sender)
     {
         addAndMakeVisible(&valueHistoryComp);
@@ -50,7 +50,7 @@ public:
 
     // ===============================
     // OSC functions
-    AudioApp::AvvaOSCSender sender;
+    AudioApp::AvvaOSCSender& sender;
 
     Loudness::Analyser loudnessAnalyser {
         [this](float level)
