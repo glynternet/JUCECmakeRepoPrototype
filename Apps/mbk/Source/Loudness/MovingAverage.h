@@ -7,7 +7,7 @@ private:
     float _window[maxWindow] = {};
     int _index = 0;
     int _period;
-    float sum = 0.f;
+    float sum = 0.0F;
 
 public:
     MovingAverage(unsigned int period)
@@ -41,7 +41,7 @@ public:
 
     float getAverage()
     {
-        sum = 0.0f;
+        sum = 0.0F;
         int index = _index;
 
         for (int i = _period - 1; i >= 0; i--)

@@ -32,7 +32,7 @@ namespace AudioApp {
             return;
         }
 
-        brightness = 1.0f - ((float)timeSinceFlash / flashDuration);
+        brightness = 1.0F - (static_cast<float>(timeSinceFlash) / flashDuration);
         colour = juce::Colours::grey.interpolatedWith(juce::Colours::white, brightness);
         repaint();
     }

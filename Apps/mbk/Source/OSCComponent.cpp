@@ -5,8 +5,8 @@
 #include "OSCComponent.h"
 
 namespace AudioApp {
-    static const int OSCPort = 9000;
-    static const std::string OSCPortString = std::to_string(OSCPort);
+    static const int oscPort = 9000;
+    static const std::string oscPortString = std::to_string(oscPort);
 
     OSCComponent::OSCComponent(logger::Logger &l) : logger(l) {
         targetAddress.setJustificationType(juce::Justification::centred);
@@ -31,11 +31,11 @@ namespace AudioApp {
 
     void OSCComponent::resized() {
         auto bounds = getLocalBounds().reduced(10);
-        connectOSCButton.setBounds(bounds.removeFromRight(bounds.proportionOfWidth(0.5f)));
+        connectOSCButton.setBounds(bounds.removeFromRight(bounds.proportionOfWidth(0.5F)));
         targetAddress.setBounds(bounds);
     }
 
-    void OSCComponent::paint(juce::Graphics &) {}
+    void OSCComponent::paint(juce::Graphics& /*graphics*/) {}
 
     bool OSCComponent::send(const juce::OSCMessage &message) {
         if (senderConnected) {
@@ -59,8 +59,8 @@ namespace AudioApp {
     }
 
     void OSCComponent::connectOSCSender(const juce::String &address) {
-        auto target = address + ":" + OSCPortString;
-        auto success = sender.connect(address, OSCPort);
+        auto target = address + ":" + oscPortString;
+        auto success = sender.connect(address, oscPort);
         if (!success) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Connection error",
                                              "Error: could not connect to UDP port 9000.", "OK");
