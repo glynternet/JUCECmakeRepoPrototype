@@ -6,15 +6,12 @@
 
 namespace logger
 {
-StdoutLogger::StdoutLogger(): StdoutLogger(true) {}
-StdoutLogger::StdoutLogger(bool debug)
-{
-    _debug = debug;
-}
+StdoutLogger::StdoutLogger() : StdoutLogger(true) {}
+StdoutLogger::StdoutLogger(bool debug) : debugEnabled(debug) {}
 
 void StdoutLogger::debug(const juce::String& message)
 {
-    if (this->_debug)
+    if (this->debugEnabled)
     {
         std::cout << "DEBUG: " << message.toStdString() << std::endl;
     }

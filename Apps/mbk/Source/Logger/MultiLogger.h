@@ -14,7 +14,7 @@ public:
     void error(const juce::String& message) override;
 
 private:
-    std::vector<Logger*> _loggers;
+    std::vector<Logger*> loggers;
 };
 
 } // namespace logger

@@ -6,22 +6,21 @@
 
 namespace logger
 {
-MultiLogger::MultiLogger(const std::vector<Logger*>& loggers){
-    _loggers = loggers;
-}
+MultiLogger::MultiLogger(const std::vector<Logger*>& loggersVec) : loggers(loggersVec) {}
+
 void MultiLogger::debug(const juce::String &message) {
-    for (auto& _logger: _loggers) {
-        _logger->debug(message);
+    for (auto& logger: loggers) {
+        logger->debug(message);
     }
 }
 void MultiLogger::info(const juce::String &message) {
-    for (auto& _logger: _loggers) {
-        _logger->info(message);
+    for (auto& logger: loggers) {
+        logger->info(message);
     }
 }
 void MultiLogger::error(const juce::String &message) {
-    for (auto& _logger: _loggers) {
-        _logger->error(message);
+    for (auto& logger: loggers) {
+        logger->error(message);
     }
 }
 } // namespace AudioApp
