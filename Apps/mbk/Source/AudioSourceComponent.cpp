@@ -195,10 +195,11 @@ namespace AudioApp {
             return;
         }
 
-        std::unique_ptr<juce::AudioFormatReaderSource> sourceReader(
-                new juce::AudioFormatReaderSource(reader, true));
+        // Store source reader to maintain lifetime - transport.setSource takes a raw pointer
+        // and doesn't take ownership, so we must keep the source alive
+        playSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
 
-        transport.setSource(sourceReader.get());
+        transport.setSource(playSource.get());
         transportStateChanged(Stopped);
 
         double fileSampleRate = reader->sampleRate;
@@ -228,10 +229,6 @@ namespace AudioApp {
             logger.error(msg);
             return;
         }
-
-        // I believe this needs to be here so that the tempSource is not deleted until playSource is deleted,
-        // which will happen when the AudioSourceComponent is deleted.
-        playSource = std::move(sourceReader);
 
         juce::AudioDeviceManager::AudioDeviceSetup deviceSetup = deviceManager.getAudioDeviceSetup();
         deviceSetup.sampleRate = fileSampleRate;
