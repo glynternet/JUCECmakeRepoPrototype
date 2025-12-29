@@ -12,7 +12,7 @@ namespace AudioApp {
     public:
         explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, logger::Logger &logger);
 
-        void paint(juce::Graphics &g) override;
+        void paint(juce::Graphics &) override;
         void resized() override;
 
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
