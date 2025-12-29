@@ -47,7 +47,7 @@ public:
         for (int i = _period - 1; i >= 0; i--)
         {
             if (--index < 0)
-                index += _period;
+                index += maxWindow;  // Wrap around the full buffer, not just _period
             sum += _window[index];
         }
 
