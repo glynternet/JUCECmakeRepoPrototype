@@ -1,9 +1,4 @@
-//
-// Created by glyn on 11/12/2021.
-//
-
-#ifndef JUCECMAKEREPO_OSCCOMPONENT_H
-#define JUCECMAKEREPO_OSCCOMPONENT_H
+#pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_osc/juce_osc.h>
@@ -36,5 +31,3 @@ class OSCComponent : public juce::Component, public OSCSender {
         bool senderConnected = false;
     };
 }
-
-#endif //JUCECMAKEREPO_OSCCOMPONENT_H

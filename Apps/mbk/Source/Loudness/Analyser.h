@@ -1,9 +1,4 @@
-//
-// Created by glynh on 24/11/2022.
-//
-
-#ifndef JUCECMAKEREPO_ANALYSER_H
-#define JUCECMAKEREPO_ANALYSER_H
+#pragma once
 
 #include <atomic>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -55,6 +50,4 @@ private:
     float fifo[fftSize];
     int fifoIndex = 0;
 };
-} // namespace LoudnessAnalyser
-
-#endif //JUCECMAKEREPO_ANALYSER_H
+} // namespace Loudness

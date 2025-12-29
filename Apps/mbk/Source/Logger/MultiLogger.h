@@ -1,9 +1,4 @@
-//
-// Created by glynh on 10/12/2022.
-//
-
-#ifndef JUCECMAKEREPO_MULTILOGGER_H
-#define JUCECMAKEREPO_MULTILOGGER_H
+#pragma once
 
 #include "Logger.h"
 
@@ -22,6 +17,4 @@ private:
     std::vector<Logger*> _loggers;
 };
 
-} // namespace AudioApp
-
-#endif //JUCECMAKEREPO_MULTILOGGER_H
+} // namespace logger

@@ -1,5 +1,4 @@
-#ifndef JUCECMAKEREPO_AvvaOSCSender_H
-#define JUCECMAKEREPO_AvvaOSCSender_H
+#pragma once
 
 #include "JuceHeader.h"
 #include "OSCSender.h"
@@ -37,5 +36,3 @@ public:
     bool sendClockMillisPerBeat(float millisPerBeat);
 };
 } // namespace AudioApp
-
-#endif // JUCECMAKEREPO_AvvaOSCSender_H

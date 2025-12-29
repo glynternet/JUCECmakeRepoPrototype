@@ -1,9 +1,4 @@
-//
-// Created by glynh on 14/11/2022.
-//
-
-#ifndef JUCECMAKEREPO_FLASHBOX_H
-#define JUCECMAKEREPO_FLASHBOX_H
+#pragma once
 
 #include <atomic>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -26,6 +21,4 @@ namespace AudioApp {
         juce::Colour colour = juce::Colours::grey;
     };
 }
-
-#endif //JUCECMAKEREPO_FLASHBOX_H
 

@@ -1,9 +1,4 @@
 #pragma once
-//
-// Created by glynh on 29/12/2022.
-
-#ifndef JUCECMAKEREPO_ANALYSERCOMPONENT_H
-#define JUCECMAKEREPO_ANALYSERCOMPONENT_H
 
 #include "../AvvaOSCSender.h"
 #include "JuceHeader.h"
@@ -93,5 +88,3 @@ public:
     static constexpr double initialProcessingBandHigh = 0.13;
 };
 } // namespace Loudness
-
-#endif //JUCECMAKEREPO_ANALYSERCOMPONENT_H

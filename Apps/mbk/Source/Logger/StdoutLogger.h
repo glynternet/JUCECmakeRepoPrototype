@@ -1,9 +1,4 @@
-//
-// Created by glynh on 23/11/2022.
-//
-
-#ifndef JUCECMAKEREPO_STDOUTLOGGER_H
-#define JUCECMAKEREPO_STDOUTLOGGER_H
+#pragma once
 
 #include "Logger.h"
 
@@ -22,6 +17,4 @@ public:
 private:
     bool _debug;
 };
-} // namespace Logger
-
-#endif //JUCECMAKEREPO_STDOUTLOGGER_H
+} // namespace logger

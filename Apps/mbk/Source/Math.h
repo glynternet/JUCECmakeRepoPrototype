@@ -1,9 +1,4 @@
-//
-// Created by glynh on 26/03/2022.
-//
-
-#ifndef JUCECMAKEREPO_MATH_H
-#define JUCECMAKEREPO_MATH_H
+#pragma once
 
 inline double ewma(double current, double nextValue, double alpha) {
     return alpha * nextValue + (1 - alpha) * current;
@@ -24,5 +19,3 @@ inline int ipow(int base, int exp)
 
     return result;
 }
-
-#endif //JUCECMAKEREPO_MATH_H

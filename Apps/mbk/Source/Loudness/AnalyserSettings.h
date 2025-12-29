@@ -1,9 +1,4 @@
-//
-// Created by glynh on 25/11/2022.
-//
-
-#ifndef JUCECMAKEREPO_LOUDNESSANALYSERSETTINGSCOMPONENT_H
-#define JUCECMAKEREPO_LOUDNESSANALYSERSETTINGSCOMPONENT_H
+#pragma once
 
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
@@ -100,5 +95,3 @@ private:
     Components::LabelledSlider processRateSlider;
 };
 } // namespace Loudness
-
-#endif //JUCECMAKEREPO_LOUDNESSANALYSERSETTINGSCOMPONENT_H
