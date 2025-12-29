@@ -26,7 +26,7 @@ public:
     std::function<void(float)> onLoudnessResult;
     double processingBandLow;
     double processingBandHigh;
-    ValueShaper valueShaper {0.0f, 1.0f, 0.0f, 1.0f};
+    ValueShaper valueShaper {0.0F, 1.0F, 0.0F, 1.0F};
     MovingAverage movingAverage;
     TailOff decayLength;
 
@@ -46,8 +46,8 @@ private:
     std::atomic<bool> nextFFTBlockReady{false};
     dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
     dsp::FFT forwardFFT {fftOrder};
-    float fftData[2 * fftSize];
-    float fifo[fftSize];
+    float fftData[2 * fftSize] = {};
+    float fifo[fftSize] = {};
     int fifoIndex = 0;
 };
 } // namespace Loudness

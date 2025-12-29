@@ -12,9 +12,9 @@ public:
     void debug(const juce::String& message) override;
     void info(const juce::String& message) override;
     void error(const juce::String& message) override;
-    bool test;
+    bool test = false;
 
 private:
-    bool _debug;
+    bool debugEnabled = false;
 };
 } // namespace logger

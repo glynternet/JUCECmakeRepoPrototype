@@ -13,11 +13,11 @@ public:
 
     void setMaxDecayCoefficient(float);
 
-    static constexpr float maxExponent = 0.9999f;
-    static constexpr float minExponent = 0.0f;
+    static constexpr float maxExponent = 0.9999F;
+    static constexpr float minExponent = 0.0F;
 
 private:
-    float _exponent;
-    float _previousValue;
+    float exponent = 0.0F;
+    float previousValue = 0.0F;
 };
 } // namespace Loudness

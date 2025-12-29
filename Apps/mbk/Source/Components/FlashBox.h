@@ -13,9 +13,9 @@ namespace AudioApp {
         void paint(juce::Graphics& g);
         void timerCallback() override;
     private:
-        double flashStart;
-        float flashDuration;
-        float brightness;
+        double flashStart = 0.0;
+        float flashDuration = 0.0F;
+        float brightness = 0.0F;
 
         std::atomic<bool> dirty{};
         juce::Colour colour = juce::Colours::grey;
