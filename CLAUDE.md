@@ -76,18 +76,21 @@ This is a JUCE 7 multi-project CMake repository using CPM.cmake for package mana
 
 ## Code Style
 
-Uses clang-format with Allman brace style, 4-space indentation, 90 column limit. See `_clang-format` for full configuration.
+Uses clang-format with attached brace style (K&R), 4-space indentation, 90 column limit. See `_clang-format` for full configuration.
 
 ## Linting
 
 **After making code changes, run linting to catch issues:**
 
 ```bash
-# Lint all source files
+# Lint all source files (requires compile_commands.json)
 ./scripts/lint.sh
 
 # Lint specific files
 ./scripts/lint.sh Apps/mbk/Source/Main.cpp
+
+# Specify build directory with compile_commands.json
+./scripts/lint.sh -b cmake-build-release
 
 # Auto-fix issues
 ./scripts/lint.sh --fix
@@ -100,6 +103,22 @@ Uses clang-format with Allman brace style, 4-space indentation, 90 column limit.
 ```
 
 Uses clang-tidy with checks configured in `.clang-tidy`. Requires `compile_commands.json` (auto-generated during cmake configure).
+
+**WSL Linting Setup:**
+
+Since Linux clang-tidy may not be installed, use CLion's Windows clang-tidy with the Windows build's compile_commands.json:
+
+```bash
+# First, configure with VS Code CMake Tools (creates out/build/x64-Debug/compile_commands.json)
+# Or use: cmake -G "Visual Studio 17 2022" -B out/build/x64-Debug
+
+# Run clang-tidy via helper script
+./scripts/run_clang_tidy.sh
+```
+
+**Exclusions:**
+- `*/Libs/*` - Third-party libraries are excluded from linting
+- `*Test.cpp` - Test files are excluded from linting
 
 **IDE Integration:**
 - VS Code: Install "clangd" extension, it uses `.clang-tidy` automatically
