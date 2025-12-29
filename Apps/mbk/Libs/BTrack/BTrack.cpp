@@ -370,9 +370,16 @@ void BTrack::fixTempo (double tempo)
 
 //=======================================================================
 void BTrack::doNotFixTempo()
-{	
+{
 	// set the tempo fix flag
 	tempoFixed = false;
+}
+
+//=======================================================================
+void BTrack::setSampleRate(double fs)
+{
+	sampleRate = fs;
+	tempoToLagFactor = 60.0 * sampleRate / 512.0;
 }
 
 //=======================================================================

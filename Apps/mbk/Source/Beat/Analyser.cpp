@@ -23,4 +23,8 @@ namespace Beat {
     void Analyser::updateSamplePerBlockExpected(int samplePerBlockExpected) {
         btrack.updateHopAndFrameSize(samplePerBlockExpected / 2, samplePerBlockExpected);
     }
+
+    void Analyser::setSampleRate(double sampleRate) {
+        btrack.setSampleRate(sampleRate);
+    }
 }

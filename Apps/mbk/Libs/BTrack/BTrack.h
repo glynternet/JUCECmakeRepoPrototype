@@ -22,8 +22,6 @@
 #ifndef __BTRACK_H
 #define __BTRACK_H
 
-static const double sampleRate = 48000.0;
-
 #include "OnsetDetectionFunction.h"
 #include "CircularBuffer.h"
 #include <vector>
@@ -102,7 +100,12 @@ public:
     
     /** Tell the algorithm to not fix the tempo anymore */
     void doNotFixTempo();
-    
+
+    /** Set the sample rate used by the beat tracker
+     * @param fs the sample rate in Hz
+     */
+    void setSampleRate(double fs);
+
     //=======================================================================
     /** Calculates a beat time in seconds, given the frame number, hop size and sampling frequency.
      * This version uses a long to represent the frame number
@@ -210,6 +213,7 @@ private:
     double estimatedTempo;                  /**< the current tempo estimation being used by the algorithm */
     double latestCumulativeScoreValue;      /**< holds the latest value of the cumulative score function */
     double tempoToLagFactor;                /**< factor for converting between lag and tempo */
+    double sampleRate = 48000.0;            /**< the sample rate in Hz */
     int m0;                                 /**< indicates when the next point to predict the next beat is */
     int beatCounter;                        /**< keeps track of when the next beat is - will be zero when the beat is due, and is set elsewhere in the algorithm to be positive once a beat prediction is made */
     int hopSize;                            /**< the hop size being used by the algorithm */

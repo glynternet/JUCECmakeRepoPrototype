@@ -64,6 +64,7 @@ namespace AudioApp {
 
     void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
         audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+        tempoAnalyser.setSampleRate(sampleRate);
         tempoAnalyser.updateSamplePerBlockExpected(samplesPerBlockExpected);
     }
 

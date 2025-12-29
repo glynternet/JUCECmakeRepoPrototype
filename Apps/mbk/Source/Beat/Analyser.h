@@ -14,6 +14,7 @@ namespace Beat
 
         void processAudioFrame(const std::vector<double>& frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
+        void setSampleRate(double sampleRate);
 
         // onBeat is run whenever a new beat is encountered by btrack and
         // receives the duration since last detected beat as a parameter.
