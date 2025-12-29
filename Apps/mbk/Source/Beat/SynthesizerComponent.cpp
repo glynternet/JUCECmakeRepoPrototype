@@ -82,6 +82,9 @@ namespace Beat
     }
 
     void SynthesizerComponent::hiResTimerCallback() {
+        // Lock required: scheduledBeats is accessed from both hiResTimerCallback (timer thread)
+        // and beat() (message thread)
+        std::lock_guard<std::mutex> lock(scheduledBeatsMutex);
         while (!scheduledBeats.empty()) {
             auto soonest = scheduledBeats.front();
             // We call getMillisecondCounterHiRes() within this loop but are assuming that the loop
@@ -114,10 +117,14 @@ namespace Beat
         if (relativeMultiplierIndex > 0) {
             durationPerSynthesizedBeat = diffEwma / (double) multiple;
             synthesizedBeat(durationPerSynthesizedBeat);
-            for (uint8_t i = 0; i < multiple - 1; ++i) {
-                scheduledBeats.push_back(scheduledBeat{
-                        timeOfBeat + durationPerSynthesizedBeat * (double)(i + 1),
-                });
+            {
+                // Lock required: scheduledBeats is consumed by hiResTimerCallback on timer thread
+                std::lock_guard<std::mutex> lock(scheduledBeatsMutex);
+                for (uint8_t i = 0; i < multiple - 1; ++i) {
+                    scheduledBeats.push_back(scheduledBeat{
+                            timeOfBeat + durationPerSynthesizedBeat * (double)(i + 1),
+                    });
+                }
             }
 
         // synthesized is the same as input

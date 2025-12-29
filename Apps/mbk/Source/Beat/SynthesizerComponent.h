@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <mutex>
 #include "../../Libs/BTrack/BTrack.h"
 #include "../Components/LogOutputComponent.h"
 #include "../Logger/Logger.h"
@@ -65,7 +66,7 @@ namespace Beat {
         void setMultipleFromIndex(int m);
         void setNextMultipleIndex(int m);
 
-        // deffo put locking on here if we're using high res scheduler with access from everywhere
+        std::mutex scheduledBeatsMutex;
         std::list<scheduledBeat> scheduledBeats;
     };
 }
