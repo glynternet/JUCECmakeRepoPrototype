@@ -8,19 +8,18 @@
 
 namespace Loudness
 {
-Analyser::Analyser(std::function<void(float)> onLoudnessResult,
+Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
                    float processRate,
                    float processingBandIndexLow,
                    float processingBandIndexHigh,
                    float movingAverageInitialWindow,
                    float initialDecayExponent)
-    : movingAverage(movingAverageInitialWindow)
+    : onLoudnessResult(std::move(onLoudnessResultCallback))
+    , processingBandLow(processingBandIndexLow)
+    , processingBandHigh(processingBandIndexHigh)
+    , movingAverage(movingAverageInitialWindow)
     , decayLength(initialDecayExponent)
 {
-    // TODO(glynternet): how can we fix this clang warning?
-    this->onLoudnessResult = onLoudnessResult;
-    this->processingBandLow = processingBandIndexLow;
-    this->processingBandHigh = processingBandIndexHigh;
     // TODO(glynternet): can we remove this timer and just process everytime we receive the thing?
     //  Then we can just update the visual counterpart with a timer?
     juce::Timer::startTimerHz(processRate);
