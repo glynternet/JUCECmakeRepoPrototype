@@ -5,11 +5,11 @@
 #ifndef JUCECMAKEREPO_MATH_H
 #define JUCECMAKEREPO_MATH_H
 
-double ewma(double current, double nextValue, double alpha) {
+inline double ewma(double current, double nextValue, double alpha) {
     return alpha * nextValue + (1 - alpha) * current;
 }
 
-int ipow(int base, int exp)
+inline int ipow(int base, int exp)
 {
     int result = 1;
     for (;;)
