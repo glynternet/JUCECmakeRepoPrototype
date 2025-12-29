@@ -17,12 +17,12 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
     : onLoudnessResult(std::move(onLoudnessResultCallback))
     , processingBandLow(processingBandIndexLow)
     , processingBandHigh(processingBandIndexHigh)
-    , movingAverage(movingAverageInitialWindow)
+    , movingAverage(static_cast<unsigned int>(movingAverageInitialWindow))
     , decayLength(initialDecayExponent)
 {
     // TODO(glynternet): can we remove this timer and just process everytime we receive the thing?
     //  Then we can just update the visual counterpart with a timer?
-    juce::Timer::startTimerHz(processRate);
+    juce::Timer::startTimerHz(static_cast<int>(processRate));
 }
 
 void Analyser::timerCallback()
@@ -39,7 +39,9 @@ void Analyser::fftTimerCallback()
 {
     // nextFFTBlockReady is atomic - safe to read from timer thread while audio thread may write
     if (!nextFFTBlockReady)
+    {
         return;
+    }
     window.multiplyWithWindowingTable(fftData, fftSize);
     forwardFFT.performFrequencyOnlyForwardTransform(fftData);
     auto level = calculateLevel();
@@ -56,15 +58,15 @@ float Analyser::calculateLevel()
 {
     auto maxIndex = fftSize / 2;
     // TODO: work out a better "crossover" point as the frequency scale isn't linear
-    const int indexLow = (int) ((float) maxIndex * processingBandLow);
-    const int indexHigh = (int) ((float) maxIndex * processingBandHigh);
+    const auto indexLow = static_cast<int>(static_cast<float>(maxIndex) * processingBandLow);
+    const auto indexHigh = static_cast<int>(static_cast<float>(maxIndex) * processingBandHigh);
 
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
     level = valueShaper.shape(level);
     movingAverage.add(level);
     level = decayLength.getValue(movingAverage.getAverage());
-    return level < 0.0001f ? 0.0f : level;
+    return level < 0.0001F ? 0.0F : level;
 }
 
 void Analyser::pushNextSampleIntoFifo(float sample) noexcept
@@ -91,8 +93,8 @@ void Analyser::pushNextSampleIntoFifo(float sample) noexcept
 // calculateLoudness will calculate the loudness for a given range of gain values of an FFT calculation
 float Analyser::calculateLoudness(float* data, int dataSize)
 {
-    const auto mindB = -100.0f;
-    const auto maxdB = 0.0f;
+    const auto mindB = -100.0F;
+    const auto maxdB = 0.0F;
 
     /*
         why is this value calculated?!?!
