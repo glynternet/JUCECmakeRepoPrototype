@@ -7,10 +7,10 @@
 
 namespace Beat
 {
-    class AnalyserComponent
+    class Analyser
 {
     public:
-        AnalyserComponent();
+        Analyser();
 
         void processAudioFrame(const std::vector<double>& frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
