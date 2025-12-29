@@ -3,8 +3,6 @@
 
 namespace Beat
 {
-    double durationPerSynthesizedBeat = 500;
-
     SynthesizerComponent::SynthesizerComponent(logger::Logger& l) : logger(l) {
         up.onClick = [this](){
             if (nextMultipleIndex < (TOTAL_MULTIPLE_COUNT - 1)) {

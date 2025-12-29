@@ -28,6 +28,7 @@ namespace Beat {
         uint32_t inputBeatCount = 0;
 
         double diffEwma = 0;
+        double durationPerSynthesizedBeat = 500;
 
         std::atomic<bool> dirty{};
 
