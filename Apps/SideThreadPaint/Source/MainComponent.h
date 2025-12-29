@@ -5,18 +5,14 @@
 
 using namespace juce;
 
-namespace GuiApp
-{
+namespace GuiApp {
 //Helpers to calculate the wavetable path
-namespace PathCalcs
-{
-    inline float getY(float x, float freq)
-    {
+namespace PathCalcs {
+    inline float getY(float x, float freq) {
         return std::sin(x * MathConstants<float>::twoPi * freq);
     }
 
-    inline Point<float> getPoint(int x, float freq, Rectangle<float> bounds)
-    {
+    inline Point<float> getPoint(int x, float freq, Rectangle<float> bounds) {
         auto scaledX = jmap((float) x, 0.f, bounds.getWidth(), 0.f, 1.f);
         auto y = getY(scaledX, freq);
         auto scaledY = jmap(y, -1.f, 1.f, 0.f, bounds.getHeight());
@@ -24,8 +20,7 @@ namespace PathCalcs
         return {(float) x, scaledY};
     }
 
-    inline Path getPath(Rectangle<int> bounds, float freq)
-    {
+    inline Path getPath(Rectangle<int> bounds, float freq) {
         Path wavePath;
         wavePath.startNewSubPath(getPoint(0, freq, bounds.toFloat()));
 
@@ -35,8 +30,7 @@ namespace PathCalcs
         return wavePath;
     }
 
-    inline void paintPath(Graphics& g, Rectangle<int> bounds, float freq)
-    {
+    inline void paintPath(Graphics& g, Rectangle<int> bounds, float freq) {
         auto path = getPath(bounds, freq);
         g.setColour(Colours::lightblue);
         g.strokePath(path, PathStrokeType(1.0f));
@@ -44,8 +38,7 @@ namespace PathCalcs
 } // namespace PathCalcs
 
 //Checks for the existance of "Desktop/Threading.txt" as a flag for the threading
-inline bool shouldUseThreading()
-{
+inline bool shouldUseThreading() {
     auto config = File::getSpecialLocation(File::userDesktopDirectory)
                       .getChildFile("Threading.txt");
 
@@ -53,31 +46,23 @@ inline bool shouldUseThreading()
 }
 
 //A simple "Job", storing the frequency and scale from whoever dispatched the job
-struct PaintJobInfo
-{
+struct PaintJobInfo {
     PaintJobInfo() = default;
     PaintJobInfo(float freqToUse, float scaleToUse)
         : freq(freqToUse)
-        , scale(scaleToUse)
-    {
-    }
-    bool run(Image& result, Rectangle<float> bounds) const noexcept
-    {
-        if (scale > 0.f)
-        {
+        , scale(scaleToUse) {}
+    bool run(Image& result, Rectangle<float> bounds) const noexcept {
+        if (scale > 0.f) {
             auto scaledBounds = bounds * scale;
             auto intBounds = scaledBounds.toNearestInt();
 
             //We have to scale the image here when we know the real scale factor:
-            if (result.getBounds() != intBounds)
-            {
+            if (result.getBounds() != intBounds) {
                 result = Image(Image::PixelFormat::ARGB,
                                intBounds.getWidth(),
                                intBounds.getHeight(),
                                true);
-            }
-            else
-            {
+            } else {
                 result.clear(intBounds);
             }
 
@@ -105,30 +90,23 @@ struct PaintJobInfo
 //And paints the last 'job' sent to it.
 //The thread will only look at the very latest job so it's finen to pass jobs to it
 //At a higher or lower rate
-struct PaintThread
-{
+struct PaintThread {
     PaintThread(Component& parentToUse)
-        : parent(parentToUse)
-    {
-        thread = std::make_unique<std::thread>(
-            [&]
-            {
-                while (running.load())
-                {
-                    hiResTimerCallback();
-                    Thread::sleep(10);
-                }
-            });
+        : parent(parentToUse) {
+        thread = std::make_unique<std::thread>([&] {
+            while (running.load()) {
+                hiResTimerCallback();
+                Thread::sleep(10);
+            }
+        });
     }
 
-    ~PaintThread()
-    {
+    ~PaintThread() {
         running.store(false);
         thread->join();
     }
 
-    void hiResTimerCallback()
-    {
+    void hiResTimerCallback() {
         PaintJobInfo jobToDo;
 
         {
@@ -138,24 +116,20 @@ struct PaintThread
         }
 
         //Still on the side thread, runs the pain job:
-        if (jobToDo.run(threadImage, bounds))
-        {
+        if (jobToDo.run(threadImage, bounds)) {
             //When the job is finished, we send an async call (message thread)
             //To blend the image back into the dispatched component
             auto imageCopy = threadImage.createCopy();
 
-            MessageManager::callAsync(
-                [imageCopy, this]
-                {
-                    cachedImage = imageCopy;
-                    parent.repaint();
-                });
+            MessageManager::callAsync([imageCopy, this] {
+                cachedImage = imageCopy;
+                parent.repaint();
+            });
         }
     }
 
     //Passes the job into the line by copy
-    void addJob(const PaintJobInfo& jobToUse)
-    {
+    void addJob(const PaintJobInfo& jobToUse) {
         ScopedLock sl(lock);
         nextJob = jobToUse;
     }
@@ -174,12 +148,10 @@ struct PaintThread
 
 struct ComplicatedPath
     : public Component
-    , public Timer
-{
+    , public Timer {
     ComplicatedPath() { startTimerHz(100); }
 
-    void timerCallback() override
-    {
+    void timerCallback() override {
         //Randomly changes frequency...
         static Random rand;
         auto offset = jmap(rand.nextFloat(), 0.f, 0.1f);
@@ -196,8 +168,7 @@ struct ComplicatedPath
 
     void resized() override { thread.setBounds(getLocalBounds()); }
 
-    void paint(Graphics& g) override
-    {
+    void paint(Graphics& g) override {
         //We need to store the "real" scale factor so we can use it in out paint later...
         scaleFactor = g.getInternalContext().getPhysicalPixelScaleFactor();
 
@@ -213,8 +184,7 @@ struct ComplicatedPath
     float frequency = 0.f;
 };
 
-class MainComponent : public Component
-{
+class MainComponent : public Component {
 public:
     MainComponent();
 

@@ -1,12 +1,10 @@
 #include "WhiteNoise.h"
 
-namespace WhiteNoise
-{
+namespace WhiteNoise {
 constexpr float gain = 0.5f;
 constexpr size_t reservedNumSamples = 400000;
 
-Oscillator::Oscillator()
-{
+Oscillator::Oscillator() {
     //Precache the samples to a vector
     samples.resize(reservedNumSamples);
 
@@ -14,11 +12,9 @@ Oscillator::Oscillator()
         sample = getNextSample() * gain;
 }
 
-void Oscillator::process(juce::AudioBuffer<float>& buffer) noexcept
-{
-    for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-    {
-        auto nextSample = samples[(size_t)samplePos++];
+void Oscillator::process(juce::AudioBuffer<float>& buffer) noexcept {
+    for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
+        auto nextSample = samples[(size_t) samplePos++];
 
         if (samplePos >= (int) samples.size())
             samplePos = 0;
@@ -28,8 +24,7 @@ void Oscillator::process(juce::AudioBuffer<float>& buffer) noexcept
     }
 }
 
-float Oscillator::getNextSample()
-{
+float Oscillator::getNextSample() {
     auto f = rand.nextFloat();
     return juce::jmap(f, -1.f, 1.f);
 }

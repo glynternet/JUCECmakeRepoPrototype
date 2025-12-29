@@ -1,14 +1,12 @@
 #include "MainWindow.h"
 
-class GuiAppTemplateApplication : public JUCEApplication
-{
+class GuiAppTemplateApplication : public JUCEApplication {
 public:
     const String getApplicationName() override { return "Automatic Binary Data"; }
     const String getApplicationVersion() override { return "0.3"; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
-    void initialise(const String& /*commandLine*/) override
-    {
+    void initialise(const String& /*commandLine*/) override {
         mainWindow = std::make_unique<MainWindow>(getApplicationName());
     }
 

@@ -2,10 +2,8 @@
 
 #include "MainComponent.h"
 
-namespace AudioApp
-{
-class MainWindow : public juce::DocumentWindow
-{
+namespace AudioApp {
+class MainWindow : public juce::DocumentWindow {
 public:
     MainWindow(const juce::String& name);
 
@@ -15,5 +13,4 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
 };
-}
-
+} // namespace AudioApp

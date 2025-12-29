@@ -2,8 +2,7 @@
 
 #include "MainComponent.h"
 
-class MainWindow : public DocumentWindow
-{
+class MainWindow : public DocumentWindow {
 public:
     explicit MainWindow(const String& name);
 

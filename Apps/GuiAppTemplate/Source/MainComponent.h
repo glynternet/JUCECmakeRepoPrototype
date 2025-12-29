@@ -2,11 +2,9 @@
 
 #include "HelloWorldLabel.h"
 
-namespace GuiApp
-{
+namespace GuiApp {
 
-class MainComponent : public Component
-{
+class MainComponent : public Component {
 public:
     MainComponent();
 

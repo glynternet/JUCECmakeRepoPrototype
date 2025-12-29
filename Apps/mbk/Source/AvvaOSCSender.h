@@ -3,10 +3,8 @@
 #include "JuceHeader.h"
 #include "OSCSender.h"
 
-namespace AudioApp
-{
-class AvvaOSCSender
-{
+namespace AudioApp {
+class AvvaOSCSender {
 private:
     AudioApp::OSCSender& _sender;
 

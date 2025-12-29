@@ -2,10 +2,8 @@
 
 #include <cmath>
 
-namespace Loudness
-{
-class TailOff
-{
+namespace Loudness {
+class TailOff {
 public:
     explicit TailOff(float);
 

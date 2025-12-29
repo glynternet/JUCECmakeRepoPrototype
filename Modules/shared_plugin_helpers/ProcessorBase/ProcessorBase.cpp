@@ -1,24 +1,19 @@
 #include "ProcessorBase.h"
 
-namespace PluginHelpers
-{
+namespace PluginHelpers {
 ProcessorBase::ProcessorBase()
-    : juce::AudioProcessor(getDefaultProperties())
-{
+    : juce::AudioProcessor(getDefaultProperties()) {
 }
 
 ProcessorBase::ProcessorBase(const BusesProperties& ioLayouts)
-    : AudioProcessor(ioLayouts)
-{
+    : AudioProcessor(ioLayouts) {
 }
 
-const juce::String ProcessorBase::getName() const
-{
+const juce::String ProcessorBase::getName() const {
     return JucePlugin_Name;
 }
 
-bool ProcessorBase::acceptsMidi() const
-{
+bool ProcessorBase::acceptsMidi() const {
 #if JucePlugin_WantsMidiInput
     return true;
 #else
@@ -26,8 +21,7 @@ bool ProcessorBase::acceptsMidi() const
 #endif
 }
 
-bool ProcessorBase::producesMidi() const
-{
+bool ProcessorBase::producesMidi() const {
 #if JucePlugin_ProducesMidiOutput
     return true;
 #else
@@ -35,8 +29,7 @@ bool ProcessorBase::producesMidi() const
 #endif
 }
 
-bool ProcessorBase::isMidiEffect() const
-{
+bool ProcessorBase::isMidiEffect() const {
 #if JucePlugin_IsMidiEffect
     return true;
 #else
@@ -44,52 +37,43 @@ bool ProcessorBase::isMidiEffect() const
 #endif
 }
 
-double ProcessorBase::getTailLengthSeconds() const
-{
+double ProcessorBase::getTailLengthSeconds() const {
     return 0.0;
 }
 
-int ProcessorBase::getNumPrograms()
-{
+int ProcessorBase::getNumPrograms() {
     return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
     // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int ProcessorBase::getCurrentProgram()
-{
+int ProcessorBase::getCurrentProgram() {
     return 0;
 }
 
-void ProcessorBase::setCurrentProgram(int index)
-{
+void ProcessorBase::setCurrentProgram(int index) {
     juce::ignoreUnused(index);
 }
 
-const juce::String ProcessorBase::getProgramName(int index)
-{
+const juce::String ProcessorBase::getProgramName(int index) {
     juce::ignoreUnused(index);
     return {};
 }
 
-void ProcessorBase::changeProgramName(int index, const juce::String& newName)
-{
+void ProcessorBase::changeProgramName(int index, const juce::String& newName) {
     juce::ignoreUnused(index, newName);
 }
 
 //==============================================================================
-void ProcessorBase::prepareToPlay(double sampleRate, int samplesPerBlock)
-{
+void ProcessorBase::prepareToPlay(double sampleRate, int samplesPerBlock) {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
 }
 
-void ProcessorBase::releaseResources()
-{
+void ProcessorBase::releaseResources() {
 }
 
-juce::AudioProcessor::BusesProperties ProcessorBase::getDefaultProperties()
-{
+juce::AudioProcessor::BusesProperties ProcessorBase::getDefaultProperties() {
     return BusesProperties()
 #if !JucePlugin_IsMidiEffect
 #if !JucePlugin_IsSynth
@@ -100,18 +84,15 @@ juce::AudioProcessor::BusesProperties ProcessorBase::getDefaultProperties()
         ;
 }
 
-juce::AudioProcessorEditor* ProcessorBase::createEditor()
-{
+juce::AudioProcessorEditor* ProcessorBase::createEditor() {
     return new juce::GenericAudioProcessorEditor(*this);
 }
 
 bool ProcessorBase::isBusesLayoutSupported(
-    const juce::AudioProcessor::BusesLayout& layouts) const
-{
+    const juce::AudioProcessor::BusesLayout& layouts) const {
     if (isMidiEffect())
         return true;
-    else
-    {
+    else {
         if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
             && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
             return false;
@@ -125,13 +106,11 @@ bool ProcessorBase::isBusesLayoutSupported(
 
     return true;
 }
-void ProcessorBase::getStateInformation(juce::MemoryBlock& destData)
-{
+void ProcessorBase::getStateInformation(juce::MemoryBlock& destData) {
     juce::ignoreUnused(destData);
 }
 
-void ProcessorBase::setStateInformation(const void* data, int sizeInBytes)
-{
+void ProcessorBase::setStateInformation(const void* data, int sizeInBytes) {
     juce::ignoreUnused(data, sizeInBytes);
 }
 

@@ -14,6 +14,33 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# Find clang-format (prefer Linux, fallback to Windows)
+find_clang_format() {
+    if command -v clang-format &> /dev/null; then
+        echo "clang-format"
+    elif [[ -f "/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/bin/clang-format.exe" ]]; then
+        echo "/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/bin/clang-format.exe"
+    elif [[ -f "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-format.exe" ]]; then
+        echo "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-format.exe"
+    else
+        echo ""
+    fi
+}
+
+# Find clang-tidy (prefer Linux, fallback to Windows)
+find_clang_tidy() {
+    if command -v clang-tidy &> /dev/null; then
+        echo "clang-tidy"
+    elif [[ -f "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-tidy.exe" ]]; then
+        echo "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-tidy.exe"
+    else
+        echo ""
+    fi
+}
+
+CLANG_FORMAT=$(find_clang_format)
+CLANG_TIDY=$(find_clang_tidy)
+
 usage() {
     echo "Usage: $0 [OPTIONS] [FILES...]"
     echo ""
@@ -65,14 +92,6 @@ done
 
 cd "$PROJECT_ROOT"
 
-# Check for compile_commands.json
-if [[ ! -f "$COMPILE_COMMANDS" ]]; then
-    echo -e "${YELLOW}Warning: compile_commands.json not found at $COMPILE_COMMANDS${NC}"
-    echo "Run cmake to generate it:"
-    echo "  cmake -B $BUILD_DIR -DCMAKE_BUILD_TYPE=Debug"
-    exit 1
-fi
-
 # Find source files if none specified
 if [[ ${#FILES[@]} -eq 0 ]]; then
     mapfile -t FILES < <(find Apps Modules -type f \( -name "*.cpp" -o -name "*.h" \) -not -path "*/Libs/*" -not -name "*Test.cpp" 2>/dev/null)
@@ -85,23 +104,46 @@ fi
 
 # Run clang-format
 if [[ -n "$FORMAT_ONLY" || -n "$FORMAT_FIX" ]]; then
-    echo -e "${GREEN}Running clang-format...${NC}"
+    if [[ -z "$CLANG_FORMAT" ]]; then
+        echo -e "${RED}Error: clang-format not found${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}Running clang-format (${#FILES[@]} files)...${NC}"
     if [[ -n "$FORMAT_FIX" ]]; then
-        clang-format -i "${FILES[@]}"
+        for file in "${FILES[@]}"; do
+            "$CLANG_FORMAT" -i "$file"
+        done
         echo -e "${GREEN}Format fixes applied${NC}"
     else
-        if ! clang-format --dry-run --Werror "${FILES[@]}" 2>&1; then
+        FAILED=0
+        for file in "${FILES[@]}"; do
+            if ! "$CLANG_FORMAT" --dry-run --Werror "$file" 2>&1; then
+                FAILED=1
+            fi
+        done
+        if [[ $FAILED -eq 1 ]]; then
             echo -e "${RED}Format check failed${NC}"
             exit 1
         fi
         echo -e "${GREEN}Format check passed${NC}"
     fi
-    if [[ -n "$FORMAT_ONLY" ]]; then
-        exit 0
-    fi
+    exit 0
 fi
 
 # Run clang-tidy
+if [[ -z "$CLANG_TIDY" ]]; then
+    echo -e "${RED}Error: clang-tidy not found${NC}"
+    exit 1
+fi
+
+# Check for compile_commands.json
+if [[ ! -f "$COMPILE_COMMANDS" ]]; then
+    echo -e "${YELLOW}Warning: compile_commands.json not found at $COMPILE_COMMANDS${NC}"
+    echo "Run cmake to generate it:"
+    echo "  cmake -B $BUILD_DIR -DCMAKE_BUILD_TYPE=Debug"
+    exit 1
+fi
+
 echo -e "${GREEN}Running clang-tidy on ${#FILES[@]} files...${NC}"
 echo ""
 
@@ -109,7 +151,7 @@ FAILED=0
 for file in "${FILES[@]}"; do
     if [[ "$file" == *.cpp ]]; then
         echo -n "Checking $file... "
-        if clang-tidy -p "$COMPILE_COMMANDS" $FIX "$file" 2>&1 | grep -v "^$"; then
+        if "$CLANG_TIDY" -p "$COMPILE_COMMANDS" $FIX "$file" 2>&1 | grep -v "^$"; then
             FAILED=1
         else
             echo -e "${GREEN}OK${NC}"

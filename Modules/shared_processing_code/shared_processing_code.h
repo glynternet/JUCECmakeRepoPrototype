@@ -19,4 +19,3 @@ BEGIN_JUCE_MODULE_DECLARATION
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include "Source/WhiteNoise.h"
-

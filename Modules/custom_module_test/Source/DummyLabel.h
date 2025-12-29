@@ -2,10 +2,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace CustomModule
-{
-class DummyLabel : public juce::Component
-{
+namespace CustomModule {
+class DummyLabel : public juce::Component {
 public:
     DummyLabel();
 

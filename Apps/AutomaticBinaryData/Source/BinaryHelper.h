@@ -5,10 +5,8 @@
 //Helper classes to automatically fetch all binary data assets
 
 //Represents a binary data object:
-struct RawData
-{
-    explicit RawData(int index)
-    {
+struct RawData {
+    explicit RawData(int index) {
         using namespace BinaryData;
         data = getNamedResource(namedResourceList[index], size);
     }
@@ -18,8 +16,7 @@ struct RawData
 };
 
 //Returns a vector of all existing binary data assets:
-inline std::vector<RawData> getBinaryDataAssets()
-{
+inline std::vector<RawData> getBinaryDataAssets() {
     std::vector<RawData> assets;
 
     using namespace BinaryData;
@@ -31,12 +28,10 @@ inline std::vector<RawData> getBinaryDataAssets()
 }
 
 //returns all binary data images as a vector:
-inline std::vector<Image> getBinaryDataImages()
-{
+inline std::vector<Image> getBinaryDataImages() {
     std::vector<Image> images;
 
-    for (auto& asset: getBinaryDataAssets())
-    {
+    for (auto& asset: getBinaryDataAssets()) {
         auto image = ImageCache::getFromMemory(asset.data, asset.size);
 
         if (image.isValid())

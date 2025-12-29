@@ -1,9 +1,7 @@
 #include "MainWindow.h"
 
-namespace AudioApp
-{
-constexpr bool isMobile()
-{
+namespace AudioApp {
+constexpr bool isMobile() {
 #if JUCE_IOS || JUCE_ANDROID
     return true;
 #else
@@ -12,17 +10,13 @@ constexpr bool isMobile()
 }
 
 MainWindow::MainWindow(const juce::String& name)
-    : DocumentWindow(name, getBackgroundColour(), allButtons)
-{
+    : DocumentWindow(name, getBackgroundColour(), allButtons) {
     setUsingNativeTitleBar(true);
     setContentOwned(new MainComponent(), true);
 
-    if (isMobile())
-    {
+    if (isMobile()) {
         setFullScreen(true);
-    }
-    else
-    {
+    } else {
         setResizable(true, true);
         centreWithSize(getWidth(), getHeight());
     }
@@ -30,15 +24,13 @@ MainWindow::MainWindow(const juce::String& name)
     setVisible(true);
 }
 
-void MainWindow::closeButtonPressed()
-{
+void MainWindow::closeButtonPressed() {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
-juce::Colour MainWindow::getBackgroundColour()
-{
+juce::Colour MainWindow::getBackgroundColour() {
     return juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(
         ResizableWindow::backgroundColourId);
 }
 
-} // namespace GuiApp
+} // namespace AudioApp

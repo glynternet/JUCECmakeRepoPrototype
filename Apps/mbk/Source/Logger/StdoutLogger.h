@@ -2,10 +2,8 @@
 
 #include "Logger.h"
 
-namespace logger
-{
-class StdoutLogger : public Logger
-{
+namespace logger {
+class StdoutLogger : public Logger {
 public:
     StdoutLogger();
     explicit StdoutLogger(bool debugMode);

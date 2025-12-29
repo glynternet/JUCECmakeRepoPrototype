@@ -7,17 +7,15 @@
 #include "MovingAverage.h"
 #include "TailOff.h"
 
-namespace Loudness
-{
-class Analyser : juce::Timer
-{
+namespace Loudness {
+class Analyser : juce::Timer {
 public:
     explicit Analyser(std::function<void(float)> onLoudnessResult,
-                              float processRate,
-                              float processingBandIndexLow,
-                              float processingBandIndexHigh,
-                              float movingAverageInitialWindow,
-                              float initialDecayExponent);
+                      float processRate,
+                      float processingBandIndexLow,
+                      float processingBandIndexHigh,
+                      float movingAverageInitialWindow,
+                      float initialDecayExponent);
     void timerCallback() override;
     void setProcessRateHz(int rate);
 
@@ -35,15 +33,11 @@ private:
     float calculateLevel();
     float calculateLoudness(float* data, int dataSize);
 
-    enum
-    {
-        fftOrder = 8,
-        fftSize = 1 << fftOrder
-    };
+    enum { fftOrder = 8, fftSize = 1 << fftOrder };
 
     // Atomic flag for thread-safe signaling between audio thread (pushNextSampleIntoFifo)
     // and timer thread (fftTimerCallback)
-    std::atomic<bool> nextFFTBlockReady{false};
+    std::atomic<bool> nextFFTBlockReady {false};
     dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
     dsp::FFT forwardFFT {fftOrder};
     float fftData[2 * fftSize] = {};

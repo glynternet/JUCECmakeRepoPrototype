@@ -16,7 +16,8 @@ namespace Loudness {
 //     * getValue(2.0) would return 2.0
 //     * getValue(0.5) would return 0.9
 TailOff::TailOff(float maxDecayCoefficient) {
-    setMaxDecayCoefficient(maxDecayCoefficient); }
+    setMaxDecayCoefficient(maxDecayCoefficient);
+}
 
 void TailOff::setMaxDecayCoefficient(float exp) {
     if (exp > maxExponent) {
@@ -39,4 +40,4 @@ float TailOff::getValue(float in) {
     previousValue = fmax(in, min);
     return previousValue;
 }
-}
+} // namespace Loudness

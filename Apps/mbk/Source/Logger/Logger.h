@@ -4,11 +4,11 @@
 #include <cmath>
 
 namespace logger {
-    class Logger {
-    public:
-        virtual ~Logger() = default;
-        virtual void debug(const juce::String &message) = 0;
-        virtual void info(const juce::String &message) = 0;
-        virtual void error(const juce::String &message) = 0;
-    };
-}
+class Logger {
+public:
+    virtual ~Logger() = default;
+    virtual void debug(const juce::String& message) = 0;
+    virtual void info(const juce::String& message) = 0;
+    virtual void error(const juce::String& message) = 0;
+};
+} // namespace logger

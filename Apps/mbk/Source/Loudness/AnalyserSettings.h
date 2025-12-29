@@ -3,28 +3,26 @@
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
 
-namespace Loudness
-{
-class AnalyserSettings : public juce::Component
-{
+namespace Loudness {
+class AnalyserSettings : public juce::Component {
 public:
     explicit AnalyserSettings(Loudness::Analyser& loudnessAnalyser,
-                                      const float initialProcessRateHz,
-                                      const double initialProcessingBandLow,
-                                      const double initialProcessingBandHigh,
-                                      const int movingAverageInitialWindow,
-                                      const float initialDecayExponent)
-        : frequencyProcessingBand("Frequency Band",
-                                  0.0f,
-                                  1.0f,
-                                  initialProcessingBandLow,
-                                  initialProcessingBandHigh,
-                                  0.5f,
-                                  [&loudnessAnalyser](const double low, const double high)
-                                  {
-                                      loudnessAnalyser.processingBandLow = low;
-                                      loudnessAnalyser.processingBandHigh = high;
-                                  })
+                              const float initialProcessRateHz,
+                              const double initialProcessingBandLow,
+                              const double initialProcessingBandHigh,
+                              const int movingAverageInitialWindow,
+                              const float initialDecayExponent)
+        : frequencyProcessingBand(
+            "Frequency Band",
+            0.0f,
+            1.0f,
+            initialProcessingBandLow,
+            initialProcessingBandHigh,
+            0.5f,
+            [&loudnessAnalyser](const double low, const double high) {
+                loudnessAnalyser.processingBandLow = low;
+                loudnessAnalyser.processingBandHigh = high;
+            })
         ,
 
         rangeIn("Range In",
@@ -33,8 +31,7 @@ public:
                 0.1f,
                 0.8f,
                 0.3f,
-                [&loudnessAnalyser](const double min, const double max)
-                {
+                [&loudnessAnalyser](const double min, const double max) {
                     loudnessAnalyser.valueShaper.setInMin((float) min);
                     loudnessAnalyser.valueShaper.setInMax((float) max);
                 })
@@ -45,8 +42,10 @@ public:
                     TailOff::maxExponent,
                     initialDecayExponent,
                     jmap(0.90f, TailOff::minExponent, TailOff::maxExponent),
-                    [&loudnessAnalyser](const double exponent)
-                    { loudnessAnalyser.decayLength.setMaxDecayCoefficient((float) exponent); })
+                    [&loudnessAnalyser](const double exponent) {
+                        loudnessAnalyser.decayLength.setMaxDecayCoefficient(
+                            (float) exponent);
+                    })
         ,
 
         movingAverage("Window Size",
@@ -55,17 +54,18 @@ public:
                       1.f,
                       movingAverageInitialWindow,
                       1.f,
-                      [&loudnessAnalyser](const double value)
-                      { loudnessAnalyser.movingAverage.setPeriod((int) value); })
+                      [&loudnessAnalyser](const double value) {
+                          loudnessAnalyser.movingAverage.setPeriod((int) value);
+                      })
         ,
 
         processRateSlider("Process rate",
                           5.f,
                           70.f,
                           initialProcessRateHz,
-                          [&loudnessAnalyser](const double processRateHz)
-                          { loudnessAnalyser.setProcessRateHz((int) processRateHz); })
-    {
+                          [&loudnessAnalyser](const double processRateHz) {
+                              loudnessAnalyser.setProcessRateHz((int) processRateHz);
+                          }) {
         addAndMakeVisible(rangeIn);
         addAndMakeVisible(frequencyProcessingBand);
         addAndMakeVisible(decayLength);
@@ -74,11 +74,9 @@ public:
     }
 
 private:
-    void resized() override
-    {
+    void resized() override {
         auto bounds = getLocalBounds().reduced(10);
-        if (bounds.getHeight() > 200)
-        {
+        if (bounds.getHeight() > 200) {
             bounds = bounds.removeFromTop(200);
         }
         frequencyProcessingBand.setBounds(bounds.removeFromTop(bounds.getHeight() / 5));

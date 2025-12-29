@@ -6,28 +6,30 @@
 #include "OSCSender.h"
 
 namespace AudioApp {
-class OSCComponent : public juce::Component, public OSCSender {
-    public:
-        explicit OSCComponent(logger::Logger &logger);
+class OSCComponent
+    : public juce::Component
+    , public OSCSender {
+public:
+    explicit OSCComponent(logger::Logger& logger);
 
-        void paint(juce::Graphics &) override;
+    void paint(juce::Graphics&) override;
 
-        void resized() override;
+    void resized() override;
 
-        bool send(const juce::OSCMessage &message) override;
+    bool send(const juce::OSCMessage& message) override;
 
-    private:
-        void connectOSCSender(const juce::String &);
+private:
+    void connectOSCSender(const juce::String&);
 
-        void disconnectOSCSender();
+    void disconnectOSCSender();
 
-        void setSenderConnectedState(bool connected);
+    void setSenderConnectedState(bool connected);
 
-        logger::Logger &logger;
+    logger::Logger& logger;
 
-        juce::Label targetAddress{"targetAddress", "127.0.0.1"};
-        juce::TextButton connectOSCButton{"Connect OSC"};
-        juce::OSCSender sender;
-        bool senderConnected = false;
-    };
-}
+    juce::Label targetAddress {"targetAddress", "127.0.0.1"};
+    juce::TextButton connectOSCButton {"Connect OSC"};
+    juce::OSCSender sender;
+    bool senderConnected = false;
+};
+} // namespace AudioApp

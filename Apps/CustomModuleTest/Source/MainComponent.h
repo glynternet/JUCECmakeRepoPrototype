@@ -2,10 +2,8 @@
 
 #include "CommonHeader.h"
 
-namespace GuiApp
-{
-class MainComponent : public Component
-{
+namespace GuiApp {
+class MainComponent : public Component {
 public:
     MainComponent();
 

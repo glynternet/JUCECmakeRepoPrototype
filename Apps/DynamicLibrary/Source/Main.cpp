@@ -1,7 +1,6 @@
 #include <juce_core/juce_core.h>
 
-inline juce::String getDllName()
-{
+inline juce::String getDllName() {
 #if JUCE_MAC
     return "libDLL.dylib";
 #elif JUCE_WINDOWS
@@ -11,8 +10,7 @@ inline juce::String getDllName()
 #endif
 }
 
-int main()
-{
+int main() {
     using juce::File;
 
     auto exeDir = File::getSpecialLocation(File::currentExecutableFile);
@@ -21,7 +19,7 @@ int main()
 
     juce::DynamicLibrary lib {dllFile.getFullPathName()};
 
-    auto func = (void(*)())lib.getFunction("dllFunction");
+    auto func = (void (*)()) lib.getFunction("dllFunction");
     func();
 
     return 0;

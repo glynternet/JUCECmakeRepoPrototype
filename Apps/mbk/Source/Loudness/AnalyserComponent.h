@@ -10,14 +10,11 @@
 #include "../Logger/StdoutLogger.h"
 #include "../OSCComponent.h"
 
-namespace Loudness
-{
-class AnalyserComponent : public juce::Component
-{
+namespace Loudness {
+class AnalyserComponent : public juce::Component {
 public:
     explicit AnalyserComponent(std::function<bool(float)> onLoudnessCallback)
-        : onLoudness(std::move(onLoudnessCallback))
-    {
+        : onLoudness(std::move(onLoudnessCallback)) {
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(loudnessAnalyserSettings);
     }
@@ -25,8 +22,7 @@ public:
     //==============================================================================
     // Component functions
 
-    void resized() override
-    {
+    void resized() override {
         auto bounds = getLocalBounds();
 
         valueHistoryComp.setBounds(bounds);
@@ -37,8 +33,7 @@ public:
     //==============================================================================
     // AudioAppComponent functions
 
-    void pushNextSampleIntoFifo(float sample) noexcept
-    {
+    void pushNextSampleIntoFifo(float sample) noexcept {
         loudnessAnalyser.pushNextSampleIntoFifo(sample);
     }
 
@@ -49,21 +44,18 @@ private:
     std::function<bool(float)> onLoudness;
     float lastLevelSent = -10.f; // set to strange value to start off with
 
-    Loudness::Analyser loudnessAnalyser {
-        [this](float level)
-        {
-            valueHistoryComp.addLevel(level);
-            if (level != lastLevelSent)
-            {
-                if (onLoudness && onLoudness(level))
-                    lastLevelSent = level;
-            }
-        },
-        initialProcessRateHz,
-        initialProcessingBandLow,
-        initialProcessingBandHigh,
-        movingAverageInitialWindow,
-        initialDecayExponent};
+    Loudness::Analyser loudnessAnalyser {[this](float level) {
+                                             valueHistoryComp.addLevel(level);
+                                             if (level != lastLevelSent) {
+                                                 if (onLoudness && onLoudness(level))
+                                                     lastLevelSent = level;
+                                             }
+                                         },
+                                         initialProcessRateHz,
+                                         initialProcessingBandLow,
+                                         initialProcessingBandHigh,
+                                         movingAverageInitialWindow,
+                                         initialDecayExponent};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
                                                initialProcessRateHz,
                                                initialProcessingBandLow,

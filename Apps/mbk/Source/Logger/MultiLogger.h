@@ -2,11 +2,9 @@
 
 #include "Logger.h"
 
-namespace logger
-{
+namespace logger {
 
-class MultiLogger : public Logger
-{
+class MultiLogger : public Logger {
 public:
     explicit MultiLogger(const std::vector<Logger*>& loggers);
     void debug(const juce::String& message) override;

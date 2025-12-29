@@ -4,11 +4,9 @@ inline double ewma(double current, double nextValue, double alpha) {
     return alpha * nextValue + (1 - alpha) * current;
 }
 
-inline int ipow(int base, int exp)
-{
+inline int ipow(int base, int exp) {
     int result = 1;
-    for (;;)
-    {
+    for (;;) {
         if (exp & 1)
             result *= base;
         exp >>= 1;

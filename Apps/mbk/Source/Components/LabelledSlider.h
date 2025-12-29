@@ -2,21 +2,18 @@
 
 #include "JuceHeader.h"
 
-namespace Components
-{
-class LabelledSlider : public Component
-{
+namespace Components {
+class LabelledSlider : public Component {
 public:
     // Simple LabelledSlider with default settings.
     explicit LabelledSlider(const String& labelText);
 
     // LabelledSlider with range min and max, and initial value of slider.
-    LabelledSlider(
-        const String& labelText,
-        float rangeMin,
-        float rangeMax,
-        float value,
-        const std::function<void(const double value)>& onValueChange);
+    LabelledSlider(const String& labelText,
+                   float rangeMin,
+                   float rangeMax,
+                   float value,
+                   const std::function<void(const double value)>& onValueChange);
 
     // LabelledSlider with skew factor set by setting the midpoint of the slider.
     LabelledSlider(const String& labelText,

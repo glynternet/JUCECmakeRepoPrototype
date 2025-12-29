@@ -8,69 +8,74 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 namespace AudioApp {
-    class AudioSourceComponent : public juce::AudioSource, public juce::Component, public juce::ChangeListener, juce::Timer {
-    public:
-        explicit AudioSourceComponent(juce::AudioDeviceManager &deviceManager, logger::Logger &logger);
+class AudioSourceComponent
+    : public juce::AudioSource
+    , public juce::Component
+    , public juce::ChangeListener
+    , juce::Timer {
+public:
+    explicit AudioSourceComponent(juce::AudioDeviceManager& deviceManager,
+                                  logger::Logger& logger);
 
-        void paint(juce::Graphics &) override;
-        void resized() override;
+    void paint(juce::Graphics&) override;
+    void resized() override;
 
-        void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-        void releaseResources() override;
-        void getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) override;
-        void timerCallback() override;
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override;
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void timerCallback() override;
 
-        // get frame values from last block of audio processed
-        const std::vector<double>& getFrameValues();
+    // get frame values from last block of audio processed
+    const std::vector<double>& getFrameValues();
 
-        std::function<void()> onPlaying;
-        std::function<void()> onPaused;
-        std::function<void()> onStopped;
+    std::function<void()> onPlaying;
+    std::function<void()> onPaused;
+    std::function<void()> onStopped;
 
-    private:
-        // frame is written by audio thread and read by message thread
-        juce::SpinLock frameLock;
-        std::vector<double> frame;
-        logger::Logger &logger;
+private:
+    // frame is written by audio thread and read by message thread
+    juce::SpinLock frameLock;
+    std::vector<double> frame;
+    logger::Logger& logger;
 
-        juce::AudioDeviceManager &deviceManager;
+    juce::AudioDeviceManager& deviceManager;
 
-        void changeListenerCallback(juce::ChangeBroadcaster *source) override;
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
-        juce::AudioDeviceSelectorComponent selector{
-                deviceManager, 1, 2, 1, 2, false, false, false, false};
+    juce::AudioDeviceSelectorComponent selector {
+        deviceManager, 1, 2, 1, 2, false, false, false, false};
 
-        // File transport
-        enum TransportState {
-            FileNotLoaded,
-            Stopped,
-            Starting,
-            Stopping,
-            Playing,
-            Pausing,
-            Paused,
-        };
-
-        TransportState state { FileNotLoaded };
-        void openFileChooser();
-        std::unique_ptr<juce::FileChooser> fileChooser_;
-        juce::AudioFormatManager formatManager;
-        void chooserClosed(const juce::FileChooser &chooser);
-        void transportStateChanged(TransportState newState);
-
-        juce::TextButton openButton { "Open" };
-        juce::TextButton playPauseButton { "Play" };
-        juce::TextButton stopButton { "Stop" };
-        std::unique_ptr<juce::AudioFormatReaderSource> playSource;
-        juce::AudioTransportSource transport;
-
-        // Source selection
-        bool filePlayerEnabled = false;
-        juce::ToggleButton sourceToggle{"enable file player"};
-
-        juce::ToggleButton monitorOutputToggle{"monitor output"};
-
-        juce::Label cpuUsageLabel{"CPU usage", "CPU usage"};
-        juce::Label cpuUsageText;
+    // File transport
+    enum TransportState {
+        FileNotLoaded,
+        Stopped,
+        Starting,
+        Stopping,
+        Playing,
+        Pausing,
+        Paused,
     };
-}
+
+    TransportState state {FileNotLoaded};
+    void openFileChooser();
+    std::unique_ptr<juce::FileChooser> fileChooser_;
+    juce::AudioFormatManager formatManager;
+    void chooserClosed(const juce::FileChooser& chooser);
+    void transportStateChanged(TransportState newState);
+
+    juce::TextButton openButton {"Open"};
+    juce::TextButton playPauseButton {"Play"};
+    juce::TextButton stopButton {"Stop"};
+    std::unique_ptr<juce::AudioFormatReaderSource> playSource;
+    juce::AudioTransportSource transport;
+
+    // Source selection
+    bool filePlayerEnabled = false;
+    juce::ToggleButton sourceToggle {"enable file player"};
+
+    juce::ToggleButton monitorOutputToggle {"monitor output"};
+
+    juce::Label cpuUsageLabel {"CPU usage", "CPU usage"};
+    juce::Label cpuUsageText;
+};
+} // namespace AudioApp

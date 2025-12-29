@@ -10,10 +10,8 @@
 #include "Beat/SynthesizerComponent.h"
 #include "AvvaOSCSender.h"
 
-namespace AudioApp
-{
-class MainComponent : public juce::AudioAppComponent
-{
+namespace AudioApp {
+class MainComponent : public juce::AudioAppComponent {
 public:
     MainComponent();
     ~MainComponent();

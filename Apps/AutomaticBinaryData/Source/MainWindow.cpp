@@ -1,7 +1,6 @@
 #include "MainWindow.h"
 
-constexpr bool isMobile()
-{
+constexpr bool isMobile() {
 #if JUCE_IOS || JUCE_ANDROID
     return true;
 #else
@@ -10,15 +9,13 @@ constexpr bool isMobile()
 }
 
 MainWindow::MainWindow(const String& name)
-    : DocumentWindow(name, getBackgroundColour(), allButtons)
-{
+    : DocumentWindow(name, getBackgroundColour(), allButtons) {
     setUsingNativeTitleBar(true);
     setContentOwned(new MainComponent(), true);
 
     if (isMobile())
         setFullScreen(true);
-    else
-    {
+    else {
         setResizable(true, true);
         centreWithSize(getWidth(), getHeight());
     }
@@ -26,13 +23,11 @@ MainWindow::MainWindow(const String& name)
     setVisible(true);
 }
 
-void MainWindow::closeButtonPressed()
-{
+void MainWindow::closeButtonPressed() {
     JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
-Colour MainWindow::getBackgroundColour()
-{
+Colour MainWindow::getBackgroundColour() {
     return Desktop::getInstance().getDefaultLookAndFeel().findColour(
         ResizableWindow::backgroundColourId);
 }

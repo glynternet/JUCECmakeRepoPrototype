@@ -2,12 +2,10 @@
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
-namespace PluginHelpers
-{
+namespace PluginHelpers {
 //A helper base class, reducing a lot of the AudioProcessor boiler plate:
 
-struct ProcessorBase : juce::AudioProcessor
-{
+struct ProcessorBase : juce::AudioProcessor {
     ProcessorBase();
     explicit ProcessorBase(const BusesProperties& ioLayouts);
 
@@ -39,5 +37,4 @@ struct ProcessorBase : juce::AudioProcessor
 
     static BusesProperties getDefaultProperties();
 };
-}
-
+} // namespace PluginHelpers

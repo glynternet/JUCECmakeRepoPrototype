@@ -1,9 +1,7 @@
 #include "DummyLabel.h"
 
-namespace CustomModule
-{
-DummyLabel::DummyLabel()
-{
+namespace CustomModule {
+DummyLabel::DummyLabel() {
     addAndMakeVisible(label);
 
     label.setFont({juce::FontOptions(22)});
@@ -11,8 +9,7 @@ DummyLabel::DummyLabel()
     label.setJustificationType(juce::Justification::centred);
 }
 
-void DummyLabel::resized()
-{
+void DummyLabel::resized() {
     label.setBounds(getLocalBounds());
 }
 } // namespace CustomModule
