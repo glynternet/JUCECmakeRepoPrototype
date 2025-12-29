@@ -24,7 +24,7 @@ namespace AudioApp {
             bool newFilePlayerEnabled = sourceToggle.getToggleState();
             if (newFilePlayerEnabled != filePlayerEnabled) {
                 filePlayerEnabled = newFilePlayerEnabled;
-                this->logger.debug("Updated filePlayerEnabled to: " + std::to_string(filePlayerEnabled));
+                this->logger.debug("Updated filePlayerEnabled to: " + std::string(filePlayerEnabled ? "true" : "false"));
                 if (filePlayerEnabled) {
                     playPauseButton.setVisible(true);
                     stopButton.setVisible(true);
@@ -51,7 +51,7 @@ namespace AudioApp {
         startTimerHz(30);
     }
 
-    void AudioSourceComponent::paint(juce::Graphics &) {}
+    void AudioSourceComponent::paint(juce::Graphics& /*graphics*/) {}
 
     void AudioSourceComponent::resized() {
         auto bounds = getLocalBounds();
@@ -99,7 +99,7 @@ namespace AudioApp {
     }
 
     void AudioSourceComponent::timerCallback() {
-        const auto cpuPercent = deviceManager.getCpuUsage() * 100.0f;
+        const auto cpuPercent = deviceManager.getCpuUsage() * 100.0F;
         cpuUsageText.setText(juce::String(cpuPercent, 6) + " %", juce::dontSendNotification);
     }
 
@@ -251,7 +251,10 @@ namespace AudioApp {
             switch (state) {
                 case Stopped:
                     logger.info("Stopped");
-                    if (onStopped != nullptr) onStopped();
+                    if (onStopped != nullptr)
+                    {
+                        onStopped();
+                    }
                     playPauseButton.setButtonText("Play");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){
@@ -263,7 +266,10 @@ namespace AudioApp {
 
                 case Paused:
                     logger.info("Paused");
-                    if (onPaused != nullptr) onPaused();
+                    if (onPaused != nullptr)
+                    {
+                        onPaused();
+                    }
                     playPauseButton.setButtonText("Play");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){
@@ -284,7 +290,10 @@ namespace AudioApp {
 
                 case Playing:
                     logger.info("Playing");
-                    if (onPlaying != nullptr) onPlaying();
+                    if (onPlaying != nullptr)
+                    {
+                        onPlaying();
+                    }
                     playPauseButton.setButtonText("Pause");
                     playPauseButton.setEnabled(true);
                     playPauseButton.onClick = [this](){

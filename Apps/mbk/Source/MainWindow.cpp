@@ -18,7 +18,9 @@ MainWindow::MainWindow(const juce::String& name)
     setContentOwned(new MainComponent(), true);
 
     if (isMobile())
+    {
         setFullScreen(true);
+    }
     else
     {
         setResizable(true, true);

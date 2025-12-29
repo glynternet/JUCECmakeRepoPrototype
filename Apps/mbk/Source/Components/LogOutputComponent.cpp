@@ -57,7 +57,9 @@ namespace AudioApp
 
     void LogOutputComponent::debug(const juce::String& message) {
         if (this->debugLevel)
+        {
             log(leveledMessage{"DEBUG", message.toStdString() });
+        }
     }
 
     void LogOutputComponent::info(const juce::String& message) {

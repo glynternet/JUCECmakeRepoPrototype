@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 
 namespace AudioApp {
-    static constexpr float flashProportion = 0.5f;
+    static constexpr float flashProportion = 0.5F;
 
     MainComponent::MainComponent()
         : analyserComponent([this](float level) { return oscSender.sendLoudness(level); })
@@ -74,7 +74,9 @@ namespace AudioApp {
 
     void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) {
         if (bufferToFill.buffer->getNumChannels() <= 0)
+        {
             return;
+        }
         audioSource.getNextAudioBlock(bufferToFill);
 
         const auto& frameValues = audioSource.getFrameValues();
