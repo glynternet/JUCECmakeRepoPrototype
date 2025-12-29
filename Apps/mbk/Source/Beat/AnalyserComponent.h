@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <functional>
+#include <vector>
 #include "../../Libs/BTrack/BTrack.h"
 
 namespace Beat
@@ -11,7 +12,7 @@ namespace Beat
     public:
         AnalyserComponent();
 
-        void processAudioFrame(double *frame);
+        void processAudioFrame(const std::vector<double>& frame);
         void updateSamplePerBlockExpected(int samplePerBlockExpected);
 
         // onBeat is run whenever a new beat is encountered by btrack and

@@ -21,7 +21,7 @@ namespace AudioApp {
         void timerCallback() override;
 
         // get frame values from last block of audio processed
-        double *getFrameValues();
+        const std::vector<double>& getFrameValues();
 
         std::function<void()> onPlaying;
         std::function<void()> onPaused;

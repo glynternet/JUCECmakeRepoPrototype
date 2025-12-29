@@ -73,14 +73,11 @@ namespace AudioApp {
             return;
         audioSource.getNextAudioBlock(bufferToFill);
 
-        tempoAnalyser.processAudioFrame(audioSource.getFrameValues());
+        const auto& frameValues = audioSource.getFrameValues();
+        tempoAnalyser.processAudioFrame(frameValues);
 
-        // TODO(glynternet): This isn't great, we're copying all of the frames to another vector just to extract them.
-        //   We either want to hook directly into getNextAudioBlock or take the frame values and push all of
-        //   them at the same time into the Fifo buffer? Not sure, a thing for another day.
-        double* frameValues = audioSource.getFrameValues();
-        for (auto i = 0; i < bufferToFill.numSamples; ++i) {
-            analyserComponent.pushNextSampleIntoFifo(frameValues[i]);
+        for (double sample : frameValues) {
+            analyserComponent.pushNextSampleIntoFifo(static_cast<float>(sample));
         }
     }
 }

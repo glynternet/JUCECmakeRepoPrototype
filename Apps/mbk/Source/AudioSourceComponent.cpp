@@ -164,11 +164,11 @@ namespace AudioApp {
         }
     }
 
-    double *AudioSourceComponent::getFrameValues() {
-        // Note: caller must ensure they finish using the returned pointer before
+    const std::vector<double>& AudioSourceComponent::getFrameValues() {
+        // Note: caller must ensure they finish using the returned reference before
         // the next audio block is processed. Consider copying data instead.
         const juce::SpinLock::ScopedLockType lock(frameLock);
-        return frame.data();
+        return frame;
     }
 
     void AudioSourceComponent::openFileChooser() {
