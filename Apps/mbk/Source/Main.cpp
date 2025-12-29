@@ -5,7 +5,9 @@ namespace AudioApp
 class GuiAppTemplateApplication : public juce::JUCEApplication
 {
 public:
+    // NOLINTNEXTLINE(readability-const-return-type) - JUCE override requires this signature
     const juce::String getApplicationName() override { return JUCE_APPLICATION_NAME_STRING; }
+    // NOLINTNEXTLINE(readability-const-return-type) - JUCE override requires this signature
     const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
