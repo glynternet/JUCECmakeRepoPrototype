@@ -49,7 +49,7 @@ namespace AudioApp {
         addAndMakeVisible(&cpuUsageLabel);
         addAndMakeVisible(&cpuUsageText);
 
-        startTimerHz(30.f);
+        startTimerHz(30);
     }
 
     void AudioSourceComponent::paint(juce::Graphics &) {}
