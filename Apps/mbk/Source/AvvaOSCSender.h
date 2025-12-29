@@ -38,4 +38,4 @@ public:
 };
 } // namespace AudioApp
 
-#endif JUCECMAKEREPO_AvvaOSCSender_H
+#endif // JUCECMAKEREPO_AvvaOSCSender_H
