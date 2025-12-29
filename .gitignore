@@ -7,6 +7,9 @@ build-ios
 
 cmake-build-debug
 cmake-build-release
+cmake-build-wsl
+build-windows
+.vs
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
