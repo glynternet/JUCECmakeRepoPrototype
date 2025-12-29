@@ -40,17 +40,17 @@ private:
     float calculateLevel();
     float calculateLoudness(float* data, int dataSize);
 
-    // Atomic flag for thread-safe signaling between audio thread (pushNextSampleIntoFifo)
-    // and timer thread (fftTimerCallback)
-    std::atomic<bool> nextFFTBlockReady{false};
-    dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
-    dsp::FFT forwardFFT {fftOrder};
-
     enum
     {
         fftOrder = 8,
         fftSize = 1 << fftOrder
     };
+
+    // Atomic flag for thread-safe signaling between audio thread (pushNextSampleIntoFifo)
+    // and timer thread (fftTimerCallback)
+    std::atomic<bool> nextFFTBlockReady{false};
+    dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
+    dsp::FFT forwardFFT {fftOrder};
     float fftData[2 * fftSize];
     float fifo[fftSize];
     int fifoIndex = 0;
