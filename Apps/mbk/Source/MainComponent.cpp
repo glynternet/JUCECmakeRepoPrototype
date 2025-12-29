@@ -3,7 +3,9 @@
 namespace AudioApp {
     static constexpr float flashProportion = 0.5f;
 
-    MainComponent::MainComponent() {
+    MainComponent::MainComponent()
+        : analyserComponent([this](float level) { return oscSender.sendLoudness(level); })
+    {
         setAudioChannels(2, 2);
 
         getLookAndFeel().setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
@@ -25,6 +27,7 @@ namespace AudioApp {
             oscSender.sendClockMillisPerBeat((float)period);
             tempoSynthesizerFlash.flash(flashProportion * (float) period);
         };
+
         addAndMakeVisible(tempoAnalyserFlash);
         addAndMakeVisible(tempoSynthesizer);
         addAndMakeVisible(tempoSynthesizerFlash);

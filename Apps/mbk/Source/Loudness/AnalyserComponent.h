@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../AvvaOSCSender.h"
 #include "JuceHeader.h"
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
@@ -16,8 +15,8 @@ namespace Loudness
 class AnalyserComponent : public juce::Component
 {
 public:
-    explicit AnalyserComponent(AudioApp::AvvaOSCSender& sender)
-        : sender(sender)
+    explicit AnalyserComponent(std::function<bool(float)> onLoudnessCallback)
+        : onLoudness(std::move(onLoudnessCallback))
     {
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(loudnessAnalyserSettings);
@@ -46,25 +45,18 @@ public:
     //==============================================================================
     void paint(Graphics& g) override { g.fillAll(Colours::black); }
 
-    float _lastLevelSent = -10.f; // set to strange value to start off with
-
-    // ===============================
-    // OSC functions
-    AudioApp::AvvaOSCSender& sender;
+private:
+    std::function<bool(float)> onLoudness;
+    float lastLevelSent = -10.f; // set to strange value to start off with
 
     Loudness::Analyser loudnessAnalyser {
         [this](float level)
         {
-            // always show level in history component
             valueHistoryComp.addLevel(level);
-            // TODO(glynternet): Is it worth adding some delta checking here for is loudness is within a certain value of
-            //  last then not sending it.
-            if (level != _lastLevelSent)
+            if (level != lastLevelSent)
             {
-                // Only update _lastLevelSent if success sending.
-                // Error logging should be handled by the AvvaOSCSender.
-                if (sender.sendLoudness(level))
-                    _lastLevelSent = level;
+                if (onLoudness && onLoudness(level))
+                    lastLevelSent = level;
             }
         },
         initialProcessRateHz,
