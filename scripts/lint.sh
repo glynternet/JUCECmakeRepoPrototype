@@ -75,7 +75,7 @@ fi
 
 # Find source files if none specified
 if [[ ${#FILES[@]} -eq 0 ]]; then
-    mapfile -t FILES < <(find Apps Modules -type f \( -name "*.cpp" -o -name "*.h" \) 2>/dev/null)
+    mapfile -t FILES < <(find Apps Modules -type f \( -name "*.cpp" -o -name "*.h" \) -not -path "*/Libs/*" -not -name "*Test.cpp" 2>/dev/null)
 fi
 
 if [[ ${#FILES[@]} -eq 0 ]]; then
