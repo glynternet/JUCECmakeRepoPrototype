@@ -11,8 +11,44 @@
 #include "../OSCComponent.h"
 
 namespace Loudness {
+
+/**
+ * @brief UI component that wraps the Loudness::Analyser and provides visualization.
+ *
+ * This component serves as the integration point between the audio system and the
+ * loudness processing chain. It:
+ * - Receives audio samples from MainComponent::getNextAudioBlock()
+ * - Feeds samples to the Analyser for processing
+ * - Displays real-time loudness visualization via ValueHistoryComponent
+ * - Provides UI controls for adjusting processing parameters
+ * - Invokes a callback to send loudness values externally (e.g., via OSC)
+ *
+ * ## Integration
+ *
+ * ```
+ * MainComponent::getNextAudioBlock()
+ *       ↓
+ * AnalyserComponent::pushNextSampleIntoFifo()
+ *       ↓
+ * Loudness::Analyser (processing chain)
+ *       ↓
+ * ├── ValueHistoryComponent (visualization)
+ * └── onLoudness callback → OSC output
+ * ```
+ *
+ * ## Default Processing Parameters
+ *
+ * - Process Rate: 50 Hz (FFT calculations per second)
+ * - Frequency Band: 2-13% of Nyquist (focused on lower frequencies)
+ * - Moving Average Window: 2 samples
+ * - Decay Coefficient: 0.8
+ */
 class AnalyserComponent : public juce::Component {
 public:
+    /**
+     * @param onLoudnessCallback Called with each new loudness value [0.0-1.0].
+     *                           Return true if the value was successfully sent.
+     */
     explicit AnalyserComponent(std::function<bool(float)> onLoudnessCallback)
         : onLoudness(std::move(onLoudnessCallback)) {
         addAndMakeVisible(&valueHistoryComp);
