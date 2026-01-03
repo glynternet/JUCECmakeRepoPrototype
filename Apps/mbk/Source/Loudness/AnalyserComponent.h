@@ -38,10 +38,11 @@ namespace Loudness {
  *
  * ## Default Processing Parameters
  *
- * - Process Rate: 50 Hz (FFT calculations per second)
  * - Frequency Band: 2-13% of Nyquist (focused on lower frequencies)
  * - Moving Average Window: 2 samples
  * - Decay Coefficient: 0.8
+ *
+ * FFT processing is event-driven (triggered when FIFO buffer fills) for minimum latency.
  */
 class AnalyserComponent : public juce::Component {
 public:
@@ -80,20 +81,35 @@ private:
     std::function<bool(float)> onLoudness;
     float lastLevelSent = -10.f; // set to strange value to start off with
 
-    Loudness::Analyser loudnessAnalyser {[this](float level) {
-                                             valueHistoryComp.addLevel(level);
-                                             if (level != lastLevelSent) {
-                                                 if (onLoudness && onLoudness(level))
-                                                     lastLevelSent = level;
-                                             }
-                                         },
-                                         initialProcessRateHz,
-                                         initialProcessingBandLow,
-                                         initialProcessingBandHigh,
-                                         movingAverageInitialWindow,
-                                         initialDecayExponent};
+    Loudness::Analyser loudnessAnalyser {
+        [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](float level) {
+            // This callback is invoked from the processing thread (not the message thread).
+            // JUCE UI components must only be accessed from the message thread.
+            //
+            // MessageManager::callAsync() posts a lambda to the message thread's event queue.
+            // The lambda will be executed on the next message loop iteration (~1ms latency).
+            // This is similar to JavaScript's setTimeout(fn, 0) or Qt's QMetaObject::invokeMethod.
+            //
+            // We capture 'level' by value because it's a simple float - safe to copy.
+            // We use SafePointer instead of raw 'this' to handle the case where the component
+            // is destroyed while a lambda is still queued. SafePointer becomes null when the
+            // component is deleted, preventing use-after-free crashes.
+            juce::MessageManager::callAsync([safeThis, level]() {
+                if (safeThis == nullptr) {
+                    return; // Component was destroyed, bail out
+                }
+                safeThis->valueHistoryComp.addLevel(level);
+                if (level != safeThis->lastLevelSent) {
+                    if (safeThis->onLoudness && safeThis->onLoudness(level))
+                        safeThis->lastLevelSent = level;
+                }
+            });
+        },
+        initialProcessingBandLow,
+        initialProcessingBandHigh,
+        movingAverageInitialWindow,
+        initialDecayExponent};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
-                                               initialProcessRateHz,
                                                initialProcessingBandLow,
                                                initialProcessingBandHigh,
                                                movingAverageInitialWindow,
@@ -101,7 +117,6 @@ private:
 
     ValueHistoryComponent valueHistoryComp;
 
-    static constexpr float initialProcessRateHz = 50.f;
     static constexpr float initialDecayExponent = 0.8f;
     static constexpr int movingAverageInitialWindow = 2;
     static constexpr double initialProcessingBandLow = 0.02;

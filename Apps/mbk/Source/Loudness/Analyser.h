@@ -1,6 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_dsp/juce_dsp.h>
 #include "ValueShaper.h"
@@ -34,8 +37,8 @@ namespace Loudness {
  * ## Thread Model
  *
  * - **Audio thread**: Calls pushNextSampleIntoFifo() at sample rate
- * - **Timer thread**: Processes FFT at configurable rate (default 50Hz)
- * - Thread-safe communication via atomic flag (single producer/single consumer)
+ * - **Processing thread**: Blocks on condition variable, wakes when FIFO fills
+ * - Thread-safe communication via mutex + condition_variable
  *
  * ## Processing Stages
  *
@@ -49,29 +52,33 @@ namespace Loudness {
  *
  * @see ValueShaper, MovingAverage, TailOff for individual processing stage details
  */
-class Analyser : juce::Timer {
+class Analyser {
 public:
     /**
      * @brief Construct a new Analyser.
      *
      * @param onLoudnessResult Callback invoked with loudness value [0.0-1.0] each
      *                         processing cycle
-     * @param processRate      FFT processing rate in Hz (default 50, range 5-70)
      * @param processingBandIndexLow  Lower frequency bound as proportion of Nyquist [0-1]
      * @param processingBandIndexHigh Upper frequency bound as proportion of Nyquist [0-1]
      * @param movingAverageInitialWindow Smoothing window size (1-7, larger = smoother)
      * @param initialDecayExponent Decay coefficient [0-0.9999] (higher = slower decay)
      */
     explicit Analyser(std::function<void(float)> onLoudnessResult,
-                      float processRate,
                       float processingBandIndexLow,
                       float processingBandIndexHigh,
                       float movingAverageInitialWindow,
                       float initialDecayExponent);
-    void timerCallback() override;
 
-    /** @brief Change the FFT processing rate. @param rate New rate in Hz (5-70) */
-    void setProcessRateHz(int rate);
+    ~Analyser();
+
+    // Non-copyable and non-movable: the class manages a thread and mutex which
+    // cannot be safely copied or moved. Attempting to copy/move would either
+    // require complex synchronization or leave the object in an invalid state.
+    Analyser(const Analyser&) = delete;
+    Analyser& operator=(const Analyser&) = delete;
+    Analyser(Analyser&&) = delete;
+    Analyser& operator=(Analyser&&) = delete;
 
     /**
      * @brief Feed an audio sample into the analyser. Called from audio thread.
@@ -104,8 +111,8 @@ public:
     TailOff decayLength;
 
 private:
-    /** Process FFT and invoke callback when data is ready */
-    void fftTimerCallback();
+    /** Main loop for the processing thread - blocks until data ready */
+    void processingThreadMain();
 
     /** Calculate loudness from FFT data through the full processing chain */
     float calculateLevel();
@@ -115,11 +122,37 @@ private:
 
     enum { fftOrder = 8, fftSize = 1 << fftOrder };
 
-    // Atomic flag for thread-safe signaling between audio thread (pushNextSampleIntoFifo)
-    // and timer thread (fftTimerCallback)
-    std::atomic<bool> nextFFTBlockReady {false};
+    // Threading infrastructure for event-driven processing
+    //
+    // std::thread: Manages a separate OS thread that runs processingThreadMain().
+    // Unlike timers, this thread can block efficiently waiting for work.
+    std::thread processingThread;
+
+    // std::mutex: A mutual exclusion lock that ensures only one thread can access
+    // protected data (fftData, fftDataPending) at a time. Required for thread safety
+    // when multiple threads read/write shared state.
+    std::mutex mutex;
+
+    // std::condition_variable: Allows the processing thread to sleep efficiently
+    // until signaled by the audio thread. Unlike polling (checking a flag in a loop),
+    // this blocks the thread with zero CPU usage until notify_one() is called.
+    // Must be used with a mutex to avoid race conditions.
+    std::condition_variable dataReady;
+
+    // std::atomic<bool>: A thread-safe boolean that can be read/written from any
+    // thread without a mutex. Used for the shutdown flag because it's simpler than
+    // acquiring a lock just to check if we should exit.
+    std::atomic<bool> shouldStop {false};
+
+    // Protected by mutex - must hold lock before reading/writing.
+    // Signals that fftData contains new samples ready for processing.
+    bool fftDataPending {false};
+
+    // FFT processing members
     dsp::WindowingFunction<float> window {fftSize, dsp::WindowingFunction<float>::hann};
     dsp::FFT forwardFFT {fftOrder};
+
+    // Double-buffer: fifo for accumulation, fftData for processing
     float fftData[2 * fftSize] = {};
     float fifo[fftSize] = {};
     int fifoIndex = 0;

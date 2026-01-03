@@ -7,7 +7,6 @@ namespace Loudness {
 class AnalyserSettings : public juce::Component {
 public:
     explicit AnalyserSettings(Loudness::Analyser& loudnessAnalyser,
-                              const float initialProcessRateHz,
                               const double initialProcessingBandLow,
                               const double initialProcessingBandHigh,
                               const int movingAverageInitialWindow,
@@ -56,21 +55,11 @@ public:
                       1.f,
                       [&loudnessAnalyser](const double value) {
                           loudnessAnalyser.movingAverage.setPeriod((int) value);
-                      })
-        ,
-
-        processRateSlider("Process rate",
-                          5.f,
-                          70.f,
-                          initialProcessRateHz,
-                          [&loudnessAnalyser](const double processRateHz) {
-                              loudnessAnalyser.setProcessRateHz((int) processRateHz);
-                          }) {
+                      }) {
         addAndMakeVisible(rangeIn);
         addAndMakeVisible(frequencyProcessingBand);
         addAndMakeVisible(decayLength);
         addAndMakeVisible(movingAverage);
-        addAndMakeVisible(processRateSlider);
     }
 
 private:
@@ -79,17 +68,15 @@ private:
         if (bounds.getHeight() > 200) {
             bounds = bounds.removeFromTop(200);
         }
-        frequencyProcessingBand.setBounds(bounds.removeFromTop(bounds.getHeight() / 5));
-        rangeIn.setBounds(bounds.removeFromTop(bounds.getHeight() / 4));
-        decayLength.setBounds(bounds.removeFromTop(bounds.getHeight() / 3));
-        movingAverage.setBounds(bounds.removeFromTop(bounds.getHeight() / 2));
-        processRateSlider.setBounds(bounds);
+        frequencyProcessingBand.setBounds(bounds.removeFromTop(bounds.getHeight() / 4));
+        rangeIn.setBounds(bounds.removeFromTop(bounds.getHeight() / 3));
+        decayLength.setBounds(bounds.removeFromTop(bounds.getHeight() / 2));
+        movingAverage.setBounds(bounds);
     }
 
     Components::LabelledSlider frequencyProcessingBand;
     Components::LabelledSlider rangeIn;
     Components::LabelledSlider decayLength;
     Components::LabelledSlider movingAverage;
-    Components::LabelledSlider processRateSlider;
 };
 } // namespace Loudness

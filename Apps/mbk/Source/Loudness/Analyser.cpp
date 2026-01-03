@@ -8,7 +8,6 @@
 
 namespace Loudness {
 Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
-                   float processRate,
                    float processingBandIndexLow,
                    float processingBandIndexHigh,
                    float movingAverageInitialWindow,
@@ -18,32 +17,71 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
     , processingBandHigh(processingBandIndexHigh)
     , movingAverage(static_cast<unsigned int>(movingAverageInitialWindow))
     , decayLength(initialDecayExponent) {
-    // TODO(glynternet): can we remove this timer and just process everytime we receive the thing?
-    //  Then we can just update the visual counterpart with a timer?
-    juce::Timer::startTimerHz(static_cast<int>(processRate));
+    processingThread = std::thread(&Analyser::processingThreadMain, this);
 }
 
-void Analyser::timerCallback() {
-    fftTimerCallback();
-}
+Analyser::~Analyser() {
+    // Clean shutdown sequence for the processing thread.
+    // This pattern ensures no deadlocks or resource leaks.
 
-void Analyser::setProcessRateHz(int rate) {
-    startTimerHz(rate);
-}
-
-void Analyser::fftTimerCallback() {
-    // nextFFTBlockReady is atomic - safe to read from timer thread while audio thread may write
-    if (!nextFFTBlockReady) {
-        return;
+    {
+        // std::lock_guard: RAII wrapper that acquires the mutex on construction
+        // and releases it when the scope ends (even if an exception is thrown).
+        // We need the lock because we're modifying shouldStop while the processing
+        // thread might be checking it inside the condition_variable wait.
+        std::lock_guard<std::mutex> lock(mutex);
+        shouldStop = true;
     }
-    window.multiplyWithWindowingTable(fftData, fftSize);
-    forwardFFT.performFrequencyOnlyForwardTransform(fftData);
-    auto level = calculateLevel();
-    if (onLoudnessResult != nullptr) {
-        onLoudnessResult(level);
-    }
+    // Lock released here - processing thread can now acquire it
 
-    nextFFTBlockReady = false;
+    // Wake up the processing thread so it can see shouldStop==true and exit.
+    // Without this, the thread would sleep forever waiting for data.
+    dataReady.notify_one();
+
+    // Wait for the processing thread to finish before destroying the object.
+    // joinable() returns false if the thread was never started or already joined.
+    // join() blocks until the thread function returns.
+    if (processingThread.joinable()) {
+        processingThread.join();
+    }
+}
+
+void Analyser::processingThreadMain() {
+    // This function runs on a dedicated thread, separate from the audio thread.
+    // It waits for data, processes FFT, and invokes the callback.
+
+    while (true) {
+        // std::unique_lock: Like lock_guard but can be manually unlocked.
+        // Required for condition_variable::wait() which needs to unlock/relock.
+        std::unique_lock<std::mutex> lock(mutex);
+
+        // condition_variable::wait() does three things atomically:
+        // 1. Checks the predicate (lambda). If true, continues immediately.
+        // 2. If false, releases the lock and puts this thread to sleep.
+        // 3. When notify_one() is called, wakes up, re-acquires lock, rechecks predicate.
+        // The predicate prevents "spurious wakeups" (OS may wake thread randomly).
+        dataReady.wait(lock, [this] { return fftDataPending || shouldStop; });
+
+        if (shouldStop) {
+            return;
+        }
+
+        // Clear the pending flag while we still hold the lock
+        fftDataPending = false;
+
+        // Release lock before heavy processing - allows audio thread to continue
+        // filling the FIFO without being blocked by FFT computation.
+        lock.unlock();
+
+        // FFT processing (no lock held - thread-safe because fftData was copied)
+        window.multiplyWithWindowingTable(fftData, fftSize);
+        forwardFFT.performFrequencyOnlyForwardTransform(fftData);
+        auto level = calculateLevel();
+
+        if (onLoudnessResult != nullptr) {
+            onLoudnessResult(level);
+        }
+    }
 }
 
 // calculateLevel from the FFT data
@@ -64,21 +102,36 @@ float Analyser::calculateLevel() {
 }
 
 void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
-    // if the fifo contains enough data, set a flag to say
-    // that the next frame should now be rendered.
-    if (fifoIndex == fftSize) {
-        // TODO(glynternet): log here if we the block hasn't been cleared since last ready.
-        // TODO(glynternet): if is already ready, maybe we still want to overwrite?
-        if (!nextFFTBlockReady) {
-            // TODO(glynternet): do we need to zeromem here?
-            zeromem(fftData, sizeof(fftData));
-            // TODO(glynternet): is fftData always the same size as fifo and does the memcpy work as expected?
-            memcpy(fftData, fifo, sizeof(fftData));
-            nextFFTBlockReady = true;
-        }
-        fifoIndex = 0;
-    }
+    // Called from the audio thread at sample rate (e.g., 44,100 Hz).
+    // Must be fast and never block for long - audio glitches if we're slow.
+    //
+    // Note: This function is marked noexcept despite using std::lock_guard.
+    // std::mutex::lock() can theoretically throw std::system_error if the mutex
+    // is corrupted or a system limit is reached, but in practice this doesn't
+    // happen on modern systems with properly initialized mutexes. If it did,
+    // std::terminate would be called, which is the correct behavior for an
+    // unrecoverable error in audio processing.
+
     fifo[fifoIndex++] = sample;
+
+    if (fifoIndex == fftSize) {
+        fifoIndex = 0;
+
+        // Critical section: copy data to fftData buffer for processing thread.
+        // The lock is held very briefly (just for memcpy ~1KB).
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            zeromem(fftData, sizeof(fftData));
+            memcpy(fftData, fifo, fftSize * sizeof(float));
+            fftDataPending = true;
+        }
+
+        // notify_one(): Wakes exactly one thread waiting on this condition_variable.
+        // If the processing thread is sleeping in wait(), it will wake up immediately.
+        // If it's already processing, this is a no-op (the flag is set, so next
+        // time it checks the predicate it will see fftDataPending==true).
+        dataReady.notify_one();
+    }
 }
 
 // calculateLoudness will calculate the loudness for a given range of gain values of an FFT calculation

@@ -23,7 +23,7 @@ The loudness processing chain analyzes incoming audio in real-time and produces 
 │        ▼                                                                │
 │   ┌─────────────────────────────────────────┐                          │
 │   │          FFT Transform                   │   Hann window           │
-│   │   256-point frequency-only FFT          │   @ 50 Hz (default)     │
+│   │   256-point frequency-only FFT          │   (event-driven)        │
 │   └─────────────────────────────────────────┘                          │
 │        │                                                                │
 │        ▼                                                                │
@@ -83,7 +83,6 @@ The loudness analyser provides several adjustable parameters via sliders:
 | **Range In** | -0.1 - 1.1 (dual) | 0.1 - 0.8 | Sensitivity calibration |
 | **Decay Length** | 0.0 - 0.9999 | 0.8 | How quickly loudness drops |
 | **Window Size** | 1 - 7 | 2 | Smoothing amount |
-| **Process Rate** | 5 - 70 Hz | 50 | Analysis frequency |
 
 ### Parameter Guide
 
@@ -129,14 +128,6 @@ Number of samples to average for smoothing.
 - **2** (default): Minimal smoothing
 - **5-7**: Heavy smoothing (very smooth, slower response)
 
-#### Process Rate
-
-How many times per second the FFT analysis runs.
-
-- **Lower (5-20 Hz)**: Less CPU usage, choppier output
-- **Default (50 Hz)**: Good balance
-- **Higher (60-70 Hz)**: Smoother, more CPU usage
-
 ### OSC Output
 
 Loudness values are sent via OSC to the configured IP address:
@@ -158,12 +149,10 @@ The float value ranges from 0.0 (silent) to 1.0 (maximum loudness after processi
 #### Audio Visualization
 - Lower decay (0.3-0.5) for more reactive visuals
 - Smaller window size (1-2) for responsiveness
-- Higher process rate (60-70 Hz) for smooth animation
 
 #### Ambient Monitoring
 - Higher decay (0.9+) for stable readings
 - Larger window size (5-7) for very smooth output
-- Lower process rate to reduce CPU
 
 ## Code Architecture
 
@@ -183,7 +172,7 @@ Apps/mbk/Source/Loudness/
 
 ### Thread Model
 
-The processing uses two threads with atomic synchronization:
+The processing uses three threads with condition variable synchronization for minimum latency:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -199,29 +188,59 @@ The processing uses two threads with atomic synchronization:
 │  Samples accumulate in 256-sample FIFO buffer                    │
 │       │                                                          │
 │       ▼                                                          │
-│  When full: Copy to FFT buffer, set atomic flag                  │
-│                           │                                       │
-│                           ▼                                       │
-│               nextFFTBlockReady = true  ─────────────────┐       │
+│  When full: Copy to FFT buffer under lock                        │
+│             Signal condition variable  ──────────────────┐       │
 │                                                           │       │
 └───────────────────────────────────────────────────────────│───────┘
                                                             │
                     ┌───────────────────────────────────────┘
                     │
 ┌───────────────────▼──────────────────────────────────────────────┐
-│                         TIMER THREAD                              │
-│  (runs at process rate, default 50 Hz)                           │
+│                      PROCESSING THREAD                            │
+│  (wakes immediately when data ready)                             │
 │                                                                   │
-│  if (nextFFTBlockReady) {                                        │
-│      Apply Hann window                                           │
-│      Perform FFT                                                 │
-│      Calculate level through processing chain                    │
-│      Invoke onLoudnessResult callback                            │
-│      nextFFTBlockReady = false                                   │
-│  }                                                                │
+│  Blocks on condition variable until signaled                     │
+│       │                                                          │
+│       ▼                                                          │
+│  Apply Hann window                                               │
+│  Perform FFT                                                     │
+│  Calculate level through processing chain                        │
+│       │                                                          │
+│       ▼                                                          │
+│  Post callback via callAsync()  ─────────────────────────┐       │
+│                                                           │       │
+└───────────────────────────────────────────────────────────│───────┘
+                                                            │
+                    ┌───────────────────────────────────────┘
+                    │
+┌───────────────────▼──────────────────────────────────────────────┐
+│                        MESSAGE THREAD                             │
+│  (JUCE main thread, handles UI updates)                          │
+│                                                                   │
+│  Update visualization (ValueHistoryComponent)                    │
+│  Send OSC message if value changed                               │
 │                                                                   │
 └──────────────────────────────────────────────────────────────────┘
 ```
+
+This event-driven design provides minimum latency (~7ms) compared to the previous
+timer-based polling approach.
+
+#### Latency Breakdown
+
+The ~7ms latency consists of:
+
+| Component | Duration | Explanation |
+|-----------|----------|-------------|
+| FIFO buffer fill | ~5.8ms | 256 samples ÷ 44,100 Hz sample rate |
+| Condition variable wake | <1ms | Thread scheduler latency |
+| FFT processing | <0.5ms | 256-point FFT is very fast |
+| callAsync dispatch | <1ms | Message queue posting |
+| **Total** | **~7ms** | From first sample to OSC send |
+
+The FIFO buffer size (256 samples) is the dominant factor. Smaller buffers would
+reduce latency but decrease frequency resolution. The current size provides a good
+balance for audio-visual applications.
 
 ### Processing Chain Implementation
 
@@ -229,7 +248,7 @@ Each stage is encapsulated in its own class:
 
 1. **Analyser** (`Analyser.h`): Orchestrates the entire pipeline
    - Manages FIFO buffer and FFT processing
-   - Coordinates between audio and timer threads
+   - Runs dedicated processing thread, wakes via condition variable
    - Calls each processing stage in sequence
 
 2. **Loudness::Calculate** (`Loudness.h`): Raw level calculation
