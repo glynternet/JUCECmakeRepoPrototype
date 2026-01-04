@@ -118,6 +118,14 @@ void LabelledSlider::updateValueLabel() {
     }
 }
 
+void LabelledSlider::setMinValue(double value, NotificationType notification) {
+    _slider.setMinValue(value, notification);
+}
+
+void LabelledSlider::setMaxValue(double value, NotificationType notification) {
+    _slider.setMaxValue(value, notification);
+}
+
 void LabelledSlider::resized() {
     const int labelWidth(90);
     _slider.setBounds(labelWidth, 0, getWidth() - labelWidth, 20);

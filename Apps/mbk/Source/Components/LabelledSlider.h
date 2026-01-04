@@ -56,6 +56,12 @@ public:
     /** Update the value label text (call when external state like sample rate changes) */
     void updateValueLabel();
 
+    /** Set the minimum value of a two-value slider without triggering callback */
+    void setMinValue(double value, NotificationType notification = dontSendNotification);
+
+    /** Set the maximum value of a two-value slider without triggering callback */
+    void setMaxValue(double value, NotificationType notification = dontSendNotification);
+
     std::function<void()> onValueChange;
 
 private:

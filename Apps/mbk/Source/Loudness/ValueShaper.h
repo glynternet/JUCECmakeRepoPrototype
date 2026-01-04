@@ -3,27 +3,29 @@
 namespace Loudness {
 
 /**
- * @brief Maps input values from one range to another with clamping.
+ * @brief Maps input values from one range to another.
  *
  * Used in the loudness processing chain to map raw loudness values (which may
- * vary based on audio content) to a normalized 0-1 output range. This allows
+ * vary based on audio content) to a configurable output range. This allows
  * calibration for different audio sources with varying dynamic ranges.
+ *
+ * Note: This class performs linear mapping only. Final clamping to [0, 1]
+ * happens at the end of the processing chain in Analyser::calculateLevel().
  *
  * ## Usage in Processing Chain
  *
  * The ValueShaper sits after raw loudness calculation and before smoothing:
  * ```
- * Raw Loudness [~0.0-1.0+] → ValueShaper → Normalized [0.0-1.0]
+ * Raw Loudness [inMin, inMax] → ValueShaper → Output [outMin, outMax]
  * ```
  *
- * ## Sensitivity Control
+ * ## Range Control
  *
- * - **inMin**: Values at or below this become 0.0 (noise floor)
- * - **inMax**: Values at or above this become 1.0 (peak sensitivity)
- * - Narrower range = more sensitive to small changes
- * - Wider range = less sensitive, captures larger dynamic range
+ * - **inMin/inMax**: Observed input range (learned from content or set manually)
+ * - **outMin/outMax**: Target output range (user-configurable)
  *
- * Default range [0.1, 0.8] maps quiet passages near 0 and loud passages near 1.
+ * With auto-ranging enabled, the input range is learned from actual audio
+ * content while the output range is set by the user.
  */
 class ValueShaper {
 public:
@@ -46,14 +48,19 @@ public:
     /** Set the input maximum (values above this map to outMax) */
     void setInMax(float value) { _inMax = value; }
 
+    /** Set the output minimum */
+    void setOutMin(float value) { _outMin = value; }
+
+    /** Set the output maximum */
+    void setOutMax(float value) { _outMax = value; }
+
     /**
-     * @brief Map input value to output range with clamping to [0, 1].
+     * @brief Map input value to output range (linear interpolation).
      * @param value Input value to shape
-     * @return Mapped and clamped output value
+     * @return Mapped output value (may exceed [outMin, outMax] if input is outside [inMin, inMax])
      */
     [[nodiscard]] float shape(float value) const {
-        // TODO: allow configuration of this from the GUI in some advanced settings
-        return jlimit(0.0f, 1.0f, jmap(value, _inMin, _inMax, _outMin, _outMax));
+        return jmap(value, _inMin, _inMax, _outMin, _outMax);
     }
 
 private:

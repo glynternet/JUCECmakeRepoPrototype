@@ -33,16 +33,40 @@ public:
               [this](int low, int high) { return formatFrequencyRange(low, high); })
         ,
 
+        // Observed input range (learned from audio content, editable)
         rangeIn("Range In",
-                -0.1f,
-                1.1f,
+                0.0f,
+                1.0f,
                 0.1f,
                 0.8f,
-                0.3f,
+                0.5f,
                 [&loudnessAnalyser](const double min, const double max) {
-                    loudnessAnalyser.valueShaper.setInMin((float) min);
-                    loudnessAnalyser.valueShaper.setInMax((float) max);
+                    loudnessAnalyser.rangeAdapter.setObservedRange((float) min,
+                                                                   (float) max);
                 })
+        ,
+
+        outputRange("Output Range",
+                    0.0f,
+                    1.0f,
+                    0.0f,
+                    1.0f,
+                    0.5f,
+                    [&loudnessAnalyser](const double min, const double max) {
+                        loudnessAnalyser.rangeAdapter.setTargetOutRange((float) min,
+                                                                        (float) max);
+                    })
+        ,
+
+        adaptationSpeed("Range Adapt Rate",
+                        0.0001f,
+                        0.05f,
+                        0.005f,
+                        0.01f,
+                        [&loudnessAnalyser](const double value) {
+                            loudnessAnalyser.rangeAdapter.setAdaptationRate(
+                                (float) value);
+                        })
         ,
 
         decayLength("Decay Length",
@@ -66,15 +90,36 @@ public:
                           loudnessAnalyser.movingAverage.setPeriod((int) value);
                       }) {
         addAndMakeVisible(rangeIn);
+        addAndMakeVisible(outputRange);
         addAndMakeVisible(frequencyProcessingBand);
         addAndMakeVisible(decayLength);
         addAndMakeVisible(movingAverage);
+
+        // Auto-range controls
+        autoRangeEnabled.setToggleState(true, dontSendNotification);
+        autoRangeEnabled.onClick = [&loudnessAnalyser, this]() {
+            loudnessAnalyser.rangeAdapter.setEnabled(autoRangeEnabled.getToggleState());
+        };
+        addAndMakeVisible(autoRangeEnabled);
+
+        rangeLocked.onClick = [&loudnessAnalyser, this]() {
+            loudnessAnalyser.rangeAdapter.setLocked(rangeLocked.getToggleState());
+        };
+        addAndMakeVisible(rangeLocked);
+
+        addAndMakeVisible(adaptationSpeed);
     }
 
     /** Update sample rate and refresh frequency display */
     void setSampleRate(double newSampleRate) {
         sampleRate = newSampleRate;
         frequencyProcessingBand.updateValueLabel();
+    }
+
+    /** Update observed input range display (for visual feedback) */
+    void updateObservedRangeDisplay(float min, float max) {
+        rangeIn.setMinValue(min);
+        rangeIn.setMaxValue(max);
     }
 
 private:
@@ -103,13 +148,29 @@ private:
 
     void resized() override {
         auto bounds = getLocalBounds().reduced(10);
-        if (bounds.getHeight() > 220) {
-            bounds = bounds.removeFromTop(220);
+        if (bounds.getHeight() > 330) {
+            bounds = bounds.removeFromTop(330);
         }
-        // Extra height for frequency band slider (has value label underneath)
+
+        // Frequency band slider (has value label underneath)
         frequencyProcessingBand.setBounds(bounds.removeFromTop(40));
+
+        // Observed input range slider (auto-updated from audio content)
+        rangeIn.setBounds(bounds.removeFromTop(30));
+
+        // Output range slider (user-controlled target output)
+        outputRange.setBounds(bounds.removeFromTop(30));
+
+        // Toggle buttons on their own row
+        auto toggleRow = bounds.removeFromTop(25);
+        toggleRow.removeFromLeft(90); // Align with sliders (skip label area)
+        autoRangeEnabled.setBounds(toggleRow.removeFromLeft(60));
+        rangeLocked.setBounds(toggleRow.removeFromLeft(60));
+
+        // Adaptation speed slider
+        adaptationSpeed.setBounds(bounds.removeFromTop(30));
+
         auto remaining = bounds;
-        rangeIn.setBounds(remaining.removeFromTop(remaining.getHeight() / 3));
         decayLength.setBounds(remaining.removeFromTop(remaining.getHeight() / 2));
         movingAverage.setBounds(remaining);
     }
@@ -117,6 +178,10 @@ private:
     double sampleRate;
     Components::LabelledSlider frequencyProcessingBand;
     Components::LabelledSlider rangeIn;
+    Components::LabelledSlider outputRange;
+    Components::LabelledSlider adaptationSpeed;
+    juce::ToggleButton autoRangeEnabled {"Auto"};
+    juce::ToggleButton rangeLocked {"Lock"};
     Components::LabelledSlider decayLength;
     Components::LabelledSlider movingAverage;
 };

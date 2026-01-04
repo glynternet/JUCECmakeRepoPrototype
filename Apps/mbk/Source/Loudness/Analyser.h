@@ -9,6 +9,7 @@
 #include "ValueShaper.h"
 #include "MovingAverage.h"
 #include "TailOff.h"
+#include "RangeAdapter.h"
 
 namespace Loudness {
 
@@ -25,13 +26,15 @@ namespace Loudness {
  *                                          ↓
  *                               Loudness Calculation
  *                                          ↓
+ *                               RangeAdapter (learns input range)
+ *                                          ↓
  *                               ValueShaper (range mapping)
  *                                          ↓
  *                               MovingAverage (smoothing)
  *                                          ↓
  *                               TailOff (decay effect)
  *                                          ↓
- *                               Output [0.0 - 1.0]
+ *                               Final Clamp to [0.0 - 1.0]
  * ```
  *
  * ## Thread Model
@@ -46,11 +49,13 @@ namespace Loudness {
  * 2. **FFT Transform**: Hann-windowed frequency-only forward FFT (256 samples)
  * 3. **Band Selection**: Extract frequency range (configurable, default 2-13% of Nyquist)
  * 4. **Loudness Calc**: Average magnitude across selected frequency bins
- * 5. **Value Shaping**: Remap raw loudness to output range (default [0.1,0.8] → [0,1])
- * 6. **Smoothing**: Moving average filter (configurable window, default 2 samples)
- * 7. **Decay**: TailOff prevents abrupt drops (configurable coefficient, default 0.8)
+ * 5. **Range Adaptation**: RangeAdapter learns input range from content
+ * 6. **Value Shaping**: Remap [observed input range] → [target output range]
+ * 7. **Smoothing**: Moving average filter (configurable window, default 2 samples)
+ * 8. **Decay**: TailOff prevents abrupt drops (configurable coefficient, default 0.8)
+ * 9. **Final Clamp**: Output clamped to [0.0, 1.0]
  *
- * @see ValueShaper, MovingAverage, TailOff for individual processing stage details
+ * @see RangeAdapter, ValueShaper, MovingAverage, TailOff for individual stage details
  */
 class Analyser {
 public:
@@ -103,6 +108,9 @@ public:
 
     /** Maps raw loudness to output range. Adjust inMin/inMax for sensitivity. */
     ValueShaper valueShaper {0.0F, 1.0F, 0.0F, 1.0F};
+
+    /** Automatic range adaptation. Learns input range and maps to target output range. */
+    RangeAdapter rangeAdapter {0.1F, 0.8F, 0.0F, 1.0F, 0.005F};
 
     /** Smoothing filter. Larger window = smoother but less responsive output. */
     MovingAverage movingAverage;

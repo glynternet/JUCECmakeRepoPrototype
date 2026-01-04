@@ -104,6 +104,14 @@ private:
                     return; // Component was destroyed, bail out
                 }
                 safeThis->valueHistoryComp.addLevel(level);
+
+                // Optionally display observed input range (for debugging/feedback)
+                if (safeThis->loudnessAnalyser.rangeAdapter.isEnabled()) {
+                    safeThis->loudnessAnalyserSettings.updateObservedRangeDisplay(
+                        safeThis->loudnessAnalyser.rangeAdapter.getObservedMin(),
+                        safeThis->loudnessAnalyser.rangeAdapter.getObservedMax());
+                }
+
                 if (level != safeThis->lastLevelSent) {
                     if (safeThis->onLoudness && safeThis->onLoudness(level))
                         safeThis->lastLevelSent = level;

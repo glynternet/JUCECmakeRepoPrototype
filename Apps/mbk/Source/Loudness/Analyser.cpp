@@ -95,10 +95,21 @@ float Analyser::calculateLevel() {
 
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
+    // Feed raw level to adapter and sync ranges to ValueShaper
+    rangeAdapter.update(level);
+    if (rangeAdapter.isEnabled() && !rangeAdapter.isLocked()) {
+        // Set observed input range (learned from content)
+        valueShaper.setInMin(rangeAdapter.getObservedMin());
+        valueShaper.setInMax(rangeAdapter.getObservedMax());
+    }
+    // Always apply target output range (user-configurable)
+    valueShaper.setOutMin(rangeAdapter.getTargetOutMin());
+    valueShaper.setOutMax(rangeAdapter.getTargetOutMax());
+
     level = valueShaper.shape(level);
     movingAverage.add(level);
     level = decayLength.getValue(movingAverage.getAverage());
-    return level < 0.0001F ? 0.0F : level;
+    return level < 0.0001F ? 0.0F : jlimit(0.0F, 1.0F, level);
 }
 
 void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
