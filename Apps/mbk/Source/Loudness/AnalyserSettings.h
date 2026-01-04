@@ -4,24 +4,33 @@
 #include "Analyser.h"
 
 namespace Loudness {
+
 class AnalyserSettings : public juce::Component {
 public:
     explicit AnalyserSettings(Loudness::Analyser& loudnessAnalyser,
                               const double initialProcessingBandLow,
                               const double initialProcessingBandHigh,
                               const int movingAverageInitialWindow,
-                              const float initialDecayExponent)
-        : frequencyProcessingBand(
-            "Frequency Band",
-            0.0f,
-            1.0f,
-            initialProcessingBandLow,
-            initialProcessingBandHigh,
-            0.5f,
-            [&loudnessAnalyser](const double low, const double high) {
-                loudnessAnalyser.processingBandLow = low;
-                loudnessAnalyser.processingBandHigh = high;
-            })
+                              const float initialDecayExponent,
+                              double initialSampleRate = 48000.0)
+        : sampleRate(initialSampleRate)
+        // Bin range is [0, maxBins-1]. Proportions are converted to bins by truncation
+        // (e.g., 0.02 * 128 = 2.56 → bin 2). The inverse division by maxBins means
+        // bin 127 maps to 0.992 (not 1.0), which is correct since bin 127's upper
+        // edge is Nyquist, and we want proportions to represent bin indices, not edges.
+        , frequencyProcessingBand(
+              "Frequency Band",
+              0,
+              Analyser::maxBins - 1,
+              static_cast<int>(initialProcessingBandLow * Analyser::maxBins),
+              static_cast<int>(initialProcessingBandHigh * Analyser::maxBins),
+              [&loudnessAnalyser](int low, int high) {
+                  loudnessAnalyser.processingBandLow =
+                      static_cast<double>(low) / Analyser::maxBins;
+                  loudnessAnalyser.processingBandHigh =
+                      static_cast<double>(high) / Analyser::maxBins;
+              },
+              [this](int low, int high) { return formatFrequencyRange(low, high); })
         ,
 
         rangeIn("Range In",
@@ -62,18 +71,50 @@ public:
         addAndMakeVisible(movingAverage);
     }
 
-private:
-    void resized() override {
-        auto bounds = getLocalBounds().reduced(10);
-        if (bounds.getHeight() > 200) {
-            bounds = bounds.removeFromTop(200);
-        }
-        frequencyProcessingBand.setBounds(bounds.removeFromTop(bounds.getHeight() / 4));
-        rangeIn.setBounds(bounds.removeFromTop(bounds.getHeight() / 3));
-        decayLength.setBounds(bounds.removeFromTop(bounds.getHeight() / 2));
-        movingAverage.setBounds(bounds);
+    /** Update sample rate and refresh frequency display */
+    void setSampleRate(double newSampleRate) {
+        sampleRate = newSampleRate;
+        frequencyProcessingBand.updateValueLabel();
     }
 
+private:
+    /** Format a frequency value as Hz or kHz for display */
+    static String formatHz(double hz) {
+        if (hz >= 1000.0)
+            return String(hz / 1000.0, 1) + " kHz";
+        return String(static_cast<int>(hz)) + " Hz";
+    }
+
+    /** Convert bin index to its lower edge frequency in Hz */
+    double binLowerEdgeHz(int bin) const {
+        return static_cast<double>(bin) * sampleRate / Analyser::fftSize;
+    }
+
+    /** Convert bin index to its upper edge frequency in Hz */
+    double binUpperEdgeHz(int bin) const {
+        return static_cast<double>(bin + 1) * sampleRate / Analyser::fftSize;
+    }
+
+    /** Format frequency range for display (e.g., "375 Hz - 3.2 kHz") */
+    String formatFrequencyRange(int binLow, int binHigh) const {
+        return formatHz(binLowerEdgeHz(binLow)) + " - "
+               + formatHz(binUpperEdgeHz(binHigh));
+    }
+
+    void resized() override {
+        auto bounds = getLocalBounds().reduced(10);
+        if (bounds.getHeight() > 220) {
+            bounds = bounds.removeFromTop(220);
+        }
+        // Extra height for frequency band slider (has value label underneath)
+        frequencyProcessingBand.setBounds(bounds.removeFromTop(40));
+        auto remaining = bounds;
+        rangeIn.setBounds(remaining.removeFromTop(remaining.getHeight() / 3));
+        decayLength.setBounds(remaining.removeFromTop(remaining.getHeight() / 2));
+        movingAverage.setBounds(remaining);
+    }
+
+    double sampleRate;
     Components::LabelledSlider frequencyProcessingBand;
     Components::LabelledSlider rangeIn;
     Components::LabelledSlider decayLength;

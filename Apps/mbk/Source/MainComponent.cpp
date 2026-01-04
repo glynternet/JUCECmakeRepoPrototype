@@ -66,6 +66,7 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
     audioSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
     tempoAnalyser.setSampleRate(sampleRate);
     tempoAnalyser.updateSamplePerBlockExpected(samplesPerBlockExpected);
+    analyserComponent.setSampleRate(sampleRate);
 }
 
 void MainComponent::releaseResources() {

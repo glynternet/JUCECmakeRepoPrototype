@@ -13,7 +13,7 @@ public:
                    float rangeMin,
                    float rangeMax,
                    float value,
-                   const std::function<void(const double value)>& onValueChange);
+                   std::function<void(double value)> onValueChange);
 
     // LabelledSlider with skew factor set by setting the midpoint of the slider.
     LabelledSlider(const String& labelText,
@@ -21,7 +21,7 @@ public:
                    float rangeMax,
                    float value,
                    float midpoint,
-                   const std::function<void(const double value)>& onValueChange);
+                   std::function<void(double value)> onValueChange);
 
     // LabelledSlider with discrete possible values separated by rangeInterval.
     LabelledSlider(const String& labelText,
@@ -30,24 +30,39 @@ public:
                    float rangeInterval,
                    float value,
                    float midpoint,
-                   const std::function<void(const double value)>& onValueChange);
+                   std::function<void(double value)> onValueChange);
 
     // LabelledSlider with high and low values, and manually set skew factor.
-    LabelledSlider(
-        const String& labelText,
-        float rangeMin,
-        float rangeMax,
-        float valueLow,
-        float valueHigh,
-        float skewFactor,
-        const std::function<void(const double low, const double high)>& onValueChange);
+    LabelledSlider(const String& labelText,
+                   float rangeMin,
+                   float rangeMax,
+                   float valueLow,
+                   float valueHigh,
+                   float skewFactor,
+                   std::function<void(double low, double high)> onValueChange);
+
+    // Two-thumb indexed slider with discrete steps and value label display.
+    // Used for bin selection where each step represents an integer index.
+    LabelledSlider(const String& labelText,
+                   int rangeMin,
+                   int rangeMax,
+                   int valueLow,
+                   int valueHigh,
+                   std::function<void(int low, int high)> onValueChange,
+                   std::function<String(int low, int high)> formatLabel);
 
     void resized() override;
+
+    /** Update the value label text (call when external state like sample rate changes) */
+    void updateValueLabel();
 
     std::function<void()> onValueChange;
 
 private:
     Slider _slider;
     Label _label;
+    Label _valueLabel;
+    std::function<String(int, int)> _formatLabel;
+    bool _hasValueLabel = false;
 };
 } // namespace Components

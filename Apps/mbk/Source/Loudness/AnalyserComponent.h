@@ -74,6 +74,11 @@ public:
         loudnessAnalyser.pushNextSampleIntoFifo(sample);
     }
 
+    /** Update sample rate for frequency display calculations */
+    void setSampleRate(double sampleRate) {
+        loudnessAnalyserSettings.setSampleRate(sampleRate);
+    }
+
     //==============================================================================
     void paint(Graphics& g) override { g.fillAll(Colours::black); }
 

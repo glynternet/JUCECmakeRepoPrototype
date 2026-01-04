@@ -110,6 +110,11 @@ public:
     /** Decay effect preventing abrupt drops in output value. */
     TailOff decayLength;
 
+    /** FFT configuration constants - exposed for UI bin/frequency calculations */
+    static constexpr int fftOrder = 8;
+    static constexpr int fftSize = 1 << fftOrder; // 256
+    static constexpr int maxBins = fftSize / 2; // 128
+
 private:
     /** Main loop for the processing thread - blocks until data ready */
     void processingThreadMain();
@@ -119,8 +124,6 @@ private:
 
     /** Calculate raw average loudness from FFT magnitude bins */
     float calculateLoudness(float* data, int dataSize);
-
-    enum { fftOrder = 8, fftSize = 1 << fftOrder };
 
     // Threading infrastructure for event-driven processing
     //
