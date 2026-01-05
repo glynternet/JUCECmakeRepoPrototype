@@ -34,6 +34,12 @@ The loudness processing chain analyzes incoming audio in real-time and produces 
 │        │                                                                │
 │        ▼                                                                │
 │   ┌─────────────────────────────────────────┐                          │
+│   │        A-Weighting (optional)           │   Perceptual weighting   │
+│   │   Frequency-dependent gain adjustment   │   (toggleable)           │
+│   └─────────────────────────────────────────┘                          │
+│        │                                                                │
+│        ▼                                                                │
+│   ┌─────────────────────────────────────────┐                          │
 │   │        Loudness Calculation             │                          │
 │   │   Average magnitude → linear level      │                          │
 │   └─────────────────────────────────────────┘                          │
@@ -83,6 +89,7 @@ The loudness analyser provides several adjustable parameters via sliders:
 | **Range In** | -0.1 - 1.1 (dual) | 0.1 - 0.8 | Sensitivity calibration |
 | **Decay Length** | 0.0 - 0.9999 | 0.8 | How quickly loudness drops |
 | **Window Size** | 1 - 7 | 2 | Smoothing amount |
+| **A-Weight** | Toggle | On | Apply A-weighting for perceptual loudness |
 
 ### Parameter Guide
 
@@ -128,6 +135,20 @@ Number of samples to average for smoothing.
 - **2** (default): Minimal smoothing
 - **5-7**: Heavy smoothing (very smooth, slower response)
 
+#### A-Weight Toggle
+
+Enables A-weighting, a frequency-dependent gain curve that models human hearing perception (IEC 61672:2003).
+
+**How it works:**
+- Human hearing is less sensitive to low frequencies (<500 Hz) and high frequencies (>6 kHz)
+- Most sensitive around 2-4 kHz
+- A-weighting attenuates frequencies where hearing is less sensitive
+- Result: loudness values match perceived loudness more closely
+
+**When to use:**
+- **On** (default): Loudness values reflect human perception
+- **Off**: Raw frequency magnitude analysis
+
 ### OSC Output
 
 Loudness values are sent via OSC to the configured IP address:
@@ -163,6 +184,7 @@ Apps/mbk/Source/Loudness/
 ├── Analyser.h/.cpp         # Core FFT-based analysis engine
 ├── AnalyserComponent.h     # UI wrapper and integration
 ├── AnalyserSettings.h      # Parameter control sliders
+├── AWeighting.h            # A-weighting perceptual filter
 ├── Loudness.h              # Static loudness calculation utility
 ├── ValueShaper.h           # Input-to-output range mapping
 ├── MovingAverage.h         # Smoothing filter
@@ -251,19 +273,24 @@ Each stage is encapsulated in its own class:
    - Runs dedicated processing thread, wakes via condition variable
    - Calls each processing stage in sequence
 
-2. **Loudness::Calculate** (`Loudness.h`): Raw level calculation
+2. **AWeighting** (`AWeighting.h`): Perceptual frequency weighting
+   - Pre-computes weights based on sample rate
+   - Applies IEC 61672:2003 A-weighting curve
+   - Toggleable via UI (on by default)
+
+3. **Loudness::Calculate** (`Loudness.h`): Raw level calculation
    - Takes FFT magnitude bins
    - Returns average level (0-1 range)
 
-3. **ValueShaper** (`ValueShaper.h`): Range mapping
+4. **ValueShaper** (`ValueShaper.h`): Range mapping
    - Maps input range to output range
    - Clamps output to [0, 1]
 
-4. **MovingAverage** (`MovingAverage.h`): Smoothing
+5. **MovingAverage** (`MovingAverage.h`): Smoothing
    - Circular buffer of recent values
    - Returns average of last N samples
 
-5. **TailOff** (`TailOff.h`): Decay effect
+6. **TailOff** (`TailOff.h`): Decay effect
    - Prevents abrupt drops
    - Output = max(input, previous * coefficient)
 

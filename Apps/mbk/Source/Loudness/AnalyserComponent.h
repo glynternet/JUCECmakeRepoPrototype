@@ -74,8 +74,9 @@ public:
         loudnessAnalyser.pushNextSampleIntoFifo(sample);
     }
 
-    /** Update sample rate for frequency display calculations */
+    /** Update sample rate for frequency display and A-weighting calculations */
     void setSampleRate(double sampleRate) {
+        loudnessAnalyser.setSampleRate(sampleRate);
         loudnessAnalyserSettings.setSampleRate(sampleRate);
     }
 

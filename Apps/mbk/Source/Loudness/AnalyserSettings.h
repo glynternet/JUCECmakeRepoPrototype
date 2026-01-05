@@ -108,6 +108,15 @@ public:
         addAndMakeVisible(rangeLocked);
 
         addAndMakeVisible(adaptationSpeed);
+
+        // A-weighting toggle (on by default)
+        aWeightingEnabled.setToggleState(true, dontSendNotification);
+        aWeightingEnabled.onClick = [&loudnessAnalyser, this]() {
+            loudnessAnalyser.setWeightingMode(aWeightingEnabled.getToggleState()
+                                                  ? WeightingMode::AWeighted
+                                                  : WeightingMode::Flat);
+        };
+        addAndMakeVisible(aWeightingEnabled);
     }
 
     /** Update sample rate and refresh frequency display */
@@ -166,6 +175,7 @@ private:
         toggleRow.removeFromLeft(90); // Align with sliders (skip label area)
         autoRangeEnabled.setBounds(toggleRow.removeFromLeft(60));
         rangeLocked.setBounds(toggleRow.removeFromLeft(60));
+        aWeightingEnabled.setBounds(toggleRow.removeFromLeft(80));
 
         // Adaptation speed slider
         adaptationSpeed.setBounds(bounds.removeFromTop(30));
@@ -182,6 +192,7 @@ private:
     Components::LabelledSlider adaptationSpeed;
     juce::ToggleButton autoRangeEnabled {"Auto"};
     juce::ToggleButton rangeLocked {"Lock"};
+    juce::ToggleButton aWeightingEnabled {"A-Weight"};
     Components::LabelledSlider decayLength;
     Components::LabelledSlider movingAverage;
 };

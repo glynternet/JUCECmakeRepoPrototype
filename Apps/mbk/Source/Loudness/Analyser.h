@@ -10,8 +10,15 @@
 #include "MovingAverage.h"
 #include "TailOff.h"
 #include "RangeAdapter.h"
+#include "AWeighting.h"
 
 namespace Loudness {
+
+/** Weighting mode for loudness calculation */
+enum class WeightingMode {
+    Flat,      ///< No frequency weighting (current behavior)
+    AWeighted  ///< A-weighting for perceptual loudness
+};
 
 /**
  * @brief Real-time FFT-based loudness analyser for audio streams.
@@ -118,6 +125,15 @@ public:
     /** Decay effect preventing abrupt drops in output value. */
     TailOff decayLength;
 
+    /** Current weighting mode (Flat or AWeighted) */
+    WeightingMode weightingMode = WeightingMode::AWeighted;
+
+    /** Set the weighting mode for loudness calculation */
+    void setWeightingMode(WeightingMode mode) { weightingMode = mode; }
+
+    /** Set the sample rate (required for A-weighting frequency calculation) */
+    void setSampleRate(double rate);
+
     /** FFT configuration constants - exposed for UI bin/frequency calculations */
     static constexpr int fftOrder = 8;
     static constexpr int fftSize = 1 << fftOrder; // 256
@@ -132,6 +148,10 @@ private:
 
     /** Calculate raw average loudness from FFT magnitude bins */
     float calculateLoudness(float* data, int dataSize);
+
+    // A-weighting support
+    AWeighting aWeighting;
+    double sampleRate = 44100.0;
 
     // Threading infrastructure for event-driven processing
     //

@@ -93,6 +93,11 @@ float Analyser::calculateLevel() {
     const auto indexHigh =
         static_cast<int>(static_cast<float>(maxIndex) * processingBandHigh);
 
+    // Apply A-weighting if enabled (modifies fftData in-place)
+    if (weightingMode == WeightingMode::AWeighted) {
+        aWeighting.apply(&fftData[indexLow], indexHigh - indexLow, indexLow);
+    }
+
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
     // Feed raw level to adapter and sync ranges to ValueShaper
@@ -158,5 +163,9 @@ float Analyser::calculateLoudness(float* data, int dataSize) {
     float fftSizeInDB = juce::Decibels::gainToDecibels((float) fftSize);
 
     return Loudness::Calculate(data, dataSize, mindB, maxdB, fftSizeInDB);
+}
+void Analyser::setSampleRate(double rate) {
+    sampleRate = rate;
+    aWeighting.prepare(fftSize, sampleRate);
 }
 } // namespace Loudness
