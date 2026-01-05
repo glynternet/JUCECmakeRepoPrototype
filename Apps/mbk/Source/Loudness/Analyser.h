@@ -11,6 +11,7 @@
 #include "TailOff.h"
 #include "RangeAdapter.h"
 #include "AWeighting.h"
+#include "Loudness.h"
 
 namespace Loudness {
 
@@ -55,7 +56,7 @@ enum class WeightingMode {
  * 1. **Sample Buffering**: Audio samples accumulate in a 256-sample FIFO
  * 2. **FFT Transform**: Hann-windowed frequency-only forward FFT (256 samples)
  * 3. **Band Selection**: Extract frequency range (configurable, default 2-13% of Nyquist)
- * 4. **Loudness Calc**: Average magnitude across selected frequency bins
+ * 4. **Loudness Calc**: Convert magnitudes to loudness (Perceptual or Linear mode)
  * 5. **Range Adaptation**: RangeAdapter learns input range from content
  * 6. **Value Shaping**: Remap [observed input range] → [target output range]
  * 7. **Smoothing**: Moving average filter (configurable window, default 2 samples)
@@ -131,6 +132,30 @@ public:
     /** Set the weighting mode for loudness calculation */
     void setWeightingMode(WeightingMode mode) { weightingMode = mode; }
 
+    /**
+     * @brief Current mapping mode (Linear or Perceptual).
+     *
+     * Controls how FFT magnitudes are converted to loudness values:
+     * - **Linear**: Legacy behavior, simple amplitude average
+     * - **Perceptual** (default): Stevens' Power Law for true perceptual linearity
+     *
+     * @see MappingMode for mode descriptions
+     * @see LoudnessCalculator::CalculatePerceptual() for the perceptual algorithm
+     */
+    MappingMode mappingMode = MappingMode::Perceptual;
+
+    /**
+     * @brief Set the mapping mode for loudness calculation.
+     * @param mode MappingMode::Linear or MappingMode::Perceptual
+     */
+    void setMappingMode(MappingMode mode) { mappingMode = mode; }
+
+    /**
+     * @brief Get the current mapping mode.
+     * @return Current MappingMode
+     */
+    [[nodiscard]] MappingMode getMappingMode() const { return mappingMode; }
+
     /** Set the sample rate (required for A-weighting frequency calculation) */
     void setSampleRate(double rate);
 
@@ -147,7 +172,7 @@ private:
     float calculateLevel();
 
     /** Calculate raw average loudness from FFT magnitude bins */
-    float calculateLoudness(float* data, int dataSize);
+    [[nodiscard]] float calculateLoudness(float* data, int dataSize) const;
 
     // A-weighting support
     AWeighting aWeighting;

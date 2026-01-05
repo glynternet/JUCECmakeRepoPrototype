@@ -150,19 +150,34 @@ void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
     }
 }
 
-// calculateLoudness will calculate the loudness for a given range of gain values of an FFT calculation
-float Analyser::calculateLoudness(float* data, int dataSize) {
+/**
+ * @brief Calculate loudness from FFT magnitude data.
+ *
+ * Dispatches to either perceptual (Stevens' Power Law) or linear calculation
+ * based on the current mappingMode setting.
+ *
+ * - **Perceptual** (default): Uses power domain and Stevens exponent for
+ *   true perceptual linearity where 0.5 feels half as loud as 1.0.
+ *
+ * - **Linear** (legacy): Simple linear amplitude mapping for backward
+ *   compatibility. Does NOT achieve perceptual linearity.
+ *
+ * @param data     Pointer to FFT magnitude values (may be A-weighted)
+ * @param dataSize Number of bins to process
+ * @return Raw loudness value before range adaptation
+ */
+float Analyser::calculateLoudness(float* data, int dataSize) const {
+    if (mappingMode == MappingMode::Perceptual) {
+        // Recommended: Stevens' Power Law for true perceptual linearity
+        return LoudnessCalculator::CalculatePerceptual(data, dataSize);
+    }
+
+    // Legacy linear mode for backward compatibility
     const auto mindB = -100.0F;
     const auto maxdB = 0.0F;
-
-    /*
-        why is this value calculated?!?!
-        Maybe it's something to do with the maximum/minimum level that an FFT calculation
-       can result in?
-    */
-    float fftSizeInDB = juce::Decibels::gainToDecibels((float) fftSize);
-
-    return Loudness::Calculate(data, dataSize, mindB, maxdB, fftSizeInDB);
+    // fftSizeInDB is reserved for future normalization features
+    float fftSizeInDB = juce::Decibels::gainToDecibels(static_cast<float>(fftSize));
+    return LoudnessCalculator::Calculate(data, dataSize, mindB, maxdB, fftSizeInDB);
 }
 void Analyser::setSampleRate(double rate) {
     sampleRate = rate;

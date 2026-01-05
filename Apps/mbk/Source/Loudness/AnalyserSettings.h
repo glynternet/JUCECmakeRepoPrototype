@@ -109,7 +109,7 @@ public:
 
         addAndMakeVisible(adaptationSpeed);
 
-        // A-weighting toggle (on by default)
+        // A-weighting toggle (on by default for frequency-corrected perception)
         aWeightingEnabled.setToggleState(true, dontSendNotification);
         aWeightingEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.setWeightingMode(aWeightingEnabled.getToggleState()
@@ -117,6 +117,18 @@ public:
                                                   : WeightingMode::Flat);
         };
         addAndMakeVisible(aWeightingEnabled);
+
+        // Perceptual loudness toggle (on by default for Stevens' Power Law)
+        // When enabled, uses power-domain calculation with Stevens exponent (0.3)
+        // for true perceptual linearity where 0.5 feels half as loud as 1.0.
+        // When disabled, uses legacy linear amplitude mapping.
+        perceptualModeEnabled.setToggleState(true, dontSendNotification);
+        perceptualModeEnabled.onClick = [&loudnessAnalyser, this]() {
+            loudnessAnalyser.setMappingMode(perceptualModeEnabled.getToggleState()
+                                                ? MappingMode::Perceptual
+                                                : MappingMode::Linear);
+        };
+        addAndMakeVisible(perceptualModeEnabled);
     }
 
     /** Update sample rate and refresh frequency display */
@@ -173,9 +185,10 @@ private:
         // Toggle buttons on their own row
         auto toggleRow = bounds.removeFromTop(25);
         toggleRow.removeFromLeft(90); // Align with sliders (skip label area)
-        autoRangeEnabled.setBounds(toggleRow.removeFromLeft(60));
-        rangeLocked.setBounds(toggleRow.removeFromLeft(60));
-        aWeightingEnabled.setBounds(toggleRow.removeFromLeft(80));
+        autoRangeEnabled.setBounds(toggleRow.removeFromLeft(50));
+        rangeLocked.setBounds(toggleRow.removeFromLeft(50));
+        aWeightingEnabled.setBounds(toggleRow.removeFromLeft(70));
+        perceptualModeEnabled.setBounds(toggleRow.removeFromLeft(80));
 
         // Adaptation speed slider
         adaptationSpeed.setBounds(bounds.removeFromTop(30));
@@ -193,6 +206,7 @@ private:
     juce::ToggleButton autoRangeEnabled {"Auto"};
     juce::ToggleButton rangeLocked {"Lock"};
     juce::ToggleButton aWeightingEnabled {"A-Weight"};
+    juce::ToggleButton perceptualModeEnabled {"Percept"};
     Components::LabelledSlider decayLength;
     Components::LabelledSlider movingAverage;
 };

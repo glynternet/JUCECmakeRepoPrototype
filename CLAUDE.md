@@ -23,14 +23,16 @@ cmake --build cmake-build-debug --target ConsoleAppTemplate
 Windows build from WSL (avoids Linux dependency issues):
 ```bash
 # Configure (one time)
-"/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" -G "Visual Studio 17 2022" -B build-windows
+./scripts/cmake.sh -G "Visual Studio 17 2022" -B build-windows
 
 # Build all
-"/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" --build build-windows --config Debug
+./scripts/cmake.sh --build build-windows --config Debug
 
 # Build single target (preferred when editing one app)
-"/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" --build build-windows --config Debug --target mbk
+./scripts/cmake.sh --build build-windows --config Debug --target mbk
 ```
+
+Note: `scripts/cmake.sh` is a wrapper that invokes Windows CMake from WSL.
 
 IDE project generation:
 ```bash
@@ -48,7 +50,21 @@ cmake -DCPM_JUCE_SOURCE="/path/to/JUCE" -B build
 
 ## Testing
 
-Tests use Catch2 and are disabled by default:
+Tests use Catch2 and are disabled by default.
+
+**From WSL (recommended):**
+```bash
+# Configure with tests enabled (one time)
+./scripts/cmake.sh -G "Visual Studio 17 2022" -B build-windows -DBUILD_UNIT_TESTS=ON
+
+# Build test runner
+./scripts/cmake.sh --build build-windows --config Debug --target UnitTestRunner
+
+# Run tests
+./build-windows/Tests/UnitTestRunner_artefacts/Debug/UnitTestRunner.exe
+```
+
+**Native (requires all dependencies installed):**
 ```bash
 cmake -B build -DBUILD_UNIT_TESTS=ON
 cmake --build build
@@ -128,6 +144,14 @@ Since Linux clang-tidy may not be installed, use CLion's Windows clang-tidy with
 ## Workflow
 
 After any code changes:
-1. Build to verify compilation: `cmake --build cmake-build-debug`
-2. Run linting: `./scripts/lint.sh`
-3. Fix any issues before committing
+1. Build to verify compilation (from WSL):
+   ```bash
+   ./scripts/cmake.sh --build build-windows --config Debug --target mbk
+   ```
+2. Run linting: `./scripts/run_clang_tidy.sh`
+3. Run tests:
+   ```bash
+   ./scripts/cmake.sh --build build-windows --config Debug --target UnitTestRunner
+   ./build-windows/Tests/UnitTestRunner_artefacts/Debug/UnitTestRunner.exe
+   ```
+4. Fix any issues before committing
