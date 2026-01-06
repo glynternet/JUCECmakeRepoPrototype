@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AdaptiveRange.h"
 #include <atomic>
 
 namespace Loudness {
@@ -40,12 +41,9 @@ public:
                  float targetOutMin,
                  float targetOutMax,
                  float adaptationRate)
-        : observedMin(defaultInMin)
-        , observedMax(defaultInMax)
+        : inputRange(defaultInMin, defaultInMax, adaptationRate)
         , targetOutMin(targetOutMin)
-        , targetOutMax(targetOutMax)
-        , alpha(adaptationRate)
-        , smoothedSignal((defaultInMin + defaultInMax) * 0.5f) {}
+        , targetOutMax(targetOutMax) {}
 
     /**
      * @brief Update with a new raw loudness sample (called from processing thread).
@@ -56,48 +54,7 @@ public:
      * @param rawValue Raw loudness value before any shaping
      */
     void update(float rawValue) noexcept {
-        if (!enabled.load(std::memory_order_relaxed)
-            || locked.load(std::memory_order_relaxed)) {
-            return;
-        }
-
-        float min = observedMin.load(std::memory_order_relaxed);
-        float max = observedMax.load(std::memory_order_relaxed);
-        float a = alpha.load(std::memory_order_relaxed);
-
-        // Update smoothed signal tracker (slower than adaptation rate)
-        float smoothed = smoothedSignal.load(std::memory_order_relaxed);
-        float signalAlpha = a * 0.5f;
-        smoothed = signalAlpha * rawValue + (1.0f - signalAlpha) * smoothed;
-        smoothedSignal.store(smoothed, std::memory_order_relaxed);
-
-        float increaseRate = a;           // Fast rate for increasing
-        float decreaseRate = a * 0.1f;    // Slow rate for decreasing
-
-        // Handle min: increase toward smoothed (fast), decrease toward signal (slow)
-        if (rawValue > min) {
-            min = increaseRate * smoothed + (1.0f - increaseRate) * min;
-        } else if (rawValue < min) {
-            min = decreaseRate * rawValue + (1.0f - decreaseRate) * min;
-        }
-
-        // Handle max: increase toward signal (fast), decrease toward smoothed (slow)
-        if (rawValue > max) {
-            max = increaseRate * rawValue + (1.0f - increaseRate) * max;
-        } else if (rawValue < max) {
-            max = decreaseRate * smoothed + (1.0f - decreaseRate) * max;
-        }
-
-        // Enforce minimum separation to prevent degenerate range
-        constexpr float minSeparation = 0.05f;
-        if (max - min < minSeparation) {
-            float center = (max + min) * 0.5f;
-            min = center - minSeparation * 0.5f;
-            max = center + minSeparation * 0.5f;
-        }
-
-        observedMin.store(min, std::memory_order_relaxed);
-        observedMax.store(max, std::memory_order_relaxed);
+        inputRange.update(rawValue);
     }
 
     //==========================================================================
@@ -105,12 +62,12 @@ public:
 
     /** @brief Get current observed minimum input value */
     [[nodiscard]] float getObservedMin() const noexcept {
-        return observedMin.load(std::memory_order_relaxed);
+        return inputRange.getMin();
     }
 
     /** @brief Get current observed maximum input value */
     [[nodiscard]] float getObservedMax() const noexcept {
-        return observedMax.load(std::memory_order_relaxed);
+        return inputRange.getMax();
     }
 
     //==========================================================================
@@ -137,52 +94,43 @@ public:
 
     /** @brief Enable/disable automatic adaptation */
     void setEnabled(bool value) noexcept {
-        enabled.store(value, std::memory_order_relaxed);
+        inputRange.setEnabled(value);
     }
 
     [[nodiscard]] bool isEnabled() const noexcept {
-        return enabled.load(std::memory_order_relaxed);
+        return inputRange.isEnabled();
     }
 
     /** @brief Lock current values (disable adaptation while preserving enabled state) */
     void setLocked(bool value) noexcept {
-        locked.store(value, std::memory_order_relaxed);
+        inputRange.setLocked(value);
     }
 
     [[nodiscard]] bool isLocked() const noexcept {
-        return locked.load(std::memory_order_relaxed);
+        return inputRange.isLocked();
     }
 
     /** @brief Set adaptation rate [0.0001-0.1], smaller = slower */
     void setAdaptationRate(float rate) noexcept {
-        alpha.store(rate, std::memory_order_relaxed);
+        inputRange.setAdaptationRate(rate);
     }
 
     [[nodiscard]] float getAdaptationRate() const noexcept {
-        return alpha.load(std::memory_order_relaxed);
+        return inputRange.getAdaptationRate();
     }
 
     /** @brief Set observed range directly (e.g., from UI slider) */
     void setObservedRange(float min, float max) noexcept {
-        observedMin.store(min, std::memory_order_relaxed);
-        observedMax.store(max, std::memory_order_relaxed);
+        inputRange.setBounds(min, max);
     }
 
 private:
-    // Observed input range (learned from actual content)
-    std::atomic<float> observedMin;
-    std::atomic<float> observedMax;
+    // Delegates input range tracking to AdaptiveRange
+    AdaptiveRange inputRange;
 
     // Target output range (user-configurable)
     std::atomic<float> targetOutMin;
     std::atomic<float> targetOutMax;
-
-    std::atomic<float> alpha;
-    std::atomic<bool> enabled {true};
-    std::atomic<bool> locked {false};
-
-    // Smoothed signal level for contraction targeting
-    std::atomic<float> smoothedSignal;
 };
 
 } // namespace Loudness
