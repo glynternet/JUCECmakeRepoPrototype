@@ -130,19 +130,31 @@ Uses clang-format with attached brace style (K&R), 4-space indentation, 90 colum
 ./scripts/lint.sh --format-fix
 ```
 
-Uses clang-tidy with checks configured in `.clang-tidy`. Requires `compile_commands.json` (auto-generated during cmake configure).
+Uses clang-tidy with checks configured in `.clang-tidy`. Requires `compile_commands.json`.
+
+**compile_commands.json Locations:**
+
+| Location | How Created | Notes |
+|----------|-------------|-------|
+| `out/build/x64-Debug/` | VS Code CMake Tools | Auto-generated, recommended |
+| `cmake-build-release/` | CLion | Windows paths |
+
+**Why compile_commands.json Cannot Be Generated Elsewhere:**
+- `build-windows/` - Visual Studio generator doesn't support `CMAKE_EXPORT_COMPILE_COMMANDS`
+- Native Linux build - Fails because JUCE requires X11 headers (`apt install libx11-dev` would fix, but unnecessary)
+- Ninja from WSL - Can't find MSVC compilers without VS Developer Command Prompt environment
 
 **WSL Linting Setup:**
 
-Since Linux clang-tidy may not be installed, use CLion's Windows clang-tidy with the Windows build's compile_commands.json:
+Use `run_clang_tidy.sh` which handles WSL-to-Windows path conversion:
 
 ```bash
-# First, configure with VS Code CMake Tools (creates out/build/x64-Debug/compile_commands.json)
-# Or use: cmake -G "Visual Studio 17 2022" -B out/build/x64-Debug
-
+# Ensure compile_commands.json exists (VS Code CMake Tools creates it, or configure in CLion)
 # Run clang-tidy via helper script
 ./scripts/run_clang_tidy.sh
 ```
+
+Note: `lint.sh` doesn't work from WSL because it passes Linux paths to clang-tidy, which can't match Windows paths in `compile_commands.json`.
 
 **Exclusions:**
 - `*/Libs/*` - Third-party libraries are excluded from linting

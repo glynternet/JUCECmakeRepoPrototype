@@ -4,8 +4,19 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Default build directory
-BUILD_DIR="${BUILD_DIR:-cmake-build-debug}"
+# Default build directory - try several common locations
+find_compile_commands() {
+    local dirs=("cmake-build-debug" "cmake-build-release" "out/build/x64-Debug" "build-ninja")
+    for dir in "${dirs[@]}"; do
+        if [[ -f "$PROJECT_ROOT/$dir/compile_commands.json" ]]; then
+            echo "$dir"
+            return
+        fi
+    done
+    echo "cmake-build-debug"  # fallback to default for error message
+}
+
+BUILD_DIR="${BUILD_DIR:-$(find_compile_commands)}"
 COMPILE_COMMANDS="$PROJECT_ROOT/$BUILD_DIR/compile_commands.json"
 
 # Colors
