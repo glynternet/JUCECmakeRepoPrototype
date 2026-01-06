@@ -7,6 +7,7 @@
 #include "Logger/MultiLogger.h"
 #include "OSCComponent.h"
 #include "Beat/Analyser.h"
+#include "Beat/Synthesizer.h"
 #include "Beat/SynthesizerComponent.h"
 #include "AvvaOSCSender.h"
 
@@ -34,7 +35,8 @@ private:
 
     Beat::Analyser tempoAnalyser;
     FlashBox tempoAnalyserFlash;
-    Beat::SynthesizerComponent tempoSynthesizer {logger};
+    Beat::Synthesizer tempoSynthesizer;
+    Beat::SynthesizerComponent tempoSynthesizerComponent {tempoSynthesizer};
     FlashBox tempoSynthesizerFlash;
 
     Loudness::AnalyserComponent analyserComponent;

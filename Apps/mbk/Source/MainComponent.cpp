@@ -29,7 +29,7 @@ MainComponent::MainComponent()
     };
 
     addAndMakeVisible(tempoAnalyserFlash);
-    addAndMakeVisible(tempoSynthesizer);
+    addAndMakeVisible(tempoSynthesizerComponent);
     addAndMakeVisible(tempoSynthesizerFlash);
     addAndMakeVisible(analyserComponent);
 
@@ -54,7 +54,7 @@ void MainComponent::resized() {
     oscComponent.setBounds(settings.removeFromBottom(50));
     uiLogger.setBounds(settings);
 
-    tempoSynthesizer.setBounds(area.removeFromBottom(25));
+    tempoSynthesizerComponent.setBounds(area.removeFromBottom(25));
     auto tempoFlashes = area.removeFromBottom(25);
     tempoAnalyserFlash.setBounds(tempoFlashes.removeFromLeft(25));
     tempoSynthesizerFlash.setBounds(tempoFlashes);

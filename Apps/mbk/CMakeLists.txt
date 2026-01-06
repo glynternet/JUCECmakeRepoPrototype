@@ -21,6 +21,7 @@ target_sources(${TargetName} PRIVATE
         Source/OSCComponent.cpp
         Source/Logger/StdoutLogger.cpp
         Source/Beat/Analyser.cpp
+        Source/Beat/Synthesizer.cpp
         Source/Beat/SynthesizerComponent.cpp
         Libs/BTrack/BTrack.cpp
         Libs/BTrack/OnsetDetectionFunction.cpp)
