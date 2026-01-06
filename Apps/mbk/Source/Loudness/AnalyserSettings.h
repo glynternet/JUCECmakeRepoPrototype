@@ -10,7 +10,7 @@ public:
     explicit AnalyserSettings(Loudness::Analyser& loudnessAnalyser,
                               const double initialProcessingBandLow,
                               const double initialProcessingBandHigh,
-                              const int movingAverageInitialWindow,
+                              const float initialSmoothing,
                               const float initialDecayExponent,
                               double initialSampleRate = 48000.0)
         : sampleRate(initialSampleRate)
@@ -80,20 +80,19 @@ public:
                     })
         ,
 
-        movingAverage("Window Size",
-                      1.f,
-                      7.f,
-                      1.f,
-                      movingAverageInitialWindow,
-                      1.f,
-                      [&loudnessAnalyser](const double value) {
-                          loudnessAnalyser.movingAverage.setPeriod((int) value);
-                      }) {
+        smoothing("Smoothing",
+                  0.f,
+                  1.f,
+                  initialSmoothing,
+                  0.05f,
+                  [&loudnessAnalyser](const double value) {
+                      loudnessAnalyser.smoother.setSmoothing((float) value);
+                  }) {
         addAndMakeVisible(rangeIn);
         addAndMakeVisible(outputRange);
         addAndMakeVisible(frequencyProcessingBand);
         addAndMakeVisible(decayLength);
-        addAndMakeVisible(movingAverage);
+        addAndMakeVisible(smoothing);
 
         // Auto-range controls
         autoRangeEnabled.setToggleState(true, dontSendNotification);
@@ -195,7 +194,7 @@ private:
 
         auto remaining = bounds;
         decayLength.setBounds(remaining.removeFromTop(remaining.getHeight() / 2));
-        movingAverage.setBounds(remaining);
+        smoothing.setBounds(remaining);
     }
 
     double sampleRate;
@@ -208,6 +207,6 @@ private:
     juce::ToggleButton aWeightingEnabled {"A-Weight"};
     juce::ToggleButton perceptualModeEnabled {"Percept"};
     Components::LabelledSlider decayLength;
-    Components::LabelledSlider movingAverage;
+    Components::LabelledSlider smoothing;
 };
-} // namespace Loudness
+}  // namespace Loudness

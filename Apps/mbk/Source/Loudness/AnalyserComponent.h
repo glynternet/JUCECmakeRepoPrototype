@@ -39,7 +39,7 @@ namespace Loudness {
  * ## Default Processing Parameters
  *
  * - Frequency Band: 2-13% of Nyquist (focused on lower frequencies)
- * - Moving Average Window: 2 samples
+ * - Smoothing: 0.1 (light EWMA smoothing)
  * - Decay Coefficient: 0.8
  *
  * FFT processing is event-driven (triggered when FIFO buffer fills) for minimum latency.
@@ -121,19 +121,19 @@ private:
         },
         initialProcessingBandLow,
         initialProcessingBandHigh,
-        movingAverageInitialWindow,
+        initialSmoothing,
         initialDecayExponent};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
                                                initialProcessingBandLow,
                                                initialProcessingBandHigh,
-                                               movingAverageInitialWindow,
+                                               initialSmoothing,
                                                initialDecayExponent};
 
     ValueHistoryComponent valueHistoryComp;
 
     static constexpr float initialDecayExponent = 0.8f;
-    static constexpr int movingAverageInitialWindow = 2;
+    static constexpr float initialSmoothing = 0.1f;
     static constexpr double initialProcessingBandLow = 0.02;
     static constexpr double initialProcessingBandHigh = 0.13;
 };
-} // namespace Loudness
+}  // namespace Loudness

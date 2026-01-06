@@ -10,12 +10,12 @@ namespace Loudness {
 Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
                    float processingBandIndexLow,
                    float processingBandIndexHigh,
-                   float movingAverageInitialWindow,
+                   float initialSmoothing,
                    float initialDecayExponent)
     : onLoudnessResult(std::move(onLoudnessResultCallback))
     , processingBandLow(processingBandIndexLow)
     , processingBandHigh(processingBandIndexHigh)
-    , movingAverage(static_cast<unsigned int>(movingAverageInitialWindow))
+    , smoother(initialSmoothing)
     , decayLength(initialDecayExponent) {
     processingThread = std::thread(&Analyser::processingThreadMain, this);
 }
@@ -113,9 +113,8 @@ float Analyser::calculateLevel() {
     valueShaper.setOutMin(rangeAdapter.getTargetOutMin());
     valueShaper.setOutMax(rangeAdapter.getTargetOutMax());
 
-    level = valueShaper.shape(level);
-    movingAverage.add(level);
-    level = decayLength.getValue(movingAverage.getAverage());
+    level = smoother.add(valueShaper.shape(level));
+    level = decayLength.getValue(level);
     return level < 0.0001F ? 0.0F : jlimit(0.0F, 1.0F, level);
 }
 

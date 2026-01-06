@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_dsp/juce_dsp.h>
 #include "ValueShaper.h"
-#include "MovingAverage.h"
+#include "Smoother.h"
 #include "TailOff.h"
 #include "RangeAdapter.h"
 #include "AWeighting.h"
@@ -38,7 +38,7 @@ enum class WeightingMode {
  *                                          ↓
  *                               ValueShaper (range mapping)
  *                                          ↓
- *                               MovingAverage (smoothing)
+ *                               Smoother (EWMA smoothing)
  *                                          ↓
  *                               TailOff (decay effect)
  *                                          ↓
@@ -59,11 +59,11 @@ enum class WeightingMode {
  * 4. **Loudness Calc**: Convert magnitudes to loudness (Perceptual or Linear mode)
  * 5. **Range Adaptation**: RangeAdapter learns input range from content
  * 6. **Value Shaping**: Remap [observed input range] → [target output range]
- * 7. **Smoothing**: Moving average filter (configurable window, default 2 samples)
+ * 7. **Smoothing**: EWMA filter (configurable smoothing, default 0.1)
  * 8. **Decay**: TailOff prevents abrupt drops (configurable coefficient, default 0.8)
  * 9. **Final Clamp**: Output clamped to [0.0, 1.0]
  *
- * @see RangeAdapter, ValueShaper, MovingAverage, TailOff for individual stage details
+ * @see RangeAdapter, ValueShaper, Smoother, TailOff for individual stage details
  */
 class Analyser {
 public:
@@ -74,13 +74,13 @@ public:
      *                         processing cycle
      * @param processingBandIndexLow  Lower frequency bound as proportion of Nyquist [0-1]
      * @param processingBandIndexHigh Upper frequency bound as proportion of Nyquist [0-1]
-     * @param movingAverageInitialWindow Smoothing window size (1-7, larger = smoother)
+     * @param initialSmoothing EWMA smoothing amount (0.0 = none, 1.0 = heavy)
      * @param initialDecayExponent Decay coefficient [0-0.9999] (higher = slower decay)
      */
     explicit Analyser(std::function<void(float)> onLoudnessResult,
                       float processingBandIndexLow,
                       float processingBandIndexHigh,
-                      float movingAverageInitialWindow,
+                      float initialSmoothing,
                       float initialDecayExponent);
 
     ~Analyser();
@@ -120,8 +120,8 @@ public:
     /** Automatic range adaptation. Learns input range and maps to target output range. */
     RangeAdapter rangeAdapter {0.1F, 0.8F, 0.0F, 1.0F, 0.005F};
 
-    /** Smoothing filter. Larger window = smoother but less responsive output. */
-    MovingAverage movingAverage;
+    /** EWMA smoothing filter. Higher smoothing = smoother but less responsive output. */
+    Smoother smoother;
 
     /** Decay effect preventing abrupt drops in output value. */
     TailOff decayLength;
