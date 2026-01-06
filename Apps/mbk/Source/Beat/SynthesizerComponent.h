@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Synthesizer.h"
 
@@ -33,7 +34,7 @@ private:
                             juce::Colours::lightgrey,
                             juce::Colours::lightgrey};
 
-    juce::ShapeButton multipleButtons[Synthesizer::totalMultipleCount] {
+    std::array<juce::ShapeButton, Synthesizer::totalMultipleCount> multipleButtons {{
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
@@ -44,7 +45,7 @@ private:
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
-    };
+    }};
 
     int lastMultipleIndex {-1};
     int lastNextMultipleIndex {-1};

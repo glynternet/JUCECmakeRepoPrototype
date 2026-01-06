@@ -30,10 +30,10 @@ SynthesizerComponent::SynthesizerComponent(Synthesizer& synth)
     down.setOutline(juce::Colours::transparentWhite, 3);
     addAndMakeVisible(down);
 
-    for (int i = 0; i < Synthesizer::totalMultipleCount; ++i) {
-        juce::ShapeButton& button = multipleButtons[i];
+    for (size_t i = 0; i < Synthesizer::totalMultipleCount; ++i) {
+        juce::ShapeButton& button = multipleButtons.at(i);
         button.onClick = [this, i]() {
-            synthesizer.setNextMultipleIndex(i);
+            synthesizer.setNextMultipleIndex(static_cast<int>(i));
             dirty = true;
         };
         juce::Path rect;
@@ -52,19 +52,21 @@ void SynthesizerComponent::updateButtonStates() {
 
     if (currentIndex != lastMultipleIndex) {
         if (lastMultipleIndex >= 0 && lastMultipleIndex < Synthesizer::totalMultipleCount) {
-            multipleButtons[lastMultipleIndex].setColours(
-                juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
+            multipleButtons.at(static_cast<size_t>(lastMultipleIndex))
+                .setColours(juce::Colours::grey, juce::Colours::grey, juce::Colours::grey);
         }
-        multipleButtons[currentIndex].setColours(
-            juce::Colours::white, juce::Colours::white, juce::Colours::white);
+        multipleButtons.at(static_cast<size_t>(currentIndex))
+            .setColours(juce::Colours::white, juce::Colours::white, juce::Colours::white);
         lastMultipleIndex = currentIndex;
     }
 
     if (nextIndex != lastNextMultipleIndex) {
-        if (lastNextMultipleIndex >= 0 && lastNextMultipleIndex < Synthesizer::totalMultipleCount) {
-            multipleButtons[lastNextMultipleIndex].setOutline(juce::Colours::transparentWhite, 3);
+        if (lastNextMultipleIndex >= 0 &&
+            lastNextMultipleIndex < Synthesizer::totalMultipleCount) {
+            multipleButtons.at(static_cast<size_t>(lastNextMultipleIndex))
+                .setOutline(juce::Colours::transparentWhite, 3);
         }
-        multipleButtons[nextIndex].setOutline(juce::Colours::white, 3);
+        multipleButtons.at(static_cast<size_t>(nextIndex)).setOutline(juce::Colours::white, 3);
         lastNextMultipleIndex = nextIndex;
     }
 }
@@ -77,9 +79,9 @@ void SynthesizerComponent::resized() {
     auto rect = getLocalBounds();
     up.setBounds(rect.removeFromRight(30));
     down.setBounds(rect.removeFromLeft(30));
-    for (int i = 0; i < Synthesizer::totalMultipleCount; ++i) {
-        multipleButtons[i].setBounds(
-            rect.removeFromLeft(rect.getWidth() / (Synthesizer::totalMultipleCount - i)));
+    for (size_t i = 0; i < Synthesizer::totalMultipleCount; ++i) {
+        int remaining = Synthesizer::totalMultipleCount - static_cast<int>(i);
+        multipleButtons.at(i).setBounds(rect.removeFromLeft(rect.getWidth() / remaining));
     }
 }
 

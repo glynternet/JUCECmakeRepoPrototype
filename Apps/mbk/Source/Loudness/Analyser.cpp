@@ -95,9 +95,11 @@ float Analyser::calculateLevel() {
 
     // Apply A-weighting if enabled (modifies fftData in-place)
     if (weightingMode == WeightingMode::AWeighted) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         aWeighting.apply(&fftData[indexLow], indexHigh - indexLow, indexLow);
     }
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
     // Feed raw level to adapter and sync ranges to ValueShaper
@@ -128,6 +130,7 @@ void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
     // std::terminate would be called, which is the correct behavior for an
     // unrecoverable error in audio processing.
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     fifo[fifoIndex++] = sample;
 
     if (fifoIndex == fftSize) {

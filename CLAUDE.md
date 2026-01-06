@@ -94,6 +94,18 @@ This is a JUCE 7 multi-project CMake repository using CPM.cmake for package mana
 
 Uses clang-format with attached brace style (K&R), 4-space indentation, 90 column limit. See `_clang-format` for full configuration.
 
+## Array Usage
+
+**Use `std::array` with `.at()` in UI/non-critical code:**
+- Provides bounds checking at runtime
+- Satisfies `cppcoreguidelines-pro-bounds-constant-array-index` clang-tidy check
+- Acceptable overhead for code not in tight loops
+
+**Use C-style arrays with `// NOLINTNEXTLINE` in audio/performance-critical code:**
+- Audio callbacks run at sample rate (44,100+ Hz) where `.at()` overhead matters
+- Add `// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)` above the line
+- Ensure bounds are validated by design (loop bounds, index resets, etc.)
+
 ## Linting
 
 **After making code changes, run linting to catch issues:**
