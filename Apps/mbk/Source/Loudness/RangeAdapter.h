@@ -42,11 +42,10 @@ public:
                  float adaptationRate)
         : observedMin(defaultInMin)
         , observedMax(defaultInMax)
-        , defaultMin(defaultInMin)
-        , defaultMax(defaultInMax)
         , targetOutMin(targetOutMin)
         , targetOutMax(targetOutMax)
-        , alpha(adaptationRate) {}
+        , alpha(adaptationRate)
+        , smoothedSignal((defaultInMin + defaultInMax) * 0.5f) {}
 
     /**
      * @brief Update with a new raw loudness sample (called from processing thread).
@@ -66,25 +65,27 @@ public:
         float max = observedMax.load(std::memory_order_relaxed);
         float a = alpha.load(std::memory_order_relaxed);
 
-        // Expand: move toward raw value if outside observed range
-        if (rawValue < min) {
-            min = a * rawValue + (1.0f - a) * min;
+        // Update smoothed signal tracker (slower than adaptation rate)
+        float smoothed = smoothedSignal.load(std::memory_order_relaxed);
+        float signalAlpha = a * 0.5f;
+        smoothed = signalAlpha * rawValue + (1.0f - signalAlpha) * smoothed;
+        smoothedSignal.store(smoothed, std::memory_order_relaxed);
+
+        float increaseRate = a;           // Fast rate for increasing
+        float decreaseRate = a * 0.1f;    // Slow rate for decreasing
+
+        // Handle min: increase toward smoothed (fast), decrease toward signal (slow)
+        if (rawValue > min) {
+            min = increaseRate * smoothed + (1.0f - increaseRate) * min;
+        } else if (rawValue < min) {
+            min = decreaseRate * rawValue + (1.0f - decreaseRate) * min;
         }
+
+        // Handle max: increase toward signal (fast), decrease toward smoothed (slow)
         if (rawValue > max) {
-            max = a * rawValue + (1.0f - a) * max;
-        }
-
-        // Contract: slowly drift toward defaults when values are within range
-        // This prevents the range from staying too wide after transient peaks
-        float defMin = defaultMin.load(std::memory_order_relaxed);
-        float defMax = defaultMax.load(std::memory_order_relaxed);
-        float contractRate = a * 0.1f; // Contract 10x slower than expand
-
-        if (rawValue > min && min < defMin) {
-            min = contractRate * defMin + (1.0f - contractRate) * min;
-        }
-        if (rawValue < max && max > defMax) {
-            max = contractRate * defMax + (1.0f - contractRate) * max;
+            max = increaseRate * rawValue + (1.0f - increaseRate) * max;
+        } else if (rawValue < max) {
+            max = decreaseRate * smoothed + (1.0f - decreaseRate) * max;
         }
 
         // Enforce minimum separation to prevent degenerate range
@@ -161,14 +162,6 @@ public:
         return alpha.load(std::memory_order_relaxed);
     }
 
-    /** @brief Reset observed range to defaults */
-    void reset() noexcept {
-        observedMin.store(defaultMin.load(std::memory_order_relaxed),
-                          std::memory_order_relaxed);
-        observedMax.store(defaultMax.load(std::memory_order_relaxed),
-                          std::memory_order_relaxed);
-    }
-
     /** @brief Set observed range directly (e.g., from UI slider) */
     void setObservedRange(float min, float max) noexcept {
         observedMin.store(min, std::memory_order_relaxed);
@@ -180,10 +173,6 @@ private:
     std::atomic<float> observedMin;
     std::atomic<float> observedMax;
 
-    // Default input range (contracts toward this)
-    std::atomic<float> defaultMin;
-    std::atomic<float> defaultMax;
-
     // Target output range (user-configurable)
     std::atomic<float> targetOutMin;
     std::atomic<float> targetOutMax;
@@ -191,6 +180,9 @@ private:
     std::atomic<float> alpha;
     std::atomic<bool> enabled {true};
     std::atomic<bool> locked {false};
+
+    // Smoothed signal level for contraction targeting
+    std::atomic<float> smoothedSignal;
 };
 
 } // namespace Loudness
