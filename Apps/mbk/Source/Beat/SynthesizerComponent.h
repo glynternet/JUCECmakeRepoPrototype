@@ -1,46 +1,29 @@
 #pragma once
 
-#include <cmath>
-#include <mutex>
-#include "../../Libs/BTrack/BTrack.h"
-#include "../Components/LogOutputComponent.h"
-#include "../Logger/Logger.h"
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Synthesizer.h"
 
 namespace Beat {
+
+// UI component for controlling a beat Synthesizer.
+// Displays buttons to select beat multiplication/division rate.
 class SynthesizerComponent
     : public juce::Component
-    , juce::HighResolutionTimer
-    , juce::Timer {
+    , private juce::Timer {
 public:
-    explicit SynthesizerComponent(logger::Logger& logger);
+    explicit SynthesizerComponent(Synthesizer& synth);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
-    void timerCallback() override;
-    void hiResTimerCallback() override;
-
-    void beat(double period);
-
-    // onSynthesizedBeat is run whenever a new beat is synthesized and
-    // receives the duration since last synthesized beat as a parameter.
-    std::function<void(double)> onSynthesizedBeat;
 
 private:
-    logger::Logger& logger;
+    void timerCallback() override;
+    void updateButtonStates();
 
-    uint32_t inputBeatCount = 0;
+    Synthesizer& synthesizer;
 
-    double diffEwma = 0;
-    double durationPerSynthesizedBeat = 500;
+    std::atomic<bool> dirty {true};
 
-    std::atomic<bool> dirty {};
-
-    void synthesizedBeat(double duration);
-
-    // multiple is the number of beats on top of the input beat in which we want to synthesise beats for.
-    int multiple = 1;
-    int multipleIndex = 2;
-    int nextMultipleIndex = 2;
     juce::ShapeButton up {"up",
                           juce::Colours::lightgrey,
                           juce::Colours::lightgrey,
@@ -50,16 +33,7 @@ private:
                             juce::Colours::lightgrey,
                             juce::Colours::lightgrey};
 
-    static constexpr int negativeMultipleCount = 3;
-    // positiveMultipleCount cannot be higher than 8 because it is used as an exponent for a base of 2.
-    // Where ipow(2, 8) is 256. For synthesis, this value has 1 taken off it and fits into a uint8,
-    // which is what is used for the scheduledBeat creating loop.
-    // Anything greater would overflow.
-    static constexpr int positiveMultipleCount = 6;
-    static constexpr int totalMultipleCount =
-        positiveMultipleCount + 1 + negativeMultipleCount;
-
-    juce::ShapeButton multipleButtons[totalMultipleCount] {
+    juce::ShapeButton multipleButtons[Synthesizer::totalMultipleCount] {
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
@@ -72,14 +46,8 @@ private:
         {"", juce::Colours::grey, juce::Colours::grey, juce::Colours::grey},
     };
 
-    struct scheduledBeat {
-        double millis;
-    };
-
-    void setMultipleFromIndex(int m);
-    void setNextMultipleIndex(int m);
-
-    std::mutex scheduledBeatsMutex;
-    std::list<scheduledBeat> scheduledBeats;
+    int lastMultipleIndex {-1};
+    int lastNextMultipleIndex {-1};
 };
+
 } // namespace Beat
