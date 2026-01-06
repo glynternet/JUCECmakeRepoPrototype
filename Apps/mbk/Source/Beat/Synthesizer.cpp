@@ -2,8 +2,8 @@
 
 namespace Beat {
 
-Synthesizer::Synthesizer() {
-    lastTimeMs = juce::Time::getMillisecondCounterHiRes();
+Synthesizer::Synthesizer()
+    : lastTimeMs(juce::Time::getMillisecondCounterHiRes()) {
     startTimer(1);
 }
 
