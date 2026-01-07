@@ -98,7 +98,7 @@ LabelledSlider::LabelledSlider(const String& labelText,
     _slider.setMaxValue(valueHigh);
 
     _valueLabel.setJustificationType(Justification::centredLeft);
-    _valueLabel.setFont(Font(12.0f));
+    _valueLabel.setFont(Font(12.0F));
     addAndMakeVisible(_valueLabel);
     updateValueLabel();
 

@@ -14,14 +14,14 @@ StdoutLogger::StdoutLogger(bool debug)
 
 void StdoutLogger::debug(const juce::String& message) {
     if (this->debugEnabled) {
-        std::cout << "DEBUG: " << message.toStdString() << std::endl;
+        std::cout << "DEBUG: " << message.toStdString() << '\n';
     }
 }
 
 void StdoutLogger::info(const juce::String& message) {
-    std::cout << "INFO : " << message.toStdString() << std::endl;
+    std::cout << "INFO : " << message.toStdString() << '\n';
 }
 void StdoutLogger::error(const juce::String& message) {
-    std::cout << "ERROR: " << message.toStdString() << std::endl;
+    std::cout << "ERROR: " << message.toStdString() << '\n';
 }
 } // namespace logger

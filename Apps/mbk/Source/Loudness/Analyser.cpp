@@ -25,11 +25,11 @@ Analyser::~Analyser() {
     // This pattern ensures no deadlocks or resource leaks.
 
     {
-        // std::lock_guard: RAII wrapper that acquires the mutex on construction
+        // std::scoped_lock: RAII wrapper that acquires the mutex on construction
         // and releases it when the scope ends (even if an exception is thrown).
         // We need the lock because we're modifying shouldStop while the processing
         // thread might be checking it inside the condition_variable wait.
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock lock(mutex);
         shouldStop = true;
     }
     // Lock released here - processing thread can now acquire it
@@ -138,7 +138,7 @@ void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
         // Critical section: copy data to fftData buffer for processing thread.
         // The lock is held very briefly (just for memcpy ~1KB).
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock(mutex);
             zeromem(fftData, sizeof(fftData));
             memcpy(fftData, fifo, fftSize * sizeof(float));
             fftDataPending = true;

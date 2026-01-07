@@ -29,10 +29,10 @@ NC='\033[0m'
 find_clang_format() {
     if command -v clang-format &> /dev/null; then
         echo "clang-format"
+    elif [[ -f "/mnt/c/Program Files/LLVM/bin/clang-format.exe" ]]; then
+        echo "/mnt/c/Program Files/LLVM/bin/clang-format.exe"
     elif [[ -f "/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/bin/clang-format.exe" ]]; then
         echo "/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/bin/clang-format.exe"
-    elif [[ -f "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-format.exe" ]]; then
-        echo "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-format.exe"
     else
         echo ""
     fi
@@ -42,8 +42,8 @@ find_clang_format() {
 find_clang_tidy() {
     if command -v clang-tidy &> /dev/null; then
         echo "clang-tidy"
-    elif [[ -f "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-tidy.exe" ]]; then
-        echo "/mnt/c/Program Files/JetBrains/CLion 2022.3.3/bin/clang/win/x64/clang-tidy.exe"
+    elif [[ -f "/mnt/c/Program Files/LLVM/bin/clang-tidy.exe" ]]; then
+        echo "/mnt/c/Program Files/LLVM/bin/clang-tidy.exe"
     else
         echo ""
     fi
