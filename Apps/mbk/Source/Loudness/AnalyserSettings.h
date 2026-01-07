@@ -2,6 +2,7 @@
 
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
+#include "LoudnessIndexDisplay.h"
 
 namespace Loudness {
 
@@ -129,29 +130,7 @@ public:
         };
         addAndMakeVisible(perceptualModeEnabled);
 
-        // Loudness Index display (read-only)
-        indexLabel.setText("Index", dontSendNotification);
-        indexLabel.setJustificationType(Justification::centredRight);
-        addAndMakeVisible(indexLabel);
-
-        indexValue.setText("- / - / -", dontSendNotification);
-        indexValue.setJustificationType(Justification::centredLeft);
-        addAndMakeVisible(indexValue);
-
-        indexTimeScales.setText("10s   1m   5m", dontSendNotification);
-        indexTimeScales.setJustificationType(Justification::centredLeft);
-        indexTimeScales.setFont(Font(10.0f));
-        indexTimeScales.setColour(Label::textColourId, Colours::grey);
-        addAndMakeVisible(indexTimeScales);
-
-        // Loudness Range display (read-only)
-        rangeLabel.setText("Range", dontSendNotification);
-        rangeLabel.setJustificationType(Justification::centredRight);
-        addAndMakeVisible(rangeLabel);
-
-        rangeValue.setText("-", dontSendNotification);
-        rangeValue.setJustificationType(Justification::centredLeft);
-        addAndMakeVisible(rangeValue);
+        addAndMakeVisible(indexDisplay);
     }
 
     /** Update sample rate and refresh frequency display */
@@ -168,9 +147,7 @@ public:
 
     /** Update loudness index display (called from message thread via callback) */
     void updateIndexDisplay(float i10s, float i1m, float i5m, float range) {
-        auto indexText = String::formatted("%.1f / %.1f / %.1f", i10s, i1m, i5m);
-        indexValue.setText(indexText, dontSendNotification);
-        rangeValue.setText(String(range, 1), dontSendNotification);
+        indexDisplay.update(i10s, i1m, i5m, range);
     }
 
 private:
@@ -227,21 +204,9 @@ private:
         decayLength.setBounds(remaining.removeFromTop(remaining.getHeight() / 3));
         smoothing.setBounds(remaining.removeFromTop(remaining.getHeight() / 2));
 
-        // Loudness Index display row
-        constexpr int labelWidth = 90;
-        auto indexRow = remaining.removeFromTop(20);
-        indexLabel.setBounds(indexRow.removeFromLeft(labelWidth));
-        indexValue.setBounds(indexRow);
-
-        // Time scale labels (smaller, beneath index values)
-        auto timeScaleRow = remaining.removeFromTop(14);
-        timeScaleRow.removeFromLeft(labelWidth);
-        indexTimeScales.setBounds(timeScaleRow);
-
-        // Loudness Range display row
-        auto rangeRow = remaining.removeFromTop(20);
-        rangeLabel.setBounds(rangeRow.removeFromLeft(labelWidth));
-        rangeValue.setBounds(rangeRow);
+        // Loudness Index display
+        indexDisplay.setBounds(
+            remaining.removeFromTop(LoudnessIndexDisplay::preferredHeight));
     }
 
     double sampleRate;
@@ -255,12 +220,6 @@ private:
     juce::ToggleButton perceptualModeEnabled {"Percept"};
     Components::LabelledSlider decayLength;
     Components::LabelledSlider smoothing;
-
-    // Loudness Index display (read-only)
-    juce::Label indexLabel;
-    juce::Label indexValue;
-    juce::Label indexTimeScales;
-    juce::Label rangeLabel;
-    juce::Label rangeValue;
+    LoudnessIndexDisplay indexDisplay;
 };
 }  // namespace Loudness
