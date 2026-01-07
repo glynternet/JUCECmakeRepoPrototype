@@ -54,6 +54,18 @@ public:
         : onLoudness(std::move(onLoudnessCallback)) {
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(loudnessAnalyserSettings);
+
+        // Wire up the index update callback to update the UI display
+        loudnessAnalyser.onIndexUpdate =
+            [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](
+                float i10s, float i1m, float i5m, float range) {
+                juce::MessageManager::callAsync([safeThis, i10s, i1m, i5m, range]() {
+                    if (safeThis != nullptr) {
+                        safeThis->loudnessAnalyserSettings.updateIndexDisplay(
+                            i10s, i1m, i5m, range);
+                    }
+                });
+            };
     }
 
     //==============================================================================
