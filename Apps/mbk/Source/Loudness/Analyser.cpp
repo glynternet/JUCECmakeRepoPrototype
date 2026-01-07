@@ -78,8 +78,18 @@ void Analyser::processingThreadMain() {
         forwardFFT.performFrequencyOnlyForwardTransform(fftData);
         auto level = calculateLevel();
 
+        // Update long-term loudness statistics
+        loudnessIndex.update(level);
+
         if (onLoudnessResult != nullptr) {
             onLoudnessResult(level);
+        }
+
+        if (onIndexUpdate != nullptr) {
+            onIndexUpdate(loudnessIndex.getIndex10s(),
+                          loudnessIndex.getIndex1m(),
+                          loudnessIndex.getIndex5m(),
+                          loudnessIndex.getRange());
         }
     }
 }
@@ -184,5 +194,6 @@ float Analyser::calculateLoudness(float* data, int dataSize) const {
 void Analyser::setSampleRate(double rate) {
     sampleRate = rate;
     aWeighting.prepare(fftSize, sampleRate);
+    loudnessIndex.setSampleRate(sampleRate);
 }
 } // namespace Loudness

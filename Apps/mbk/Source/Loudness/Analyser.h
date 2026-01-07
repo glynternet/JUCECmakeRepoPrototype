@@ -12,6 +12,7 @@
 #include "RangeAdapter.h"
 #include "AWeighting.h"
 #include "Loudness.h"
+#include "LoudnessIndex.h"
 
 namespace Loudness {
 
@@ -125,6 +126,13 @@ public:
 
     /** Decay effect preventing abrupt drops in output value. */
     TailOff decayLength;
+
+    /** Long-term loudness statistics (Index and Range at multiple time scales). */
+    LoudnessIndex loudnessIndex{fftSize};
+
+    /** Callback invoked with index values [0-10 scale] after each processing cycle.
+     *  Params: (index10s, index1m, index5m, range) */
+    std::function<void(float, float, float, float)> onIndexUpdate;
 
     /** Current weighting mode (Flat or AWeighted) */
     WeightingMode weightingMode = WeightingMode::AWeighted;

@@ -12,7 +12,8 @@ juce_add_console_app(UnitTestRunner PRODUCT_NAME "Unit Test Runner")
 target_sources(UnitTestRunner PRIVATE
     Tests.cpp
     LoudnessTests.cpp
-    AdaptiveRangeTest.cpp)
+    AdaptiveRangeTest.cpp
+    LoudnessIndexTest.cpp)
 
 target_compile_definitions(UnitTestRunner PRIVATE
         JUCE_WEB_BROWSER=0
