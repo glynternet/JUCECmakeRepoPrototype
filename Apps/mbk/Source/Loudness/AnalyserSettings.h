@@ -42,8 +42,7 @@ public:
                 0.8f,
                 0.5f,
                 [&loudnessAnalyser](const double min, const double max) {
-                    loudnessAnalyser.rangeAdapter.setObservedRange((float) min,
-                                                                   (float) max);
+                    loudnessAnalyser.inputRange.setBounds((float) min, (float) max);
                 })
         ,
 
@@ -54,8 +53,7 @@ public:
                     1.0f,
                     0.5f,
                     [&loudnessAnalyser](const double min, const double max) {
-                        loudnessAnalyser.rangeAdapter.setTargetOutRange((float) min,
-                                                                        (float) max);
+                        loudnessAnalyser.setTargetOutRange((float) min, (float) max);
                     })
         ,
 
@@ -65,8 +63,7 @@ public:
                         0.005f,
                         0.01f,
                         [&loudnessAnalyser](const double value) {
-                            loudnessAnalyser.rangeAdapter.setAdaptationRate(
-                                (float) value);
+                            loudnessAnalyser.inputRange.setAdaptationRate((float) value);
                         })
         ,
 
@@ -98,13 +95,13 @@ public:
         // Auto-range controls
         autoRangeEnabled.setToggleState(true, dontSendNotification);
         autoRangeEnabled.onClick = [&loudnessAnalyser, this]() {
-            loudnessAnalyser.rangeAdapter.setEnabled(autoRangeEnabled.getToggleState());
+            loudnessAnalyser.inputRange.setEnabled(autoRangeEnabled.getToggleState());
             updateAdaptationSpeedVisibility();
         };
         addAndMakeVisible(autoRangeEnabled);
 
         rangeLocked.onClick = [&loudnessAnalyser, this]() {
-            loudnessAnalyser.rangeAdapter.setLocked(rangeLocked.getToggleState());
+            loudnessAnalyser.inputRange.setLocked(rangeLocked.getToggleState());
         };
         addAndMakeVisible(rangeLocked);
 

@@ -112,16 +112,16 @@ float Analyser::calculateLevel() {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
-    // Feed raw level to adapter and sync ranges to ValueShaper
-    rangeAdapter.update(level);
-    if (rangeAdapter.isEnabled() && !rangeAdapter.isLocked()) {
+    // Feed raw level to adaptive range and sync to ValueShaper
+    inputRange.update(level);
+    if (inputRange.isEnabled() && !inputRange.isLocked()) {
         // Set observed input range (learned from content)
-        valueShaper.setInMin(rangeAdapter.getObservedMin());
-        valueShaper.setInMax(rangeAdapter.getObservedMax());
+        valueShaper.setInMin(inputRange.getMin());
+        valueShaper.setInMax(inputRange.getMax());
     }
     // Always apply target output range (user-configurable)
-    valueShaper.setOutMin(rangeAdapter.getTargetOutMin());
-    valueShaper.setOutMax(rangeAdapter.getTargetOutMax());
+    valueShaper.setOutMin(targetOutMin.load(std::memory_order_relaxed));
+    valueShaper.setOutMax(targetOutMax.load(std::memory_order_relaxed));
 
     level = smoother.add(valueShaper.shape(level));
     level = decayLength.getValue(level);

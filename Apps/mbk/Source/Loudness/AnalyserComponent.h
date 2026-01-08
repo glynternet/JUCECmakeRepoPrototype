@@ -119,10 +119,10 @@ private:
                 safeThis->valueHistoryComp.addLevel(level);
 
                 // Optionally display observed input range (for debugging/feedback)
-                if (safeThis->loudnessAnalyser.rangeAdapter.isEnabled()) {
+                if (safeThis->loudnessAnalyser.inputRange.isEnabled()) {
                     safeThis->loudnessAnalyserSettings.updateObservedRangeDisplay(
-                        safeThis->loudnessAnalyser.rangeAdapter.getObservedMin(),
-                        safeThis->loudnessAnalyser.rangeAdapter.getObservedMax());
+                        safeThis->loudnessAnalyser.inputRange.getMin(),
+                        safeThis->loudnessAnalyser.inputRange.getMax());
                 }
 
                 if (level != safeThis->lastLevelSent) {

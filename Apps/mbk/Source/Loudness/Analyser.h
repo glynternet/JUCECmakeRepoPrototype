@@ -9,7 +9,7 @@
 #include "ValueShaper.h"
 #include "Smoother.h"
 #include "TailOff.h"
-#include "RangeAdapter.h"
+#include "AdaptiveRange.h"
 #include "AWeighting.h"
 #include "Loudness.h"
 #include "LoudnessIndex.h"
@@ -35,7 +35,7 @@ enum class WeightingMode {
  *                                          ↓
  *                               Loudness Calculation
  *                                          ↓
- *                               RangeAdapter (learns input range)
+ *                               AdaptiveRange (learns input range)
  *                                          ↓
  *                               ValueShaper (range mapping)
  *                                          ↓
@@ -58,13 +58,13 @@ enum class WeightingMode {
  * 2. **FFT Transform**: Hann-windowed frequency-only forward FFT (256 samples)
  * 3. **Band Selection**: Extract frequency range (configurable, default 2-13% of Nyquist)
  * 4. **Loudness Calc**: Convert magnitudes to loudness (Perceptual or Linear mode)
- * 5. **Range Adaptation**: RangeAdapter learns input range from content
+ * 5. **Range Adaptation**: AdaptiveRange learns input range from content
  * 6. **Value Shaping**: Remap [observed input range] → [target output range]
  * 7. **Smoothing**: EWMA filter (configurable smoothing, default 0.1)
  * 8. **Decay**: TailOff prevents abrupt drops (configurable coefficient, default 0.8)
  * 9. **Final Clamp**: Output clamped to [0.0, 1.0]
  *
- * @see RangeAdapter, ValueShaper, Smoother, TailOff for individual stage details
+ * @see AdaptiveRange, ValueShaper, Smoother, TailOff for individual stage details
  */
 class Analyser {
 public:
@@ -118,8 +118,20 @@ public:
     /** Maps raw loudness to output range. Adjust inMin/inMax for sensitivity. */
     ValueShaper valueShaper {0.0F, 1.0F, 0.0F, 1.0F};
 
-    /** Automatic range adaptation. Learns input range and maps to target output range. */
-    RangeAdapter rangeAdapter {0.1F, 0.8F, 0.0F, 1.0F, 0.005F};
+    /** Adaptive input range tracking. Learns observed min/max from audio content. */
+    AdaptiveRange inputRange {0.1F, 0.8F, 0.005F};
+
+    /** Target output minimum (user-configurable via UI) */
+    std::atomic<float> targetOutMin {0.0F};
+
+    /** Target output maximum (user-configurable via UI) */
+    std::atomic<float> targetOutMax {1.0F};
+
+    /** Set target output range (called when user adjusts slider) */
+    void setTargetOutRange(float outMin, float outMax) noexcept {
+        targetOutMin.store(outMin, std::memory_order_relaxed);
+        targetOutMax.store(outMax, std::memory_order_relaxed);
+    }
 
     /** EWMA smoothing filter. Higher smoothing = smoother but less responsive output. */
     Smoother smoother;
