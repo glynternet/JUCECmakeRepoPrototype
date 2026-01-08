@@ -59,7 +59,7 @@ public:
                     })
         ,
 
-        adaptationSpeed("Range Adapt Rate",
+        adaptationSpeed("Auto Adapt Rate",
                         0.0001f,
                         0.05f,
                         0.005f,
@@ -99,6 +99,7 @@ public:
         autoRangeEnabled.setToggleState(true, dontSendNotification);
         autoRangeEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.rangeAdapter.setEnabled(autoRangeEnabled.getToggleState());
+            updateAdaptationSpeedVisibility();
         };
         addAndMakeVisible(autoRangeEnabled);
 
@@ -151,6 +152,11 @@ public:
     }
 
 private:
+    void updateAdaptationSpeedVisibility() {
+        adaptationSpeed.setVisible(autoRangeEnabled.getToggleState());
+        resized();
+    }
+
     /** Format a frequency value as Hz or kHz for display */
     static String formatHz(double hz) {
         if (hz >= 1000.0)
@@ -176,9 +182,6 @@ private:
 
     void resized() override {
         auto bounds = getLocalBounds().reduced(10);
-        if (bounds.getHeight() > 380) {
-            bounds = bounds.removeFromTop(380);
-        }
 
         // Frequency band slider (has value label underneath)
         frequencyProcessingBand.setBounds(bounds.removeFromTop(40));
@@ -189,24 +192,30 @@ private:
         // Output range slider (user-controlled target output)
         outputRange.setBounds(bounds.removeFromTop(30));
 
-        // Toggle buttons on their own row
-        auto toggleRow = bounds.removeFromTop(25);
-        toggleRow.removeFromLeft(90); // Align with sliders (skip label area)
-        autoRangeEnabled.setBounds(toggleRow.removeFromLeft(50));
-        rangeLocked.setBounds(toggleRow.removeFromLeft(50));
-        aWeightingEnabled.setBounds(toggleRow.removeFromLeft(70));
-        perceptualModeEnabled.setBounds(toggleRow.removeFromLeft(80));
+        // Auto range toggles row
+        auto autoRangeRow = bounds.removeFromTop(25);
+        autoRangeRow.removeFromLeft(90); // Align with sliders (skip label area)
+        autoRangeEnabled.setBounds(autoRangeRow.removeFromLeft(50));
+        rangeLocked.setBounds(autoRangeRow.removeFromLeft(50));
 
-        // Adaptation speed slider
-        adaptationSpeed.setBounds(bounds.removeFromTop(30));
+        // Adaptation speed slider (only shown when Auto is enabled)
+        if (adaptationSpeed.isVisible()) {
+            adaptationSpeed.setBounds(bounds.removeFromTop(30));
+        }
 
-        auto remaining = bounds;
-        decayLength.setBounds(remaining.removeFromTop(remaining.getHeight() / 3));
-        smoothing.setBounds(remaining.removeFromTop(remaining.getHeight() / 2));
+        // Loudness calculation toggles row
+        auto loudnessRow = bounds.removeFromTop(25);
+        loudnessRow.removeFromLeft(90); // Align with sliders (skip label area)
+        aWeightingEnabled.setBounds(loudnessRow.removeFromLeft(70));
+        perceptualModeEnabled.setBounds(loudnessRow.removeFromLeft(80));
+
+        // Fixed-height sliders
+        decayLength.setBounds(bounds.removeFromTop(30));
+        smoothing.setBounds(bounds.removeFromTop(30));
 
         // Loudness Index display
         indexDisplay.setBounds(
-            remaining.removeFromTop(LoudnessIndexDisplay::preferredHeight));
+            bounds.removeFromTop(LoudnessIndexDisplay::preferredHeight));
     }
 
     double sampleRate;
