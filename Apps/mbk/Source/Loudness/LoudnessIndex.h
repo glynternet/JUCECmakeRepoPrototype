@@ -1,6 +1,8 @@
 #pragma once
 
 #include <atomic>
+#include <cmath>
+#include <limits>
 #include "AdaptiveRange.h"
 
 namespace Loudness {
@@ -63,11 +65,12 @@ public:
         float old1m = ema1m_.load(std::memory_order_relaxed);
         float old5m = ema5m_.load(std::memory_order_relaxed);
 
-        ema10s_.store(a10s * level + (1.0f - a10s) * old10s,
+        // Initialize to first value if uninitialized (NaN)
+        ema10s_.store(std::isnan(old10s) ? level : a10s * level + (1.0f - a10s) * old10s,
                       std::memory_order_relaxed);
-        ema1m_.store(a1m * level + (1.0f - a1m) * old1m,
+        ema1m_.store(std::isnan(old1m) ? level : a1m * level + (1.0f - a1m) * old1m,
                      std::memory_order_relaxed);
-        ema5m_.store(a5m * level + (1.0f - a5m) * old5m,
+        ema5m_.store(std::isnan(old5m) ? level : a5m * level + (1.0f - a5m) * old5m,
                      std::memory_order_relaxed);
 
         // Update range tracking
@@ -138,9 +141,10 @@ private:
     std::atomic<float> alpha5m_{0.0f};
 
     // EWMA state for each time window (internal scale 0-1)
-    std::atomic<float> ema10s_{0.5f};
-    std::atomic<float> ema1m_{0.5f};
-    std::atomic<float> ema5m_{0.5f};
+    // NaN indicates uninitialized - will take first incoming value
+    std::atomic<float> ema10s_{std::numeric_limits<float>::quiet_NaN()};
+    std::atomic<float> ema1m_{std::numeric_limits<float>::quiet_NaN()};
+    std::atomic<float> ema5m_{std::numeric_limits<float>::quiet_NaN()};
 
     // Range tracking using AdaptiveRange
     AdaptiveRange outputRange_;
