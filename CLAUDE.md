@@ -94,6 +94,22 @@ This is a JUCE 7 multi-project CMake repository using CPM.cmake for package mana
 
 Uses clang-format with attached brace style (K&R), 4-space indentation, 90 column limit. See `_clang-format` for full configuration.
 
+**Before writing code, review `.clang-tidy`** to understand enforced checks and naming conventions.
+
+## Naming Conventions
+
+From `.clang-tidy` `readability-identifier-naming` checks:
+
+| Identifier Type | Case Style | Example |
+|-----------------|------------|---------|
+| Classes | `CamelCase` | `AudioProcessor` |
+| Namespaces | `CamelCase` | `Loudness` |
+| Functions | `camelBack` | `processBlock` |
+| Variables | `camelBack` | `sampleRate` |
+| Parameters | `camelBack` | `numSamples` |
+| Members | `camelBack` | `bufferSize` |
+| Constants | `camelBack` | `defaultValue` |
+
 ## Array Usage
 
 **Use `std::array` with `.at()` in UI/non-critical code:**
@@ -178,4 +194,8 @@ After any code changes:
    ./scripts/cmake.sh --build build-windows --config Debug --target UnitTestRunner
    ./build-windows/Tests/UnitTestRunner_artefacts/Debug/UnitTestRunner.exe
    ```
-4. Fix any issues before committing
+4. Auto-fix formatting before committing:
+   ```bash
+   ./scripts/lint.sh --format-fix
+   ```
+5. Fix any remaining issues before committing
