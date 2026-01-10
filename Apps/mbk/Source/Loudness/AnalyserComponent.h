@@ -146,6 +146,6 @@ private:
     static constexpr float initialDecayExponent = 0.8f;
     static constexpr float initialSmoothing = 0.1f;
     static constexpr double initialProcessingBandLow = 0.02;
-    static constexpr double initialProcessingBandHigh = 0.13;
+    static constexpr double initialProcessingBandHigh = 0.30;
 };
 }  // namespace Loudness
