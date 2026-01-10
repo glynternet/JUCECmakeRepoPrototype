@@ -18,6 +18,9 @@ public:
                               const float initialOutputMin,
                               const float initialOutputMax,
                               const float initialAdaptationRate,
+                              const bool initialAutoRangeEnabled,
+                              const bool initialAWeightingEnabled,
+                              const bool initialPerceptualMode,
                               double initialSampleRate = 48000.0)
         : sampleRate(initialSampleRate)
         // Bin range is [0, maxBins-1]. Proportions are converted to bins by truncation
@@ -98,7 +101,7 @@ public:
         addAndMakeVisible(smoothing);
 
         // Auto-range controls
-        autoRangeEnabled.setToggleState(true, dontSendNotification);
+        autoRangeEnabled.setToggleState(initialAutoRangeEnabled, dontSendNotification);
         autoRangeEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.inputRange.setEnabled(autoRangeEnabled.getToggleState());
             updateAdaptationSpeedVisibility();
@@ -112,8 +115,8 @@ public:
 
         addAndMakeVisible(adaptationSpeed);
 
-        // A-weighting toggle (on by default for frequency-corrected perception)
-        aWeightingEnabled.setToggleState(true, dontSendNotification);
+        // A-weighting toggle (frequency-corrected perception)
+        aWeightingEnabled.setToggleState(initialAWeightingEnabled, dontSendNotification);
         aWeightingEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.setWeightingMode(aWeightingEnabled.getToggleState()
                                                   ? WeightingMode::AWeighted
@@ -121,11 +124,11 @@ public:
         };
         addAndMakeVisible(aWeightingEnabled);
 
-        // Perceptual loudness toggle (on by default for Stevens' Power Law)
+        // Perceptual loudness toggle (Stevens' Power Law)
         // When enabled, uses power-domain calculation with Stevens exponent (0.3)
         // for true perceptual linearity where 0.5 feels half as loud as 1.0.
         // When disabled, uses legacy linear amplitude mapping.
-        perceptualModeEnabled.setToggleState(true, dontSendNotification);
+        perceptualModeEnabled.setToggleState(initialPerceptualMode, dontSendNotification);
         perceptualModeEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.setMappingMode(perceptualModeEnabled.getToggleState()
                                                 ? MappingMode::Perceptual

@@ -166,13 +166,13 @@ public:
      * @brief Current mapping mode (Linear or Perceptual).
      *
      * Controls how FFT magnitudes are converted to loudness values:
-     * - **Linear**: Legacy behavior, simple amplitude average
-     * - **Perceptual** (default): Stevens' Power Law for true perceptual linearity
+     * - **Linear** (default): Simple amplitude average
+     * - **Perceptual**: Stevens' Power Law for true perceptual linearity
      *
      * @see MappingMode for mode descriptions
      * @see LoudnessCalculator::CalculatePerceptual() for the perceptual algorithm
      */
-    MappingMode mappingMode = MappingMode::Perceptual;
+    MappingMode mappingMode = MappingMode::Linear;
 
     /**
      * @brief Set the mapping mode for loudness calculation.
