@@ -12,6 +12,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible(uiLogger);
     addAndMakeVisible(audioSource);
+    addAndMakeVisible(versionLabel);
     addAndMakeVisible(oscComponent);
 
     audioSource.onPlaying = [this]() { oscSender.sendFilePlaying(); };
@@ -51,7 +52,9 @@ void MainComponent::resized() {
     auto settings = area.removeFromLeft(area.proportionOfWidth(0.5));
 
     audioSource.setBounds(settings.removeFromTop(410));
-    oscComponent.setBounds(settings.removeFromBottom(50));
+    auto bottomRow = settings.removeFromBottom(50);
+    versionLabel.setBounds(bottomRow.removeFromLeft(100));
+    oscComponent.setBounds(bottomRow);
     uiLogger.setBounds(settings);
 
     tempoSynthesizerComponent.setBounds(area.removeFromBottom(25));
