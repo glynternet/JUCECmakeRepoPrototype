@@ -120,13 +120,11 @@ float Analyser::calculateLevel() {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
-    // Feed raw level to adaptive range and sync to ValueShaper
+    // Feed raw level to adaptive range (only learns if enabled && !locked)
     inputRange.update(level);
-    if (inputRange.isEnabled() && !inputRange.isLocked()) {
-        // Set observed input range (learned from content)
-        valueShaper.setInMin(inputRange.getMin());
-        valueShaper.setInMax(inputRange.getMax());
-    }
+    // Always apply current input range to ValueShaper (whether from auto or manual)
+    valueShaper.setInMin(inputRange.getMin());
+    valueShaper.setInMax(inputRange.getMax());
     // Always apply target output range (user-configurable)
     valueShaper.setOutMin(targetOutMin.load(std::memory_order_relaxed));
     valueShaper.setOutMax(targetOutMax.load(std::memory_order_relaxed));

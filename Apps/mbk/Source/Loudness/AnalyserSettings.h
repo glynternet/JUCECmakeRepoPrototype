@@ -104,14 +104,15 @@ public:
         autoRangeEnabled.setToggleState(initialAutoRangeEnabled, dontSendNotification);
         autoRangeEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.inputRange.setEnabled(autoRangeEnabled.getToggleState());
-            updateAdaptationSpeedVisibility();
+            updateAutoRelatedVisibility();
         };
         addAndMakeVisible(autoRangeEnabled);
 
         rangeLocked.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.inputRange.setLocked(rangeLocked.getToggleState());
         };
-        addAndMakeVisible(rangeLocked);
+        rangeLocked.setVisible(initialAutoRangeEnabled);
+        addChildComponent(rangeLocked);
 
         addAndMakeVisible(adaptationSpeed);
 
@@ -157,8 +158,10 @@ public:
     }
 
 private:
-    void updateAdaptationSpeedVisibility() {
-        adaptationSpeed.setVisible(autoRangeEnabled.getToggleState());
+    void updateAutoRelatedVisibility() {
+        const auto autoEnabled = autoRangeEnabled.getToggleState();
+        adaptationSpeed.setVisible(autoEnabled);
+        rangeLocked.setVisible(autoEnabled);
         resized();
     }
 
@@ -208,7 +211,9 @@ private:
         auto autoRangeRow = bounds.removeFromTop(25);
         autoRangeRow.removeFromLeft(90); // Align with sliders (skip label area)
         autoRangeEnabled.setBounds(autoRangeRow.removeFromLeft(50));
-        rangeLocked.setBounds(autoRangeRow.removeFromLeft(50));
+        if (rangeLocked.isVisible()) {
+            rangeLocked.setBounds(autoRangeRow.removeFromLeft(50));
+        }
 
         // 4. Adaptation speed slider (only shown when Auto is enabled)
         if (adaptationSpeed.isVisible()) {
