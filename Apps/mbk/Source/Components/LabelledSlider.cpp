@@ -68,9 +68,8 @@ LabelledSlider::LabelledSlider(const String& labelText,
     : LabelledSlider(labelText) {
     _slider.setSliderStyle(Slider::TwoValueHorizontal);
     _slider.setRange(rangeMin, rangeMax);
+    _slider.setMinAndMaxValues(valueLow, valueHigh, dontSendNotification);
     _slider.setSkewFactor(skewFactor);
-    _slider.setMinValue(valueLow);
-    _slider.setMaxValue(valueHigh);
     _slider.onValueChange = [this, onValueChange = std::move(onValueChange)]() {
         onValueChange(this->_slider.getMinValue(), this->_slider.getMaxValue());
     };
@@ -94,8 +93,7 @@ LabelledSlider::LabelledSlider(const String& labelText,
 
     _slider.setSliderStyle(Slider::TwoValueHorizontal);
     _slider.setRange(rangeMin, rangeMax, 1.0); // interval of 1 for discrete steps
-    _slider.setMinValue(valueLow);
-    _slider.setMaxValue(valueHigh);
+    _slider.setMinAndMaxValues(valueLow, valueHigh, dontSendNotification);
 
     _valueLabel.setJustificationType(Justification::centredLeft);
     _valueLabel.setFont(Font(12.0F));

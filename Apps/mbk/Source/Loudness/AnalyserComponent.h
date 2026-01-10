@@ -45,6 +45,16 @@ namespace Loudness {
  * FFT processing is event-driven (triggered when FIFO buffer fills) for minimum latency.
  */
 class AnalyserComponent : public juce::Component {
+    static constexpr float initialDecayExponent = 0.8F;
+    static constexpr float initialSmoothing = 0.4F;
+    static constexpr double initialProcessingBandLow = 0.02;
+    static constexpr double initialProcessingBandHigh = 0.30;
+    static constexpr float initialRangeInMin = 0.1F;
+    static constexpr float initialRangeInMax = 0.8F;
+    static constexpr float initialOutputMin = 0.4F;
+    static constexpr float initialOutputMax = 1.0F;
+    static constexpr float initialAdaptationRate = 0.005F;
+
 public:
     /**
      * @param onLoudnessCallback Called with each new loudness value [0.0-1.0].
@@ -76,7 +86,7 @@ public:
 
         valueHistoryComp.setBounds(bounds);
         loudnessAnalyserSettings.setBounds(
-            bounds.getProportion(juce::Rectangle(0.f, 0.f, 0.6f, 1.f)));
+            bounds.getProportion(juce::Rectangle(0.F, 0.f, 0.6f, 1.f)));
     }
 
     //==============================================================================
@@ -97,7 +107,7 @@ public:
 
 private:
     std::function<bool(float)> onLoudness;
-    float lastLevelSent = -10.f; // set to strange value to start off with
+    float lastLevelSent = -10.F; // set to strange value to start off with
 
     Loudness::Analyser loudnessAnalyser {
         [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](float level) {
@@ -126,26 +136,32 @@ private:
                 }
 
                 if (level != safeThis->lastLevelSent) {
-                    if (safeThis->onLoudness && safeThis->onLoudness(level))
+                    if (safeThis->onLoudness && safeThis->onLoudness(level)) {
                         safeThis->lastLevelSent = level;
+                    }
                 }
             });
         },
         initialProcessingBandLow,
         initialProcessingBandHigh,
         initialSmoothing,
-        initialDecayExponent};
+        initialDecayExponent,
+        initialRangeInMin,
+        initialRangeInMax,
+        initialOutputMin,
+        initialOutputMax,
+        initialAdaptationRate};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
                                                initialProcessingBandLow,
                                                initialProcessingBandHigh,
                                                initialSmoothing,
-                                               initialDecayExponent};
+                                               initialDecayExponent,
+                                               initialRangeInMin,
+                                               initialRangeInMax,
+                                               initialOutputMin,
+                                               initialOutputMax,
+                                               initialAdaptationRate};
 
     ValueHistoryComponent valueHistoryComp;
-
-    static constexpr float initialDecayExponent = 0.8f;
-    static constexpr float initialSmoothing = 0.1f;
-    static constexpr double initialProcessingBandLow = 0.02;
-    static constexpr double initialProcessingBandHigh = 0.30;
 };
 }  // namespace Loudness

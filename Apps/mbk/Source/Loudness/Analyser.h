@@ -77,12 +77,22 @@ public:
      * @param processingBandIndexHigh Upper frequency bound as proportion of Nyquist [0-1]
      * @param initialSmoothing EWMA smoothing amount (0.0 = none, 1.0 = heavy)
      * @param initialDecayExponent Decay coefficient [0-0.9999] (higher = slower decay)
+     * @param initialRangeInMin Initial input range minimum
+     * @param initialRangeInMax Initial input range maximum
+     * @param initialOutputMin Initial output range minimum
+     * @param initialOutputMax Initial output range maximum
+     * @param initialAdaptationRate Initial adaptation rate for input range
      */
     explicit Analyser(std::function<void(float)> onLoudnessResult,
                       float processingBandIndexLow,
                       float processingBandIndexHigh,
                       float initialSmoothing,
-                      float initialDecayExponent);
+                      float initialDecayExponent,
+                      float initialRangeInMin,
+                      float initialRangeInMax,
+                      float initialOutputMin,
+                      float initialOutputMax,
+                      float initialAdaptationRate);
 
     ~Analyser();
 
@@ -119,13 +129,13 @@ public:
     ValueShaper valueShaper {0.0F, 1.0F, 0.0F, 1.0F};
 
     /** Adaptive input range tracking. Learns observed min/max from audio content. */
-    AdaptiveRange inputRange {0.1F, 0.8F, 0.005F};
+    AdaptiveRange inputRange;
 
     /** Target output minimum (user-configurable via UI) */
-    std::atomic<float> targetOutMin {0.0F};
+    std::atomic<float> targetOutMin;
 
     /** Target output maximum (user-configurable via UI) */
-    std::atomic<float> targetOutMax {1.0F};
+    std::atomic<float> targetOutMax;
 
     /** Set target output range (called when user adjusts slider) */
     void setTargetOutRange(float outMin, float outMax) noexcept {

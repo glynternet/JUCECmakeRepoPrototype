@@ -11,10 +11,18 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
                    float processingBandIndexLow,
                    float processingBandIndexHigh,
                    float initialSmoothing,
-                   float initialDecayExponent)
+                   float initialDecayExponent,
+                   float initialRangeInMin,
+                   float initialRangeInMax,
+                   float initialOutputMin,
+                   float initialOutputMax,
+                   float initialAdaptationRate)
     : onLoudnessResult(std::move(onLoudnessResultCallback))
     , processingBandLow(processingBandIndexLow)
     , processingBandHigh(processingBandIndexHigh)
+    , inputRange(initialRangeInMin, initialRangeInMax, initialAdaptationRate)
+    , targetOutMin(initialOutputMin)
+    , targetOutMax(initialOutputMax)
     , smoother(initialSmoothing)
     , decayLength(initialDecayExponent) {
     processingThread = std::thread(&Analyser::processingThreadMain, this);

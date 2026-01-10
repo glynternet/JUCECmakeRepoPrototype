@@ -13,6 +13,11 @@ public:
                               const double initialProcessingBandHigh,
                               const float initialSmoothing,
                               const float initialDecayExponent,
+                              const float initialRangeInMin,
+                              const float initialRangeInMax,
+                              const float initialOutputMin,
+                              const float initialOutputMax,
+                              const float initialAdaptationRate,
                               double initialSampleRate = 48000.0)
         : sampleRate(initialSampleRate)
         // Bin range is [0, maxBins-1]. Proportions are converted to bins by truncation
@@ -36,10 +41,10 @@ public:
 
         // Observed input range (learned from audio content, editable)
         rangeIn("Range In",
-                0.0f,
-                1.0f,
-                0.0f,
-                0.7f,
+                0.0F,
+                1.0F,
+                initialRangeInMin,
+                initialRangeInMax,
                 0.5f,
                 [&loudnessAnalyser](const double min, const double max) {
                     loudnessAnalyser.inputRange.setBounds((float) min, (float) max);
@@ -49,8 +54,8 @@ public:
         outputRange("Output Range",
                     0.0f,
                     1.0f,
-                    0.0f,
-                    1.0f,
+                    initialOutputMin,
+                    initialOutputMax,
                     0.5f,
                     [&loudnessAnalyser](const double min, const double max) {
                         loudnessAnalyser.setTargetOutRange((float) min, (float) max);
@@ -60,7 +65,7 @@ public:
         adaptationSpeed("Auto Adapt Rate",
                         0.0001f,
                         0.05f,
-                        0.005f,
+                        initialAdaptationRate,
                         0.01f,
                         [&loudnessAnalyser](const double value) {
                             loudnessAnalyser.inputRange.setAdaptationRate((float) value);
@@ -82,7 +87,7 @@ public:
                   0.f,
                   1.f,
                   initialSmoothing,
-                  0.05f,
+                  0.5f,
                   [&loudnessAnalyser](const double value) {
                       loudnessAnalyser.smoother.setSmoothing((float) value);
                   }) {
