@@ -180,37 +180,43 @@ private:
     void resized() override {
         auto bounds = getLocalBounds().reduced(10);
 
-        // Frequency band slider (has value label underneath)
+        // UI ordered to match processing pipeline:
+        // 1. Band Selection → 2. A-Weighting → 3. Loudness Calc →
+        // 4. Adaptive Range → 5. Value Shaping → 6. Smoothing → 7. Decay
+
+        // 1. Frequency band slider (has value label underneath)
         frequencyProcessingBand.setBounds(bounds.removeFromTop(40));
 
-        // Observed input range slider (auto-updated from audio content)
-        rangeIn.setBounds(bounds.removeFromTop(30));
-
-        // Output range slider (user-controlled target output)
-        outputRange.setBounds(bounds.removeFromTop(30));
-
-        // Auto range toggles row
-        auto autoRangeRow = bounds.removeFromTop(25);
-        autoRangeRow.removeFromLeft(90); // Align with sliders (skip label area)
-        autoRangeEnabled.setBounds(autoRangeRow.removeFromLeft(50));
-        rangeLocked.setBounds(autoRangeRow.removeFromLeft(50));
-
-        // Adaptation speed slider (only shown when Auto is enabled)
-        if (adaptationSpeed.isVisible()) {
-            adaptationSpeed.setBounds(bounds.removeFromTop(30));
-        }
-
-        // Loudness calculation toggles row
+        // 2-3. Loudness calculation toggles row (A-weighting, then perceptual mode)
         auto loudnessRow = bounds.removeFromTop(25);
         loudnessRow.removeFromLeft(90); // Align with sliders (skip label area)
         aWeightingEnabled.setBounds(loudnessRow.removeFromLeft(70));
         perceptualModeEnabled.setBounds(loudnessRow.removeFromLeft(80));
 
-        // Fixed-height sliders
-        decayLength.setBounds(bounds.removeFromTop(30));
+        // 4. Observed input range slider (auto-updated from audio content)
+        rangeIn.setBounds(bounds.removeFromTop(30));
+
+        // 4. Auto range toggles row
+        auto autoRangeRow = bounds.removeFromTop(25);
+        autoRangeRow.removeFromLeft(90); // Align with sliders (skip label area)
+        autoRangeEnabled.setBounds(autoRangeRow.removeFromLeft(50));
+        rangeLocked.setBounds(autoRangeRow.removeFromLeft(50));
+
+        // 4. Adaptation speed slider (only shown when Auto is enabled)
+        if (adaptationSpeed.isVisible()) {
+            adaptationSpeed.setBounds(bounds.removeFromTop(30));
+        }
+
+        // 5. Output range slider (user-controlled target output)
+        outputRange.setBounds(bounds.removeFromTop(30));
+
+        // 6. Smoothing
         smoothing.setBounds(bounds.removeFromTop(30));
 
-        // Loudness Index display
+        // 7. Decay
+        decayLength.setBounds(bounds.removeFromTop(30));
+
+        // Loudness Index display (statistics output, not a pipeline stage)
         indexDisplay.setBounds(
             bounds.removeFromTop(LoudnessIndexDisplay::preferredHeight));
     }
