@@ -33,7 +33,7 @@ public:
     AdaptiveRange(float initialMin,
                   float initialMax,
                   float adaptRate,
-                  float minSep = 0.2f)
+                  float minSep = 0.3F)
         : observedMin(initialMin)
         , observedMax(initialMax)
         , alpha(adaptRate)
