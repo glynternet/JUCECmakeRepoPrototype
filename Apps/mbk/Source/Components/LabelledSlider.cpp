@@ -76,13 +76,48 @@ LabelledSlider::LabelledSlider(const String& labelText,
 }
 
 LabelledSlider::LabelledSlider(const String& labelText,
+                               const float rangeMin,
+                               const float rangeMax,
+                               const float valueLow,
+                               const float valueHigh,
+                               const float skewFactor,
+                               std::function<void(double low, double high)> onValueChange,
+                               std::function<String(double low, double high)> formatLabel)
+    : _formatLabel(std::move(formatLabel))
+    , _hasValueLabel(true) {
+    addAndMakeVisible(_slider);
+    _slider.setTextBoxStyle(Slider::NoTextBox, false, 160, _slider.getTextBoxHeight());
+
+    addAndMakeVisible(_label);
+    _label.setText(labelText, dontSendNotification);
+    _label.attachToComponent(&_slider, true);
+
+    _slider.setSliderStyle(Slider::TwoValueHorizontal);
+    _slider.setRange(rangeMin, rangeMax);
+    _slider.setMinAndMaxValues(valueLow, valueHigh, dontSendNotification);
+    _slider.setSkewFactor(skewFactor);
+
+    _valueLabel.setJustificationType(Justification::centredLeft);
+    _valueLabel.setFont(Font(12.0F));
+    addAndMakeVisible(_valueLabel);
+    updateValueLabel();
+
+    _slider.onValueChange = [this, onValueChange = std::move(onValueChange)]() {
+        onValueChange(this->_slider.getMinValue(), this->_slider.getMaxValue());
+        updateValueLabel();
+    };
+}
+
+LabelledSlider::LabelledSlider(const String& labelText,
                                const int rangeMin,
                                const int rangeMax,
                                const int valueLow,
                                const int valueHigh,
                                std::function<void(int low, int high)> onValueChange,
                                std::function<String(int low, int high)> formatLabel)
-    : _formatLabel(std::move(formatLabel))
+    : _formatLabel([formatLabel = std::move(formatLabel)](double low, double high) {
+        return formatLabel(static_cast<int>(low), static_cast<int>(high));
+    })
     , _hasValueLabel(true) {
     addAndMakeVisible(_slider);
     _slider.setTextBoxStyle(Slider::NoTextBox, false, 160, _slider.getTextBoxHeight());
@@ -110,8 +145,8 @@ LabelledSlider::LabelledSlider(const String& labelText,
 
 void LabelledSlider::updateValueLabel() {
     if (_hasValueLabel && _formatLabel) {
-        int low = static_cast<int>(_slider.getMinValue());
-        int high = static_cast<int>(_slider.getMaxValue());
+        double low = _slider.getMinValue();
+        double high = _slider.getMaxValue();
         _valueLabel.setText(_formatLabel(low, high), dontSendNotification);
     }
 }

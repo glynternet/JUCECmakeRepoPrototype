@@ -51,6 +51,16 @@ public:
                    std::function<void(int low, int high)> onValueChange,
                    std::function<String(int low, int high)> formatLabel);
 
+    // Two-thumb float slider with value label display.
+    LabelledSlider(const String& labelText,
+                   float rangeMin,
+                   float rangeMax,
+                   float valueLow,
+                   float valueHigh,
+                   float skewFactor,
+                   std::function<void(double low, double high)> onValueChange,
+                   std::function<String(double low, double high)> formatLabel);
+
     void resized() override;
 
     /** Update the value label text (call when external state like sample rate changes) */
@@ -68,7 +78,7 @@ private:
     Slider _slider;
     Label _label;
     Label _valueLabel;
-    std::function<String(int, int)> _formatLabel;
+    std::function<String(double, double)> _formatLabel;
     bool _hasValueLabel = false;
 };
 } // namespace Components

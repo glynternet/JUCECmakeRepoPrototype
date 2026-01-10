@@ -48,18 +48,21 @@ public:
                 1.0F,
                 initialRangeInMin,
                 initialRangeInMax,
-                0.5f,
+                1.0F,
                 [&loudnessAnalyser](const double min, const double max) {
                     loudnessAnalyser.inputRange.setBounds((float) min, (float) max);
+                },
+                [](double min, double max) {
+                    return String(min, 3) + " - " + String(max, 3);
                 })
         ,
 
         outputRange("Output Range",
-                    0.0f,
-                    1.0f,
+                    0.0F,
+                    1.0F,
                     initialOutputMin,
                     initialOutputMax,
-                    0.5f,
+                    1.0F,
                     [&loudnessAnalyser](const double min, const double max) {
                         loudnessAnalyser.setTargetOutRange((float) min, (float) max);
                     })
@@ -150,6 +153,7 @@ public:
     void updateObservedRangeDisplay(float min, float max) {
         rangeIn.setMinValue(min);
         rangeIn.setMaxValue(max);
+        rangeIn.updateValueLabel();
     }
 
     /** Update loudness index display (called from message thread via callback) */
@@ -204,8 +208,8 @@ private:
         aWeightingEnabled.setBounds(loudnessRow.removeFromLeft(70));
         perceptualModeEnabled.setBounds(loudnessRow.removeFromLeft(80));
 
-        // 4. Observed input range slider (auto-updated from audio content)
-        rangeIn.setBounds(bounds.removeFromTop(30));
+        // 4. Observed input range slider (auto-updated from audio content, has value label)
+        rangeIn.setBounds(bounds.removeFromTop(40));
 
         // 4. Auto range toggles row
         auto autoRangeRow = bounds.removeFromTop(25);
