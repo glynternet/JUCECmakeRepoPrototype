@@ -69,10 +69,10 @@ public:
         ,
 
         adaptationSpeed("Auto Adapt Rate",
-                        0.0001f,
-                        0.05f,
+                        0.0001F,
+                        0.05F,
                         initialAdaptationRate,
-                        0.01f,
+                        0.01F,
                         [&loudnessAnalyser](const double value) {
                             loudnessAnalyser.inputRange.setAdaptationRate((float) value);
                         })
@@ -82,7 +82,7 @@ public:
                     TailOff::minExponent,
                     TailOff::maxExponent,
                     initialDecayExponent,
-                    jmap(0.90f, TailOff::minExponent, TailOff::maxExponent),
+                    jmap(0.90F, TailOff::minExponent, TailOff::maxExponent),
                     [&loudnessAnalyser](const double exponent) {
                         loudnessAnalyser.decayLength.setMaxDecayCoefficient(
                             (float) exponent);
@@ -90,10 +90,10 @@ public:
         ,
 
         smoothing("Smoothing",
-                  0.f,
-                  1.f,
+                  0.F,
+                  1.F,
                   initialSmoothing,
-                  0.5f,
+                  0.5F,
                   [&loudnessAnalyser](const double value) {
                       loudnessAnalyser.smoother.setSmoothing((float) value);
                   }) {

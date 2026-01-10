@@ -46,12 +46,12 @@ namespace Loudness {
  */
 class AnalyserComponent : public juce::Component {
     static constexpr float initialDecayExponent = 0.8F;
-    static constexpr float initialSmoothing = 0.4F;
+    static constexpr float initialSmoothing = 0.3F;
     static constexpr double initialProcessingBandLow = 0.00;
     static constexpr double initialProcessingBandHigh = 0.30;
     static constexpr float initialRangeInMin = 0.1F;
     static constexpr float initialRangeInMax = 0.8F;
-    static constexpr float initialOutputMin = 0.1F;
+    static constexpr float initialOutputMin = 0.05F;
     static constexpr float initialOutputMax = 1.0F;
     static constexpr float initialAdaptationRate = 0.005F;
     static constexpr bool initialAutoRangeEnabled = true;
