@@ -26,7 +26,10 @@ public:
     void addLevel(float level) {
         ++latestValueIndex;
         latestValueIndex %= historySize;
-        levelHistory[latestValueIndex] = level;
+        // Negative values not yet supported.
+        // TODO: come up with some way to show negative values,
+        //   maybe a separate colour but line at 0, we'll see.
+        levelHistory[latestValueIndex] = level < 0.0F ? 0.0F : level;
         pathNeedsRebuild = true;
         repaint();
     }
