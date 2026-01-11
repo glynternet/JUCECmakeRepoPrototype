@@ -112,57 +112,65 @@ private:
         const float halfHeight = (float) height / 2.0f;
         const float widthF = (float) width;
 
-        // Calculate positions, heights, and zones for each sample
+        // Calculate positions and heights for each sample
         std::vector<float> xPositions(historySize);
         std::vector<float> sampleHeights(historySize);
-        std::vector<int> zones(historySize);
-        std::vector<float> purpleHeights(historySize);
-        std::vector<float> yellowHeights(historySize);
-        std::vector<float> redHeights(historySize);
+        std::vector<bool> purpleActive(historySize);
+        std::vector<bool> yellowActive(historySize);
+        std::vector<bool> redActive(historySize);
 
         for (int i = 0; i < historySize; ++i) {
             const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
             const float level = std::min(levelHistory[bufferIndex], maxDisplayLevel);
             const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
-            const float sampleHeight = level * halfHeight;
 
             xPositions[i] = xPos;
-            sampleHeights[i] = sampleHeight;
-            zones[i] = getZone(level);
+            sampleHeights[i] = level * halfHeight;
 
-            // Assign height to exactly one zone based on level
-            if (zones[i] == zoneRed) {
-                purpleHeights[i] = 0.0f;
-                yellowHeights[i] = 0.0f;
-                redHeights[i] = sampleHeight;
-            } else if (zones[i] == zoneYellow) {
-                purpleHeights[i] = 0.0f;
-                yellowHeights[i] = sampleHeight;
-                redHeights[i] = 0.0f;
-            } else {
-                purpleHeights[i] = sampleHeight;
-                yellowHeights[i] = 0.0f;
-                redHeights[i] = 0.0f;
-            }
+            // Mark exactly one zone as active based on level
+            const int zone = getZone(level);
+            purpleActive[i] = (zone == zonePurple);
+            yellowActive[i] = (zone == zoneYellow);
+            redActive[i] = (zone == zoneRed);
         }
 
-        buildSymmetricPath(purplePath, xPositions, purpleHeights, sampleHeights, zones, zonePurple, halfHeight);
-        buildSymmetricPath(yellowPath, xPositions, yellowHeights, sampleHeights, zones, zoneYellow, halfHeight);
-        buildSymmetricPath(redPath, xPositions, redHeights, sampleHeights, zones, zoneRed, halfHeight);
+        // Build paths for each zone. Each path covers all samples but only has non-zero height
+        // where that zone is active. Higher priority zones (red > yellow > purple) visually
+        // extend into lower priority zones at transitions, creating clean boundaries.
+        buildSymmetricPath(purplePath, xPositions, purpleActive, sampleHeights, halfHeight);
+        buildSymmetricPath(yellowPath, xPositions, yellowActive, sampleHeights, halfHeight);
+        buildSymmetricPath(redPath, xPositions, redActive, sampleHeights, halfHeight);
 
         pathNeedsRebuild = false;
     }
 
+    // Builds a symmetric path (mirrored above and below the centerline) for a single zone.
+    //
+    // The path traces the upper edge from right to left, then the lower edge from left to
+    // right, creating a closed shape. Where active[i] is false, the path follows the centerline.
+    //
+    // Transition direction is determined by comparing adjacent sample heights:
+    // - Height decreased: transitioning to a lower zone → extend to claim the boundary
+    // - Height increased: transitioning to a higher zone → yield the boundary
+    //
+    // This makes higher priority zones visually "claim" boundaries by extending 1 sample
+    // into lower priority territory.
+    //
+    // Parameters:
+    // - path: Output path to build
+    // - xPositions: X coordinate for each sample (index 0 = rightmost/newest)
+    // - active: Whether this zone is active at each sample
+    // - sampleHeights: Actual level height at each sample (regardless of zone)
+    // - halfHeight: Half the component height (centerline y position)
+    //
     // TODO: When transitioning between regions, interpolate so that each region only
     // extends to its threshold boundary. E.g., purple should stop at 0.9 and yellow/red
     // should start from their threshold, rather than one region extending to the other's
     // full height at the transition point.
     void buildSymmetricPath(Path& path,
                             const std::vector<float>& xPositions,
-                            const std::vector<float>& heights,
+                            const std::vector<bool>& active,
                             const std::vector<float>& sampleHeights,
-                            const std::vector<int>& zones,
-                            int myZone,
                             float halfHeight) {
         const int size = (int) xPositions.size();
         if (size < 2) {
@@ -170,74 +178,71 @@ private:
         }
 
         // Upper edge (right to left)
-        path.startNewSubPath(xPositions[0], halfHeight - heights[0]);
+        path.startNewSubPath(xPositions[0], halfHeight - (active[0] ? sampleHeights[0] : 0.0f));
         for (int i = 1; i < size; ++i) {
-            const float prevHeight = heights[i - 1];
-            const float currHeight = heights[i];
-            const int prevZone = zones[i - 1];
-            const int currZone = zones[i];
+            const bool prevActive = active[i - 1];
+            const bool currActive = active[i];
 
-            if (prevHeight > 0.0f && currHeight == 0.0f) {
+            if (prevActive && !currActive) {
                 // Ending (visible to invisible)
-                if (myZone > currZone) {
-                    // Going to lower zone: extend to curr x at curr's level, then drop
+                if (sampleHeights[i] < sampleHeights[i - 1]) {
+                    // Height decreased: going to lower zone, extend then drop
                     path.lineTo(xPositions[i], halfHeight - sampleHeights[i]);
                     path.lineTo(xPositions[i], halfHeight);
                 } else {
-                    // Going to higher zone: don't extend, drop at prev x
+                    // Height increased: going to higher zone, drop at prev x
                     path.lineTo(xPositions[i - 1], halfHeight);
                     path.lineTo(xPositions[i], halfHeight);
                 }
-            } else if (prevHeight == 0.0f && currHeight > 0.0f) {
+            } else if (!prevActive && currActive) {
                 // Starting (invisible to visible)
-                if (myZone > prevZone) {
-                    // Coming from lower zone: extend back to prev x at prev's level
+                if (sampleHeights[i] > sampleHeights[i - 1]) {
+                    // Height increased: coming from lower zone, extend back
                     path.lineTo(xPositions[i - 1], halfHeight - sampleHeights[i - 1]);
-                    path.lineTo(xPositions[i], halfHeight - currHeight);
+                    path.lineTo(xPositions[i], halfHeight - sampleHeights[i]);
                 } else {
-                    // Coming from higher zone: don't extend back, jump at curr x
+                    // Height decreased: coming from higher zone, jump at curr x
                     path.lineTo(xPositions[i], halfHeight);
-                    path.lineTo(xPositions[i], halfHeight - currHeight);
+                    path.lineTo(xPositions[i], halfHeight - sampleHeights[i]);
                 }
             } else {
-                path.lineTo(xPositions[i], halfHeight - currHeight);
+                path.lineTo(xPositions[i], halfHeight - (currActive ? sampleHeights[i] : 0.0f));
             }
         }
 
         // Lower edge (left to right, traversing indices from size-1 down to 0)
         // First point connects upper edge end to lower edge start
-        path.lineTo(xPositions[size - 1], halfHeight + heights[size - 1]);
+        const float endHeight = active[size - 1] ? sampleHeights[size - 1] : 0.0f;
+        path.lineTo(xPositions[size - 1], halfHeight + endHeight);
 
         for (int i = size - 2; i >= 0; --i) {
-            const float prevHeight = heights[i + 1];  // Previous in traversal direction
-            const float currHeight = heights[i];
-            const int prevZone = zones[i + 1];
-            const int currZone = zones[i];
+            const bool prevActive = active[i + 1];  // Previous in traversal direction
+            const bool currActive = active[i];
 
-            if (prevHeight > 0.0f && currHeight == 0.0f) {
+            if (prevActive && !currActive) {
                 // Ending (visible to invisible)
-                if (myZone > currZone) {
-                    // Going to lower zone: extend to curr x at curr's level, then rise
+                if (sampleHeights[i] < sampleHeights[i + 1]) {
+                    // Height decreased: going to lower zone, extend then rise
                     path.lineTo(xPositions[i], halfHeight + sampleHeights[i]);
                     path.lineTo(xPositions[i], halfHeight);
                 } else {
-                    // Going to higher zone: don't extend, rise at prev x
+                    // Height increased: going to higher zone, rise at prev x
                     path.lineTo(xPositions[i + 1], halfHeight);
                     path.lineTo(xPositions[i], halfHeight);
                 }
-            } else if (prevHeight == 0.0f && currHeight > 0.0f) {
+            } else if (!prevActive && currActive) {
                 // Starting (invisible to visible)
-                if (myZone > prevZone) {
-                    // Coming from lower zone: extend back to prev x at prev's level
+                if (sampleHeights[i] > sampleHeights[i + 1]) {
+                    // Height increased: coming from lower zone, extend back
                     path.lineTo(xPositions[i + 1], halfHeight + sampleHeights[i + 1]);
-                    path.lineTo(xPositions[i], halfHeight + currHeight);
+                    path.lineTo(xPositions[i], halfHeight + sampleHeights[i]);
                 } else {
-                    // Coming from higher zone: don't extend back, drop at curr x
+                    // Height decreased: coming from higher zone, drop at curr x
                     path.lineTo(xPositions[i], halfHeight);
-                    path.lineTo(xPositions[i], halfHeight + currHeight);
+                    path.lineTo(xPositions[i], halfHeight + sampleHeights[i]);
                 }
             } else {
-                path.lineTo(xPositions[i], halfHeight + currHeight);
+                path.lineTo(xPositions[i], halfHeight + (currActive ? sampleHeights[i] : 0.0f));
             }
         }
 
