@@ -30,41 +30,31 @@ namespace Loudness {
 class ValueShaper {
 public:
     /**
-     * @param inMin  Minimum input value (maps to outMin)
-     * @param inMax  Maximum input value (maps to outMax)
-     * @param outMin Minimum output value (typically 0.0)
-     * @param outMax Maximum output value (typically 1.0)
+     * @param input  Input range (values at start map to output start)
+     * @param output Output range (typically 0.0 to 1.0)
      */
-    ValueShaper(float inMin, float inMax, float outMin, float outMax)
-        : _inMin(inMin)
-        , _inMax(inMax)
-        , _outMin(outMin)
-        , _outMax(outMax) {}
+    ValueShaper(juce::Range<float> input, juce::Range<float> output)
+        : _input(input)
+        , _output(output) {}
     ~ValueShaper() = default;
 
-    /** Set the input minimum (values below this map to outMin) */
-    void setInMin(float value) { _inMin = value; }
+    /** Set the input range */
+    void setInputRange(juce::Range<float> range) { _input = range; }
 
-    /** Set the input maximum (values above this map to outMax) */
-    void setInMax(float value) { _inMax = value; }
-
-    /** Set the output minimum */
-    void setOutMin(float value) { _outMin = value; }
-
-    /** Set the output maximum */
-    void setOutMax(float value) { _outMax = value; }
+    /** Set the output range */
+    void setOutputRange(juce::Range<float> range) { _output = range; }
 
     /**
      * @brief Map input value to output range (linear interpolation).
      * @param value Input value to shape
-     * @return Mapped output value (may exceed [outMin, outMax] if input is outside [inMin, inMax])
+     * @return Mapped output value (may exceed output range if input is outside input range)
      */
     [[nodiscard]] float shape(float value) const {
-        return jmap(value, _inMin, _inMax, _outMin, _outMax);
+        return jmap(value, _input.getStart(), _input.getEnd(), _output.getStart(), _output.getEnd());
     }
 
 private:
-    float _inMin, _inMax;
-    float _outMin, _outMax;
+    juce::Range<float> _input;
+    juce::Range<float> _output;
 };
 } // namespace Loudness

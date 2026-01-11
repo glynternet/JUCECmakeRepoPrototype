@@ -46,7 +46,7 @@ public:
      */
     explicit LoudnessIndex(int fftSize = 256)
         : fftSize_(fftSize)
-        , outputRange_(0.0f, 1.0f, 0.001f, 0.05f) {
+        , outputRange_({0.0F, 1.0F}, 0.001F, 0.05F) {
         recalculateAlphas();
     }
 
@@ -109,7 +109,7 @@ public:
 
     /** @brief Get observed dynamic range of output values */
     [[nodiscard]] float getRange() const noexcept {
-        return outputRange_.getRange() * 10.0f;
+        return outputRange_.getWidth() * 10.0F;
     }
 
 private:

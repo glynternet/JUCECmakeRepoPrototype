@@ -77,10 +77,8 @@ public:
      * @param processingBandIndexHigh Upper frequency bound as proportion of Nyquist [0-1]
      * @param initialSmoothing EWMA smoothing amount (0.0 = none, 1.0 = heavy)
      * @param initialDecayExponent Decay coefficient [0-0.9999] (higher = slower decay)
-     * @param initialRangeInMin Initial input range minimum
-     * @param initialRangeInMax Initial input range maximum
-     * @param initialOutputMin Initial output range minimum
-     * @param initialOutputMax Initial output range maximum
+     * @param initialRangeIn Initial input range bounds
+     * @param initialOutput Initial output range bounds
      * @param initialAdaptationRate Initial adaptation rate for input range
      */
     explicit Analyser(std::function<void(float)> onLoudnessResult,
@@ -88,10 +86,8 @@ public:
                       float processingBandIndexHigh,
                       float initialSmoothing,
                       float initialDecayExponent,
-                      float initialRangeInMin,
-                      float initialRangeInMax,
-                      float initialOutputMin,
-                      float initialOutputMax,
+                      juce::Range<float> initialRangeIn,
+                      juce::Range<float> initialOutput,
                       float initialAdaptationRate);
 
     ~Analyser();
@@ -125,23 +121,32 @@ public:
     /** Upper frequency bound as proportion of Nyquist (0.0-1.0) */
     double processingBandHigh;
 
-    /** Maps raw loudness to output range. Adjust inMin/inMax for sensitivity. */
-    ValueShaper valueShaper {0.0F, 1.0F, 0.0F, 1.0F};
+    /** Maps raw loudness to output range. */
+    ValueShaper valueShaper {{0.0F, 1.0F}, {0.0F, 1.0F}};
 
     /** Adaptive input range tracking. Learns observed min/max from audio content. */
     AdaptiveRange inputRange;
 
+    /** Get target output range */
+    [[nodiscard]] juce::Range<float> getTargetOutRange() const noexcept {
+        return {targetOutMin.load(std::memory_order_relaxed),
+                targetOutMax.load(std::memory_order_relaxed)};
+    }
+
+    /** Set target output range (called when user adjusts slider) */
+    void setTargetOutRange(juce::Range<float> range) noexcept {
+        targetOutMin.store(range.getStart(), std::memory_order_relaxed);
+        targetOutMax.store(range.getEnd(), std::memory_order_relaxed);
+    }
+
+private:
     /** Target output minimum (user-configurable via UI) */
     std::atomic<float> targetOutMin;
 
     /** Target output maximum (user-configurable via UI) */
     std::atomic<float> targetOutMax;
 
-    /** Set target output range (called when user adjusts slider) */
-    void setTargetOutRange(float outMin, float outMax) noexcept {
-        targetOutMin.store(outMin, std::memory_order_relaxed);
-        targetOutMax.store(outMax, std::memory_order_relaxed);
-    }
+public:
 
     /** EWMA smoothing filter. Higher smoothing = smoother but less responsive output. */
     Smoother smoother;

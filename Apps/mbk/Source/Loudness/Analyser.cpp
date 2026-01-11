@@ -12,17 +12,15 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
                    float processingBandIndexHigh,
                    float initialSmoothing,
                    float initialDecayExponent,
-                   float initialRangeInMin,
-                   float initialRangeInMax,
-                   float initialOutputMin,
-                   float initialOutputMax,
+                   juce::Range<float> initialRangeIn,
+                   juce::Range<float> initialOutput,
                    float initialAdaptationRate)
     : onLoudnessResult(std::move(onLoudnessResultCallback))
     , processingBandLow(processingBandIndexLow)
     , processingBandHigh(processingBandIndexHigh)
-    , inputRange(initialRangeInMin, initialRangeInMax, initialAdaptationRate)
-    , targetOutMin(initialOutputMin)
-    , targetOutMax(initialOutputMax)
+    , inputRange(initialRangeIn, initialAdaptationRate)
+    , targetOutMin(initialOutput.getStart())
+    , targetOutMax(initialOutput.getEnd())
     , smoother(initialSmoothing)
     , decayLength(initialDecayExponent) {
     processingThread = std::thread(&Analyser::processingThreadMain, this);
@@ -123,11 +121,9 @@ float Analyser::calculateLevel() {
     // Feed raw level to adaptive range (only learns if enabled && !locked)
     inputRange.update(level);
     // Always apply current input range to ValueShaper (whether from auto or manual)
-    valueShaper.setInMin(inputRange.getMin());
-    valueShaper.setInMax(inputRange.getMax());
+    valueShaper.setInputRange(inputRange.getBounds());
     // Always apply target output range (user-configurable)
-    valueShaper.setOutMin(targetOutMin.load(std::memory_order_relaxed));
-    valueShaper.setOutMax(targetOutMax.load(std::memory_order_relaxed));
+    valueShaper.setOutputRange(getTargetOutRange());
 
     level = smoother.add(valueShaper.shape(level));
     level = decayLength.getValue(level);

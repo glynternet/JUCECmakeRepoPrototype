@@ -13,10 +13,8 @@ public:
                               const double initialProcessingBandHigh,
                               const float initialSmoothing,
                               const float initialDecayExponent,
-                              const float initialRangeInMin,
-                              const float initialRangeInMax,
-                              const float initialOutputMin,
-                              const float initialOutputMax,
+                              juce::Range<float> initialRangeIn,
+                              juce::Range<float> initialOutput,
                               const float initialAdaptationRate,
                               const bool initialAutoRangeEnabled,
                               const bool initialAWeightingEnabled,
@@ -46,11 +44,11 @@ public:
         rangeIn("Range In",
                 0.0F,
                 1.0F,
-                initialRangeInMin,
-                initialRangeInMax,
+                initialRangeIn.getStart(),
+                initialRangeIn.getEnd(),
                 1.0F,
                 [&loudnessAnalyser](const double min, const double max) {
-                    loudnessAnalyser.inputRange.setBounds((float) min, (float) max);
+                    loudnessAnalyser.inputRange.setBounds({(float) min, (float) max});
                 },
                 [](double min, double max) {
                     return String(min, 3) + " - " + String(max, 3);
@@ -60,11 +58,11 @@ public:
         outputRange("Output Range",
                     0.0F,
                     1.0F,
-                    initialOutputMin,
-                    initialOutputMax,
+                    initialOutput.getStart(),
+                    initialOutput.getEnd(),
                     1.0F,
                     [&loudnessAnalyser](const double min, const double max) {
-                        loudnessAnalyser.setTargetOutRange((float) min, (float) max);
+                        loudnessAnalyser.setTargetOutRange({(float) min, (float) max});
                     })
         ,
 

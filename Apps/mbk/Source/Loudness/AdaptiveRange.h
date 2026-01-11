@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <juce_core/juce_core.h>
 
 namespace Loudness {
 
@@ -25,19 +26,17 @@ namespace Loudness {
 class AdaptiveRange {
 public:
     /**
-     * @param initialMin Starting minimum bound
-     * @param initialMax Starting maximum bound
+     * @param initialRange Starting range bounds
      * @param adaptRate Smoothing coefficient [0.0001-0.1], smaller = slower
      * @param minSep Minimum separation between min and max (prevents degenerate ranges)
      */
-    AdaptiveRange(float initialMin,
-                  float initialMax,
+    AdaptiveRange(juce::Range<float> initialRange,
                   float adaptRate,
                   float minSep = 0.3F)
-        : observedMin(initialMin)
-        , observedMax(initialMax)
+        : observedMin(initialRange.getStart())
+        , observedMax(initialRange.getEnd())
         , alpha(adaptRate)
-        , smoothedSignal((initialMin + initialMax) * 0.5f)
+        , smoothedSignal(initialRange.getStart() + initialRange.getLength() * 0.5F)
         , minSeparation(minSep) {}
 
     /**
@@ -105,14 +104,19 @@ public:
         return observedMax.load(std::memory_order_relaxed);
     }
 
+    /** @brief Get bounds as a Range */
+    [[nodiscard]] juce::Range<float> getBounds() const noexcept {
+        return {getMin(), getMax()};
+    }
+
     /** @brief Get range width (max - min) */
-    [[nodiscard]] float getRange() const noexcept {
+    [[nodiscard]] float getWidth() const noexcept {
         return getMax() - getMin();
     }
 
     /** @brief Get range center ((max + min) / 2) */
     [[nodiscard]] float getCenter() const noexcept {
-        return (getMax() + getMin()) * 0.5f;
+        return (getMax() + getMin()) * 0.5F;
     }
 
     //==========================================================================
@@ -146,9 +150,9 @@ public:
     }
 
     /** @brief Set bounds directly (bypasses adaptation) */
-    void setBounds(float min, float max) noexcept {
-        observedMin.store(min, std::memory_order_relaxed);
-        observedMax.store(max, std::memory_order_relaxed);
+    void setBounds(juce::Range<float> range) noexcept {
+        observedMin.store(range.getStart(), std::memory_order_relaxed);
+        observedMax.store(range.getEnd(), std::memory_order_relaxed);
     }
 
 private:
