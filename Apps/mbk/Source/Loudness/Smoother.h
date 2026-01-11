@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include "PipelineStage.h"
 
 namespace Loudness {
 
@@ -35,7 +36,7 @@ namespace Loudness {
  *
  * Default smoothing of 0.1 provides light smoothing while maintaining responsiveness.
  */
-class Smoother {
+class Smoother : public PipelineStage {
 private:
     float average = 0.0f;
     float alpha = 1.0f;  // Default: no smoothing
@@ -84,6 +85,10 @@ public:
 
     /** @brief Get the current smoothing amount (0.0-1.0) */
     float getSmoothing() const { return (1.0f - alpha) / 0.95f; }
+
+    // PipelineStage interface
+    float process(float input) override { return add(input); }
+    [[nodiscard]] const char* name() const override { return "Smooth"; }
 };
 
 }  // namespace Loudness
