@@ -24,9 +24,9 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
     , targetOutMin(initialOutput.getStart())
     , targetOutMax(initialOutput.getEnd())
     , smoother(initialSmoothing)
-    , decayLength(initialDecayExponent) {
-    weightingMode = initialWeightingMode;
-    mappingMode = initialMappingMode;
+    , decayLength(initialDecayExponent)
+    , mappingMode(initialMappingMode)
+    , weightingMode(initialWeightingMode) {
     processingThread = std::thread(&Analyser::processingThreadMain, this);
 }
 
