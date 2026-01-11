@@ -38,8 +38,8 @@ namespace Loudness {
  *
  * ## Default Processing Parameters
  *
- * - Frequency Band: 2-13% of Nyquist (focused on lower frequencies)
- * - Smoothing: 0.1 (light EWMA smoothing)
+ * - Frequency Band: 0-30% of Nyquist (focused on lower frequencies)
+ * - Smoothing: 0.3 (light EWMA smoothing)
  * - Decay Coefficient: 0.8
  *
  * FFT processing is event-driven (triggered when FIFO buffer fills) for minimum latency.
