@@ -50,7 +50,7 @@ enum class ViewMode { Outcome, Pipeline };
  */
 class AnalyserComponent : public juce::Component {
     static constexpr float initialDecayExponent = 0.8F;
-    static constexpr float initialSmoothing = 0.3F;
+    static constexpr float initialSmoothing = 0.25F;
     static constexpr double initialProcessingBandLow = 0.00;
     static constexpr double initialProcessingBandHigh = 0.30;
     static inline const juce::Range<float> initialRangeIn{0.1F, 0.8F};
