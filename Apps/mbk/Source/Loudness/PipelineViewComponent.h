@@ -53,12 +53,19 @@ public:
         auto bounds = getLocalBounds();
         const int labelWidth = 50;
         const int labelMargin = 4;
-        const int stageHeight = bounds.getHeight() / static_cast<int>(stageCount);
+        const int stageGap = 2;
+        const int totalGaps = static_cast<int>(stageCount) - 1;
+        const int stageHeight =
+            (bounds.getHeight() - (stageGap * totalGaps)) / static_cast<int>(stageCount);
 
         for (size_t i = 0; i < stageCount; ++i) {
             auto row = bounds.removeFromTop(stageHeight);
             labels.at(i).setBounds(row.removeFromLeft(labelWidth).reduced(0, labelMargin));
             stages.at(i).setBounds(row);
+
+            if (i < stageCount - 1) {
+                bounds.removeFromTop(stageGap);
+            }
         }
     }
 
