@@ -40,23 +40,27 @@ public:
         }
 
         if (pathNeedsRebuild || lastBounds != bounds) {
-            rebuildPath(bounds.getWidth(), bounds.getHeight());
+            rebuildPaths(bounds.getWidth(), bounds.getHeight());
             lastBounds = bounds;
         }
 
-        ColourGradient gradient(Colours::transparentBlack,
-                                0,
-                                0,
-                                brightViolet,
-                                (float) bounds.getWidth(),
-                                0,
-                                false);
-        g.setGradientFill(gradient);
-        g.fillPath(filledPath);
+        const float width = (float) bounds.getWidth();
+
+        // Draw all three paths - inactive zones collapse to centerline
+        g.setGradientFill(
+            ColourGradient(Colours::transparentBlack, 0, 0, brightViolet, width, 0, false));
+        g.fillPath(purplePath);
+
+        g.setGradientFill(
+            ColourGradient(Colours::transparentBlack, 0, 0, warningYellow, width, 0, false));
+        g.fillPath(yellowPath);
+
+        g.setGradientFill(
+            ColourGradient(Colours::transparentBlack, 0, 0, dangerRed, width, 0, false));
+        g.fillPath(redPath);
     }
 
     void resized() override {
-        pathNeedsRebuild = true;
         if (!isCompact) {
             const int sliderLeft = proportionOfWidth(0.69f);
             historySizeSlider.setBounds(sliderLeft, 10, getWidth() - sliderLeft - 10, 20);
@@ -68,7 +72,6 @@ public:
             return;
         }
         historySize = size;
-        pathNeedsRebuild = true;
     }
 
     void setCompact(bool compact) {
@@ -78,43 +81,167 @@ public:
     }
 
 private:
+    static constexpr float warningThreshold = 0.9f;
+    static constexpr float dangerThreshold = 0.98f;
+    static constexpr float maxDisplayLevel = 1.0f;
+
     bool isCompact = false;
     const Colour brightViolet {0xffba6bf5};
+    const Colour warningYellow {0xffffd700};
+    const Colour dangerRed {0xffff4444};
 
-    void rebuildPath(int width, int height) {
-        filledPath.clear();
+    static constexpr int zonePurple = 0;
+    static constexpr int zoneYellow = 1;
+    static constexpr int zoneRed = 2;
+
+    int getZone(float level) const {
+        if (level >= dangerThreshold) {
+            return zoneRed;
+        }
+        if (level >= warningThreshold) {
+            return zoneYellow;
+        }
+        return zonePurple;
+    }
+
+    void rebuildPaths(int width, int height) {
+        purplePath.clear();
+        yellowPath.clear();
+        redPath.clear();
 
         const float halfHeight = (float) height / 2.0f;
         const float widthF = (float) width;
 
-        // Build upper edge (right to left, as newest values are on the right)
+        // Calculate positions, heights, and zones for each sample
+        std::vector<float> xPositions(historySize);
+        std::vector<float> sampleHeights(historySize);
+        std::vector<int> zones(historySize);
+        std::vector<float> purpleHeights(historySize);
+        std::vector<float> yellowHeights(historySize);
+        std::vector<float> redHeights(historySize);
+
         for (int i = 0; i < historySize; ++i) {
             const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
-            const float level = levelHistory[bufferIndex];
-
+            const float level = std::min(levelHistory[bufferIndex], maxDisplayLevel);
             const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
-            const float yUpper = halfHeight - level * halfHeight;
+            const float sampleHeight = level * halfHeight;
 
-            if (i == 0) {
-                filledPath.startNewSubPath(xPos, yUpper);
+            xPositions[i] = xPos;
+            sampleHeights[i] = sampleHeight;
+            zones[i] = getZone(level);
+
+            // Assign height to exactly one zone based on level
+            if (zones[i] == zoneRed) {
+                purpleHeights[i] = 0.0f;
+                yellowHeights[i] = 0.0f;
+                redHeights[i] = sampleHeight;
+            } else if (zones[i] == zoneYellow) {
+                purpleHeights[i] = 0.0f;
+                yellowHeights[i] = sampleHeight;
+                redHeights[i] = 0.0f;
             } else {
-                filledPath.lineTo(xPos, yUpper);
+                purpleHeights[i] = sampleHeight;
+                yellowHeights[i] = 0.0f;
+                redHeights[i] = 0.0f;
             }
         }
 
-        // Build lower edge (left to right, reverse traversal)
-        for (int i = historySize - 1; i >= 0; --i) {
-            const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
-            const float level = levelHistory[bufferIndex];
+        buildSymmetricPath(purplePath, xPositions, purpleHeights, sampleHeights, zones, zonePurple, halfHeight);
+        buildSymmetricPath(yellowPath, xPositions, yellowHeights, sampleHeights, zones, zoneYellow, halfHeight);
+        buildSymmetricPath(redPath, xPositions, redHeights, sampleHeights, zones, zoneRed, halfHeight);
 
-            const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
-            const float yLower = halfHeight + level * halfHeight;
+        pathNeedsRebuild = false;
+    }
 
-            filledPath.lineTo(xPos, yLower);
+    // TODO: When transitioning between regions, interpolate so that each region only
+    // extends to its threshold boundary. E.g., purple should stop at 0.9 and yellow/red
+    // should start from their threshold, rather than one region extending to the other's
+    // full height at the transition point.
+    void buildSymmetricPath(Path& path,
+                            const std::vector<float>& xPositions,
+                            const std::vector<float>& heights,
+                            const std::vector<float>& sampleHeights,
+                            const std::vector<int>& zones,
+                            int myZone,
+                            float halfHeight) {
+        const int size = (int) xPositions.size();
+        if (size < 2) {
+            return;
         }
 
-        filledPath.closeSubPath();
-        pathNeedsRebuild = false;
+        // Upper edge (right to left)
+        path.startNewSubPath(xPositions[0], halfHeight - heights[0]);
+        for (int i = 1; i < size; ++i) {
+            const float prevHeight = heights[i - 1];
+            const float currHeight = heights[i];
+            const int prevZone = zones[i - 1];
+            const int currZone = zones[i];
+
+            if (prevHeight > 0.0f && currHeight == 0.0f) {
+                // Ending (visible to invisible)
+                if (myZone > currZone) {
+                    // Going to lower zone: extend to curr x at curr's level, then drop
+                    path.lineTo(xPositions[i], halfHeight - sampleHeights[i]);
+                    path.lineTo(xPositions[i], halfHeight);
+                } else {
+                    // Going to higher zone: don't extend, drop at prev x
+                    path.lineTo(xPositions[i - 1], halfHeight);
+                    path.lineTo(xPositions[i], halfHeight);
+                }
+            } else if (prevHeight == 0.0f && currHeight > 0.0f) {
+                // Starting (invisible to visible)
+                if (myZone > prevZone) {
+                    // Coming from lower zone: extend back to prev x at prev's level
+                    path.lineTo(xPositions[i - 1], halfHeight - sampleHeights[i - 1]);
+                    path.lineTo(xPositions[i], halfHeight - currHeight);
+                } else {
+                    // Coming from higher zone: don't extend back, jump at curr x
+                    path.lineTo(xPositions[i], halfHeight);
+                    path.lineTo(xPositions[i], halfHeight - currHeight);
+                }
+            } else {
+                path.lineTo(xPositions[i], halfHeight - currHeight);
+            }
+        }
+
+        // Lower edge (left to right, traversing indices from size-1 down to 0)
+        // First point connects upper edge end to lower edge start
+        path.lineTo(xPositions[size - 1], halfHeight + heights[size - 1]);
+
+        for (int i = size - 2; i >= 0; --i) {
+            const float prevHeight = heights[i + 1];  // Previous in traversal direction
+            const float currHeight = heights[i];
+            const int prevZone = zones[i + 1];
+            const int currZone = zones[i];
+
+            if (prevHeight > 0.0f && currHeight == 0.0f) {
+                // Ending (visible to invisible)
+                if (myZone > currZone) {
+                    // Going to lower zone: extend to curr x at curr's level, then rise
+                    path.lineTo(xPositions[i], halfHeight + sampleHeights[i]);
+                    path.lineTo(xPositions[i], halfHeight);
+                } else {
+                    // Going to higher zone: don't extend, rise at prev x
+                    path.lineTo(xPositions[i + 1], halfHeight);
+                    path.lineTo(xPositions[i], halfHeight);
+                }
+            } else if (prevHeight == 0.0f && currHeight > 0.0f) {
+                // Starting (invisible to visible)
+                if (myZone > prevZone) {
+                    // Coming from lower zone: extend back to prev x at prev's level
+                    path.lineTo(xPositions[i + 1], halfHeight + sampleHeights[i + 1]);
+                    path.lineTo(xPositions[i], halfHeight + currHeight);
+                } else {
+                    // Coming from higher zone: don't extend back, drop at curr x
+                    path.lineTo(xPositions[i], halfHeight);
+                    path.lineTo(xPositions[i], halfHeight + currHeight);
+                }
+            } else {
+                path.lineTo(xPositions[i], halfHeight + currHeight);
+            }
+        }
+
+        path.closeSubPath();
     }
 
     int historySize = 100;
@@ -124,7 +251,9 @@ private:
     float levelHistory[maxHistorySize] = {};
     int latestValueIndex = 0;
 
-    Path filledPath;
+    Path purplePath;
+    Path yellowPath;
+    Path redPath;
     bool pathNeedsRebuild = true;
     Rectangle<int> lastBounds;
 };
