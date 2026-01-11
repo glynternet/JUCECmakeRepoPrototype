@@ -53,7 +53,7 @@ public:
         auto bounds = getLocalBounds();
         const int labelWidth = 50;
         const int labelMargin = 4;
-        const int stageGap = 2;
+        const int stageGap = 4;
         const int totalGaps = static_cast<int>(stageCount) - 1;
         const int stageHeight =
             (bounds.getHeight() - (stageGap * totalGaps)) / static_cast<int>(stageCount);
