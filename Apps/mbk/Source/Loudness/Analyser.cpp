@@ -116,18 +116,27 @@ float Analyser::calculateLevel() {
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-    auto level = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
+    auto rawLevel = calculateLoudness(&fftData[indexLow], indexHigh - indexLow);
 
     // Feed raw level to adaptive range (only learns if enabled && !locked)
-    inputRange.update(level);
+    inputRange.update(rawLevel);
     // Always apply current input range to ValueShaper (whether from auto or manual)
     valueShaper.setInputRange(inputRange.getBounds());
     // Always apply target output range (user-configurable)
     valueShaper.setOutputRange(getTargetOutRange());
 
-    level = smoother.add(valueShaper.shape(level));
-    level = decayLength.getValue(level);
-    return level < 0.0001F ? 0.0F : jlimit(0.0F, 1.0F, level);
+    // Process through pipeline stages, capturing intermediate values
+    auto shapedLevel = valueShaper.process(rawLevel);
+    auto smoothedLevel = smoother.process(shapedLevel);
+    auto decayedLevel = decayLength.process(smoothedLevel);
+    auto finalLevel = decayedLevel < 0.0001F ? 0.0F : jlimit(0.0F, 1.0F, decayedLevel);
+
+    // Invoke pipeline callback if registered
+    if (onPipelineUpdate != nullptr) {
+        onPipelineUpdate({rawLevel, shapedLevel, smoothedLevel, decayedLevel, finalLevel});
+    }
+
+    return finalLevel;
 }
 
 void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
