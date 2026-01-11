@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -160,6 +161,10 @@ public:
     /** Callback invoked with index values [0-10 scale] after each processing cycle.
      *  Params: (index10s, index1m, index5m, range) */
     std::function<void(float, float, float, float)> onIndexUpdate;
+
+    /** Callback invoked with all pipeline stage values after each processing cycle.
+     *  Values: [raw, shaped, smoothed, decayed, final] */
+    std::function<void(const std::array<float, 5>&)> onPipelineUpdate;
 
     /** Current weighting mode (Flat or AWeighted) */
     WeightingMode weightingMode = WeightingMode::AWeighted;
