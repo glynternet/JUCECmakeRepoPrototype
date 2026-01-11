@@ -67,11 +67,12 @@ public:
      */
     explicit AnalyserComponent(std::function<bool(float)> onLoudnessCallback)
         : onLoudness(std::move(onLoudnessCallback)) {
+        // Add visualizations first (bottom layer)
         addAndMakeVisible(&valueHistoryComp);
-        addAndMakeVisible(loudnessAnalyserSettings);
+        addChildComponent(pipelineViewComp);  // Initially hidden
 
-        // Pipeline view (initially hidden)
-        addChildComponent(pipelineViewComp);
+        // Settings overlay (on top of visualizations)
+        addAndMakeVisible(loudnessAnalyserSettings);
 
         // View toggle button (bottom-right corner)
         viewToggleButton.setButtonText("Pipeline");
