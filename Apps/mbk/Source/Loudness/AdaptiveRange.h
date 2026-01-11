@@ -25,6 +25,11 @@ namespace Loudness {
  */
 class AdaptiveRange {
 public:
+    // Valid bounds for clamping during minSeparation enforcement.
+    // These represent the expected input value domain (loudness 0-1).
+    static constexpr float validMin = 0.0f;
+    static constexpr float validMax = 1.0f;
+
     /**
      * @param initialRange Starting range bounds
      * @param adaptRate Smoothing coefficient [0.0001-0.1], smaller = slower
@@ -80,11 +85,26 @@ public:
             max = decreaseRate * smoothed + (1.0f - decreaseRate) * max;
         }
 
-        // Enforce minimum separation to prevent degenerate range
+        // Enforce minimum separation to prevent degenerate range.
+        // First expand symmetrically around center, then clamp to valid bounds.
+        //
+        // Without clamping, centering around a low value (e.g., center=0.14) would
+        // push min negative (e.g., -0.01). This caused a bug where loudness=0 mapped
+        // to ~0.136 output instead of 0, because jmap(0, -0.01, 0.27, 0, 1) ≈ 0.136.
+        // Clamping ensures min stays >= validMin so that input=0 maps to output=0.
         if (max - min < minSeparation) {
             float center = (max + min) * 0.5f;
             min = center - minSeparation * 0.5f;
             max = center + minSeparation * 0.5f;
+
+            // Clamp to valid bounds, shifting the other bound to maintain separation
+            if (min < validMin) {
+                min = validMin;
+                max = validMin + minSeparation;
+            } else if (max > validMax) {
+                max = validMax;
+                min = validMax - minSeparation;
+            }
         }
 
         observedMin.store(min, std::memory_order_relaxed);
