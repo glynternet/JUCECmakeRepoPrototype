@@ -38,8 +38,10 @@ public:
     }
 
     void resized() override {
-        const int sliderLeft = proportionOfWidth(0.69f);
-        historySizeSlider.setBounds(sliderLeft, 10, getWidth() - sliderLeft - 10, 20);
+        if (!isCompact) {
+            const int sliderLeft = proportionOfWidth(0.69f);
+            historySizeSlider.setBounds(sliderLeft, 10, getWidth() - sliderLeft - 10, 20);
+        }
     }
 
     void setHistorySize(int size) {
@@ -54,7 +56,15 @@ public:
         historySize = size;
     }
 
+    /** Enable compact mode (hides history size slider for use in pipeline view) */
+    void setCompact(bool compact) {
+        isCompact = compact;
+        historySizeSlider.setVisible(!compact);
+        historySizeLabel.setVisible(!compact);
+    }
+
 private:
+    bool isCompact = false;
     const Colour brightViolet {0xffba6bf5};
 
     void drawHistoryLines(Graphics& g, int width, int height) {
