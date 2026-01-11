@@ -1,4 +1,5 @@
 #include "JuceHeader.h"
+#include "PipelineStage.h"
 
 namespace Loudness {
 
@@ -27,7 +28,7 @@ namespace Loudness {
  * With auto-ranging enabled, the input range is learned from actual audio
  * content while the output range is set by the user.
  */
-class ValueShaper {
+class ValueShaper : public PipelineStage {
 public:
     /**
      * @param input  Input range (values at start map to output start)
@@ -52,6 +53,10 @@ public:
     [[nodiscard]] float shape(float value) const {
         return jmap(value, _input.getStart(), _input.getEnd(), _output.getStart(), _output.getEnd());
     }
+
+    // PipelineStage interface
+    float process(float input) override { return shape(input); }
+    [[nodiscard]] const char* name() const override { return "Shaped"; }
 
 private:
     juce::Range<float> _input;
