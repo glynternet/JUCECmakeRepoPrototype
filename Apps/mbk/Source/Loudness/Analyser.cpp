@@ -14,7 +14,9 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
                    float initialDecayExponent,
                    juce::Range<float> initialRangeIn,
                    juce::Range<float> initialOutput,
-                   float initialAdaptationRate)
+                   float initialAdaptationRate,
+                   WeightingMode initialWeightingMode,
+                   MappingMode initialMappingMode)
     : onLoudnessResult(std::move(onLoudnessResultCallback))
     , processingBandLow(processingBandIndexLow)
     , processingBandHigh(processingBandIndexHigh)
@@ -23,6 +25,8 @@ Analyser::Analyser(std::function<void(float)> onLoudnessResultCallback,
     , targetOutMax(initialOutput.getEnd())
     , smoother(initialSmoothing)
     , decayLength(initialDecayExponent) {
+    weightingMode = initialWeightingMode;
+    mappingMode = initialMappingMode;
     processingThread = std::thread(&Analyser::processingThreadMain, this);
 }
 

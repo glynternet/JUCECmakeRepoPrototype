@@ -90,7 +90,9 @@ public:
                       float initialDecayExponent,
                       juce::Range<float> initialRangeIn,
                       juce::Range<float> initialOutput,
-                      float initialAdaptationRate);
+                      float initialAdaptationRate,
+                      WeightingMode initialWeightingMode,
+                      MappingMode mappingMode);
 
     ~Analyser();
 
@@ -171,7 +173,7 @@ public:
     std::function<void(const std::array<float, 5>&)> onPipelineUpdate;
 
     /** Current weighting mode (Flat or AWeighted) */
-    WeightingMode weightingMode = WeightingMode::AWeighted;
+    WeightingMode weightingMode;
 
     /** Set the weighting mode for loudness calculation */
     void setWeightingMode(WeightingMode mode) { weightingMode = mode; }
@@ -186,7 +188,7 @@ public:
      * @see MappingMode for mode descriptions
      * @see LoudnessCalculator::CalculatePerceptual() for the perceptual algorithm
      */
-    MappingMode mappingMode = MappingMode::Linear;
+    MappingMode mappingMode;
 
     /**
      * @brief Set the mapping mode for loudness calculation.

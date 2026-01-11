@@ -17,8 +17,8 @@ public:
                               juce::Range<float> initialOutput,
                               const float initialAdaptationRate,
                               const bool initialAutoRangeEnabled,
-                              const bool initialAWeightingEnabled,
-                              const bool initialPerceptualMode,
+                              const WeightingMode initialWeightingMode,
+                              const MappingMode initialPerceptualMode,
                               double initialSampleRate = 48000.0)
         : sampleRate(initialSampleRate)
         // Bin range is [0, maxBins-1]. Proportions are converted to bins by truncation
@@ -118,9 +118,10 @@ public:
         addAndMakeVisible(adaptationSpeed);
 
         // A-weighting toggle (frequency-corrected perception)
-        aWeightingEnabled.setToggleState(initialAWeightingEnabled, dontSendNotification);
+        aWeightingEnabled.setToggleState(initialWeightingMode == WeightingMode::AWeighted, dontSendNotification);
         aWeightingEnabled.onClick = [&loudnessAnalyser, this]() {
-            loudnessAnalyser.setWeightingMode(aWeightingEnabled.getToggleState()
+            loudnessAnalyser.
+                setWeightingMode(aWeightingEnabled.getToggleState()
                                                   ? WeightingMode::AWeighted
                                                   : WeightingMode::Flat);
         };
@@ -130,7 +131,7 @@ public:
         // When enabled, uses power-domain calculation with Stevens exponent (0.3)
         // for true perceptual linearity where 0.5 feels half as loud as 1.0.
         // When disabled, uses legacy linear amplitude mapping.
-        perceptualModeEnabled.setToggleState(initialPerceptualMode, dontSendNotification);
+        perceptualModeEnabled.setToggleState(initialPerceptualMode == MappingMode::Perceptual, dontSendNotification);
         perceptualModeEnabled.onClick = [&loudnessAnalyser, this]() {
             loudnessAnalyser.setMappingMode(perceptualModeEnabled.getToggleState()
                                                 ? MappingMode::Perceptual

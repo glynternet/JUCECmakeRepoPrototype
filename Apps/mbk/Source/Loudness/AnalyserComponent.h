@@ -57,8 +57,8 @@ class AnalyserComponent : public juce::Component {
     static inline const juce::Range<float> initialOutput{0.05F, 1.0F};
     static constexpr float initialAdaptationRate = 0.005F;
     static constexpr bool initialAutoRangeEnabled = true;
-    static constexpr bool initialAWeightingEnabled = true;
-    static constexpr bool initialPerceptualMode = false;
+    static constexpr WeightingMode initialWeightingMode = WeightingMode::Flat;
+    static constexpr MappingMode initialMappingMode = MappingMode::Perceptual;
 
 public:
     /**
@@ -231,7 +231,9 @@ private:
         initialDecayExponent,
         initialRangeIn,
         initialOutput,
-        initialAdaptationRate};
+        initialAdaptationRate,
+        initialWeightingMode,
+        initialMappingMode};
     AnalyserSettings loudnessAnalyserSettings {loudnessAnalyser,
                                                initialProcessingBandLow,
                                                initialProcessingBandHigh,
@@ -241,8 +243,8 @@ private:
                                                initialOutput,
                                                initialAdaptationRate,
                                                initialAutoRangeEnabled,
-                                               initialAWeightingEnabled,
-                                               initialPerceptualMode};
+                                               initialWeightingMode,
+                                               initialMappingMode};
 
     ValueHistoryComponent valueHistoryComp;
     PipelineViewComponent pipelineViewComp;
