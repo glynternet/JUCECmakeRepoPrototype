@@ -7,7 +7,7 @@ LogOutputComponent::LogOutputComponent()
     , levelButton("debug")
     , dirty(true)
     , now(time(nullptr)) {
-    // TODO: set to monospace font
+    label.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 12.0f, juce::Font::plain));
     label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     label.setJustificationType(juce::Justification::topLeft);
     addAndMakeVisible(label);
