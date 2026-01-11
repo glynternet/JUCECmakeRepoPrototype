@@ -37,7 +37,7 @@ public:
      */
     AdaptiveRange(juce::Range<float> initialRange,
                   float adaptRate,
-                  float minSep = 0.3F)
+                  float minSep = 0.25F)
         : observedMin(initialRange.getStart())
         , observedMax(initialRange.getEnd())
         , alpha(adaptRate)
