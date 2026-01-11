@@ -181,6 +181,37 @@ Note: `lint.sh` doesn't work from WSL because it passes Linux paths to clang-tid
 - CLion: Built-in clang-tidy support, enable in Settings > Editor > Inspections
 - Visual Studio: Built-in since VS 2019, enable in Project Properties > Code Analysis
 
+## Logging
+
+The mbk app uses a custom logger (`logger::Logger`) defined in `Apps/mbk/Source/Logger/Logger.h`.
+
+**Interface:**
+```cpp
+logger.debug("Debug message");  // Development/debugging info
+logger.info("Info message");    // Normal operational messages
+logger.error("Error message");  // Error conditions
+```
+
+**Usage pattern:**
+1. Add `logger::Logger&` parameter to constructor
+2. Store as member: `logger::Logger& logger;`
+3. Initialize in constructor: `: logger(loggerRef)`
+4. Call methods: `logger.debug("Value: " + String(value));`
+
+**Example:**
+```cpp
+class MyComponent : public juce::Component {
+public:
+    explicit MyComponent(logger::Logger& loggerRef)
+        : logger(loggerRef) {
+        logger.info("MyComponent created");
+    }
+
+private:
+    logger::Logger& logger;
+};
+```
+
 ## Workflow
 
 After any code changes:
