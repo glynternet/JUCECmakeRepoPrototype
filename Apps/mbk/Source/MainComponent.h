@@ -10,6 +10,7 @@
 #include "Beat/Synthesizer.h"
 #include "Beat/SynthesizerComponent.h"
 #include "AvvaOSCSender.h"
+#include "Logger/StdoutLogger.h"
 
 namespace AudioApp {
 class MainComponent : public juce::AudioAppComponent {
@@ -29,7 +30,7 @@ private:
     LogOutputComponent uiLogger;
     logger::MultiLogger logger {{&stdoutLogger, &uiLogger}};
 
-    juce::Label versionLabel {"versionLabel", "version: v2.2.1"};
+    juce::Label versionLabel {"versionLabel", "version: v2.2.2"};
     OSCComponent oscComponent {logger};
     AvvaOSCSender oscSender {oscComponent};
     AudioSourceComponent audioSource {deviceManager, logger};
