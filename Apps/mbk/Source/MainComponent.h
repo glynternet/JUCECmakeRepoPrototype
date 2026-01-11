@@ -30,7 +30,7 @@ private:
     LogOutputComponent uiLogger;
     logger::MultiLogger logger {{&stdoutLogger, &uiLogger}};
 
-    juce::Label versionLabel {"versionLabel", "version: v2.2.2"};
+    juce::Label versionLabel {"versionLabel", "version: v2.2.3"};
     OSCComponent oscComponent {logger};
     AvvaOSCSender oscSender {oscComponent};
     AudioSourceComponent audioSource {deviceManager, logger};
