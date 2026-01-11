@@ -4,6 +4,7 @@
 #include "../Components/LabelledSlider.h"
 #include "Analyser.h"
 #include "AnalyserSettings.h"
+#include "PipelineViewComponent.h"
 #include "ValueHistoryComponent.h"
 #include "../AudioSourceComponent.h"
 #include "../Logger/Logger.h"
@@ -11,6 +12,9 @@
 #include "../OSCComponent.h"
 
 namespace Loudness {
+
+/** View mode for the loudness visualization */
+enum class ViewMode { Outcome, Pipeline };
 
 /**
  * @brief UI component that wraps the Loudness::Analyser and provides visualization.
@@ -66,6 +70,28 @@ public:
         addAndMakeVisible(&valueHistoryComp);
         addAndMakeVisible(loudnessAnalyserSettings);
 
+        // Pipeline view (initially hidden)
+        addChildComponent(pipelineViewComp);
+
+        // View toggle button (bottom-right corner)
+        viewToggleButton.setButtonText("Pipeline");
+        viewToggleButton.onClick = [this]() { toggleViewMode(); };
+        addAndMakeVisible(viewToggleButton);
+
+        // Global history size slider (shown in pipeline mode)
+        globalHistorySlider.setRange(2, ValueHistoryComponent::maxHistorySize);
+        globalHistorySlider.setValue(100);
+        globalHistorySlider.setTextBoxStyle(
+            juce::Slider::NoTextBox, false, 160, globalHistorySlider.getTextBoxHeight());
+        globalHistorySlider.onValueChange = [this]() {
+            pipelineViewComp.setHistorySize(static_cast<int>(globalHistorySlider.getValue()));
+        };
+        addChildComponent(globalHistorySlider);
+
+        globalHistoryLabel.setText("History", juce::dontSendNotification);
+        globalHistoryLabel.attachToComponent(&globalHistorySlider, true);
+        addChildComponent(globalHistoryLabel);
+
         // Wire up the index update callback to update the UI display
         loudnessAnalyser.onIndexUpdate =
             [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](
@@ -77,6 +103,17 @@ public:
                     }
                 });
             };
+
+        // Wire up pipeline callback for pipeline view
+        loudnessAnalyser.onPipelineUpdate =
+            [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](
+                const std::array<float, 5>& values) {
+                juce::MessageManager::callAsync([safeThis, values]() {
+                    if (safeThis != nullptr && safeThis->viewMode == ViewMode::Pipeline) {
+                        safeThis->pipelineViewComp.updateValues(values);
+                    }
+                });
+            };
     }
 
     //==============================================================================
@@ -85,7 +122,31 @@ public:
     void resized() override {
         auto bounds = getLocalBounds();
 
-        valueHistoryComp.setBounds(bounds);
+        // Toggle button in bottom-right
+        const int buttonWidth = 70;
+        const int buttonHeight = 24;
+        const int margin = 10;
+        viewToggleButton.setBounds(bounds.getWidth() - buttonWidth - margin,
+                                   bounds.getHeight() - buttonHeight - margin,
+                                   buttonWidth,
+                                   buttonHeight);
+
+        // View area
+        auto viewBounds = bounds;
+        if (viewMode == ViewMode::Pipeline) {
+            // Reserve space at bottom for history slider
+            auto bottomRow = viewBounds.removeFromBottom(30);
+            bottomRow.removeFromLeft(60);                           // Space for label
+            bottomRow.removeFromRight(buttonWidth + margin * 2);    // Space for toggle
+            globalHistorySlider.setBounds(bottomRow);
+        }
+
+        if (viewMode == ViewMode::Outcome) {
+            valueHistoryComp.setBounds(viewBounds);
+        } else {
+            pipelineViewComp.setBounds(viewBounds);
+        }
+
         loudnessAnalyserSettings.setBounds(
             bounds.getProportion(juce::Rectangle(0.F, 0.f, 0.6f, 1.f)));
     }
@@ -107,8 +168,28 @@ public:
     void paint(Graphics& g) override { g.fillAll(Colours::black); }
 
 private:
+    void toggleViewMode() {
+        if (viewMode == ViewMode::Outcome) {
+            viewMode = ViewMode::Pipeline;
+            viewToggleButton.setButtonText("Outcome");
+            valueHistoryComp.setVisible(false);
+            pipelineViewComp.setVisible(true);
+            globalHistorySlider.setVisible(true);
+            globalHistoryLabel.setVisible(true);
+        } else {
+            viewMode = ViewMode::Outcome;
+            viewToggleButton.setButtonText("Pipeline");
+            valueHistoryComp.setVisible(true);
+            pipelineViewComp.setVisible(false);
+            globalHistorySlider.setVisible(false);
+            globalHistoryLabel.setVisible(false);
+        }
+        resized();
+    }
+
     std::function<bool(float)> onLoudness;
     float lastLevelSent = -10.F; // set to strange value to start off with
+    ViewMode viewMode = ViewMode::Outcome;
 
     Loudness::Analyser loudnessAnalyser {
         [safeThis = juce::Component::SafePointer<AnalyserComponent>(this)](float level) {
@@ -163,5 +244,9 @@ private:
                                                initialPerceptualMode};
 
     ValueHistoryComponent valueHistoryComp;
+    PipelineViewComponent pipelineViewComp;
+    juce::TextButton viewToggleButton;
+    juce::Slider globalHistorySlider;
+    juce::Label globalHistoryLabel;
 };
 }  // namespace Loudness
