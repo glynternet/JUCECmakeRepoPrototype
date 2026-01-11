@@ -14,7 +14,7 @@ namespace Loudness {
  * - Shaped: After ValueShaper range mapping
  * - Smooth: After Smoother EWMA filter
  * - Decay: After TailOff decay effect
- * - Final: After clamp to [0.0, 1.0]
+ * - Clamp: Final clamp to [0.0, 1.0]
  *
  * Each stage is displayed in compact mode (no individual slider).
  * Use setHistorySize() to control all stages simultaneously.
@@ -69,7 +69,7 @@ private:
     std::array<juce::Label, stageCount> labels;
 
     static constexpr std::array<const char*, stageCount> stageNames = {
-        "Raw", "Shaped", "Smooth", "Decay", "Final"};
+        "Raw", "Shaped", "Smooth", "Decay", "Clamp\n(final)"};
 };
 
 }  // namespace Loudness

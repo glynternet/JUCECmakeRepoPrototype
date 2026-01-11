@@ -129,7 +129,7 @@ float Analyser::calculateLevel() {
     auto shapedLevel = valueShaper.process(rawLevel);
     auto smoothedLevel = smoother.process(shapedLevel);
     auto decayedLevel = decayLength.process(smoothedLevel);
-    auto finalLevel = decayedLevel < 0.0001F ? 0.0F : jlimit(0.0F, 1.0F, decayedLevel);
+    auto finalLevel = clamp.process(decayedLevel);
 
     // Invoke pipeline callback if registered
     if (onPipelineUpdate != nullptr) {

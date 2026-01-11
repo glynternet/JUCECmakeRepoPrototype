@@ -7,6 +7,7 @@
 #include <thread>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_dsp/juce_dsp.h>
+#include "Clamp.h"
 #include "ValueShaper.h"
 #include "Smoother.h"
 #include "TailOff.h"
@@ -154,6 +155,9 @@ public:
 
     /** Decay effect preventing abrupt drops in output value. */
     TailOff decayLength;
+
+    /** Final clamp to [0.0, 1.0] range. */
+    Clamp clamp;
 
     /** Long-term loudness statistics (Index and Range at multiple time scales). */
     LoudnessIndex loudnessIndex{fftSize};
