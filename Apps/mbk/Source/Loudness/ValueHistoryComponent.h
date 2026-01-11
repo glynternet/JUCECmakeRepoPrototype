@@ -7,7 +7,7 @@ class ValueHistoryComponent : public Component {
 public:
     ValueHistoryComponent() {
         addAndMakeVisible(historySizeSlider);
-        historySizeSlider.setRange(2, ValueHistoryComponent::maxHistorySize); // [1]
+        historySizeSlider.setRange(2, ValueHistoryComponent::maxHistorySize);
         historySizeSlider.onValueChange = [this] {
             setHistorySize((int) historySizeSlider.getValue());
         };
@@ -17,7 +17,7 @@ public:
 
         addAndMakeVisible(historySizeLabel);
         historySizeLabel.setText("History Size", dontSendNotification);
-        historySizeLabel.attachToComponent(&historySizeSlider, true); // [4]
+        historySizeLabel.attachToComponent(&historySizeSlider, true);
     }
     ~ValueHistoryComponent() = default;
 
@@ -26,20 +26,33 @@ public:
     void addLevel(float level) {
         ++latestValueIndex;
         latestValueIndex %= historySize;
-        avgLevelHistory[latestValueIndex] = level;
+        levelHistory[latestValueIndex] = level;
+        pathNeedsRebuild = true;
         repaint();
     }
 
     void paint(Graphics& g) override {
         g.fillAll(Colours::black);
 
-        auto width = getLocalBounds().getWidth();
-        auto height = getLocalBounds().getHeight();
+        const auto bounds = getLocalBounds();
+        if (bounds.isEmpty() || historySize < 2) {
+            return;
+        }
 
-        drawHistoryLines(g, width, height);
+        if (pathNeedsRebuild || lastBounds != bounds) {
+            rebuildPath(bounds.getWidth(), bounds.getHeight());
+            lastBounds = bounds;
+        }
+
+        ColourGradient gradient(Colours::transparentBlack, 0, 0,
+                                brightViolet, (float) bounds.getWidth(), 0, false);
+        g.setGradientFill(gradient);
+        g.strokePath(upperPath, PathStrokeType(3.0f));
+        g.strokePath(lowerPath, PathStrokeType(3.0f));
     }
 
     void resized() override {
+        pathNeedsRebuild = true;
         if (!isCompact) {
             const int sliderLeft = proportionOfWidth(0.69f);
             historySizeSlider.setBounds(sliderLeft, 10, getWidth() - sliderLeft - 10, 20);
@@ -47,18 +60,13 @@ public:
     }
 
     void setHistorySize(int size) {
-        if (size > maxHistorySize) {
-            // TODO: Throw or something?
-            return;
-        }
-        if (size < 2) {
-            // TODO: Throw or something?
+        if (size > maxHistorySize || size < 2) {
             return;
         }
         historySize = size;
+        pathNeedsRebuild = true;
     }
 
-    /** Enable compact mode (hides history size slider for use in pipeline view) */
     void setCompact(bool compact) {
         isCompact = compact;
         historySizeSlider.setVisible(!compact);
@@ -69,42 +77,42 @@ private:
     bool isCompact = false;
     const Colour brightViolet {0xffba6bf5};
 
-    void drawHistoryLines(Graphics& g, int width, int height) {
-        // TODO(glynternet): no need calculate yFromCentre twice for each element
-        for (int i = 0; i < historySize - 1; ++i) {
-            float x0 = width - x(i, historySize, width);
-            float x1 = width - x(i + 1, historySize, width);
-            float halfHeight = (float) height / 2;
-            float x0yFromCentre = yFromCentre(
-                avgLevelHistory[(historySize + latestValueIndex - i) % historySize],
-                height);
-            float level =
-                avgLevelHistory[(historySize + latestValueIndex - i - 1) % historySize];
-            const float x1yFromCentre = yFromCentre(level, height);
-            const float proportionOfWidthCompleted = x1 / (float) width;
+    void rebuildPath(int width, int height) {
+        upperPath.clear();
+        lowerPath.clear();
 
-            g.setColour(juce::Colours::transparentBlack.interpolatedWith(
-                brightViolet, jmap(level * proportionOfWidthCompleted, 0.15f, 1.f)));
-            g.drawLine({x0, halfHeight + x0yFromCentre, x1, halfHeight + x1yFromCentre},
-                       3);
-            g.drawLine({x0, halfHeight - x0yFromCentre, x1, halfHeight - x1yFromCentre},
-                       3);
+        const float halfHeight = (float) height / 2.0f;
+        const float widthF = (float) width;
+
+        for (int i = 0; i < historySize; ++i) {
+            const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
+            const float level = levelHistory[bufferIndex];
+
+            const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
+            const float yOffset = level * halfHeight;
+
+            if (i == 0) {
+                upperPath.startNewSubPath(xPos, halfHeight + yOffset);
+                lowerPath.startNewSubPath(xPos, halfHeight - yOffset);
+            } else {
+                upperPath.lineTo(xPos, halfHeight + yOffset);
+                lowerPath.lineTo(xPos, halfHeight - yOffset);
+            }
         }
-    }
 
-    float x(int index, int datasetSize, int width) {
-        return (float) jmap<int>(index, 0, datasetSize - 1, 0, width);
-    }
-
-    float yFromCentre(float value, int height) {
-        return jmap(value, 0.0f, 1.0f, 0.f, (float) height / 2);
+        pathNeedsRebuild = false;
     }
 
     int historySize = 100;
     Slider historySizeSlider;
     Label historySizeLabel;
 
-    float avgLevelHistory[maxHistorySize] = {};
+    float levelHistory[maxHistorySize] = {};
     int latestValueIndex = 0;
+
+    Path upperPath;
+    Path lowerPath;
+    bool pathNeedsRebuild = true;
+    Rectangle<int> lastBounds;
 };
 } // namespace Loudness
