@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include "PipelineStage.h"
 
 namespace Loudness {
 
@@ -35,7 +36,7 @@ namespace Loudness {
  * @note Higher coefficients may cause the output to "stick" at high values.
  *       The decay rate also depends on the processing rate (higher rate = faster decay).
  */
-class TailOff {
+class TailOff : public PipelineStage {
 public:
     /** @param maxDecayCoefficient Initial decay coefficient [0.0 - 0.9999] */
     explicit TailOff(float maxDecayCoefficient);
@@ -52,6 +53,10 @@ public:
 
     static constexpr float maxExponent = 0.9999F;
     static constexpr float minExponent = 0.0F;
+
+    // PipelineStage interface
+    float process(float input) override { return getValue(input); }
+    [[nodiscard]] const char* name() const override { return "Decay"; }
 
 private:
     float exponent = 0.0F;
