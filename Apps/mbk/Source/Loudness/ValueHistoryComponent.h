@@ -44,11 +44,15 @@ public:
             lastBounds = bounds;
         }
 
-        ColourGradient gradient(Colours::transparentBlack, 0, 0,
-                                brightViolet, (float) bounds.getWidth(), 0, false);
+        ColourGradient gradient(Colours::transparentBlack,
+                                0,
+                                0,
+                                brightViolet,
+                                (float) bounds.getWidth(),
+                                0,
+                                false);
         g.setGradientFill(gradient);
-        g.strokePath(upperPath, PathStrokeType(3.0f));
-        g.strokePath(lowerPath, PathStrokeType(3.0f));
+        g.fillPath(filledPath);
     }
 
     void resized() override {
@@ -78,28 +82,38 @@ private:
     const Colour brightViolet {0xffba6bf5};
 
     void rebuildPath(int width, int height) {
-        upperPath.clear();
-        lowerPath.clear();
+        filledPath.clear();
 
         const float halfHeight = (float) height / 2.0f;
         const float widthF = (float) width;
 
+        // Build upper edge (right to left, as newest values are on the right)
         for (int i = 0; i < historySize; ++i) {
             const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
             const float level = levelHistory[bufferIndex];
 
             const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
-            const float yOffset = level * halfHeight;
+            const float yUpper = halfHeight - level * halfHeight;
 
             if (i == 0) {
-                upperPath.startNewSubPath(xPos, halfHeight + yOffset);
-                lowerPath.startNewSubPath(xPos, halfHeight - yOffset);
+                filledPath.startNewSubPath(xPos, yUpper);
             } else {
-                upperPath.lineTo(xPos, halfHeight + yOffset);
-                lowerPath.lineTo(xPos, halfHeight - yOffset);
+                filledPath.lineTo(xPos, yUpper);
             }
         }
 
+        // Build lower edge (left to right, reverse traversal)
+        for (int i = historySize - 1; i >= 0; --i) {
+            const int bufferIndex = (historySize + latestValueIndex - i) % historySize;
+            const float level = levelHistory[bufferIndex];
+
+            const float xPos = widthF - (widthF * (float) i / (float) (historySize - 1));
+            const float yLower = halfHeight + level * halfHeight;
+
+            filledPath.lineTo(xPos, yLower);
+        }
+
+        filledPath.closeSubPath();
         pathNeedsRebuild = false;
     }
 
@@ -110,8 +124,7 @@ private:
     float levelHistory[maxHistorySize] = {};
     int latestValueIndex = 0;
 
-    Path upperPath;
-    Path lowerPath;
+    Path filledPath;
     bool pathNeedsRebuild = true;
     Rectangle<int> lastBounds;
 };
