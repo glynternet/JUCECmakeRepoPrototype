@@ -52,10 +52,8 @@ bool OSCComponent::send(const juce::OSCMessage& message) {
         }
     }
 
-    auto now = juce::Time::getMillisecondCounter();
-    if (now - lastNotConnectedLogMs >= notConnectedLogIntervalMs) {
+    if (notConnectedLimiter.allowNow()) {
         logger.debug("Sender not connected");
-        lastNotConnectedLogMs = now;
     }
     return false;
 }
@@ -73,7 +71,7 @@ void OSCComponent::connectOSCSender(const juce::String& address) {
         return;
     }
     setSenderConnectedState(true);
-    lastNotConnectedLogMs = 0;
+    notConnectedLimiter.reset();
     logger.info("Connected OSC with target " + target);
 }
 

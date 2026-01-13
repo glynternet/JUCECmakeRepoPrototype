@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Logger/Logger.h"
+#include "RateLimiter.h"
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
@@ -37,6 +38,7 @@ private:
     juce::SpinLock frameLock;
     std::vector<double> frame;
     logger::Logger& logger;
+    RateLimiter noInputChannelsLimiter{2000};
 
     juce::AudioDeviceManager& deviceManager;
 

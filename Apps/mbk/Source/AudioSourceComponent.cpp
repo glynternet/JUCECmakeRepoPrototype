@@ -112,6 +112,7 @@ void AudioSourceComponent::changeListenerCallback(juce::ChangeBroadcaster* sourc
             logger.info("Input device changed from '" + lastInputDeviceName.toStdString()
                         + "' to '" + currentInputDevice.toStdString() + "'");
             lastInputDeviceName = currentInputDevice;
+            noInputChannelsLimiter.reset();
             // Defer to run after AudioDeviceSelectorComponent finishes restoring settings
             juce::MessageManager::callAsync([this]() { setMinimumBufferSize(); });
         }
@@ -155,7 +156,9 @@ void AudioSourceComponent::getNextAudioBlock(
         // BigInteger::getHighestBit returns -1 when value is 0,
         // where no input channels would be available.
         if (activeInputChannels.getHighestBit() == -1 || !activeInputChannels[0]) {
-            logger.error("No input channels");
+            if (noInputChannelsLimiter.allowNow()) {
+                logger.error("No input channels");
+            }
             std::vector<double> silence(bufferToFill.numSamples);
             std::fill(silence.begin(), silence.end(), 0);
             frame = silence;
