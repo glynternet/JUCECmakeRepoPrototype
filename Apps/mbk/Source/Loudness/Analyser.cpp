@@ -3,6 +3,7 @@
 //
 
 #include "Analyser.h"
+#include <cstring>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "Loudness.h"
 
@@ -58,48 +59,84 @@ Analyser::~Analyser() {
 
 void Analyser::processingThreadMain() {
     // This function runs on a dedicated thread, separate from the audio thread.
-    // It waits for data, processes FFT, and invokes the callback.
+    // It implements a "wait then drain" pattern:
+    // 1. Block until frames are queued (efficient, zero CPU when idle)
+    // 2. Process ALL queued frames before going back to sleep
+    //
+    // The "drain all" approach is important: if we only processed one frame per
+    // wakeup, we'd fall behind during bursts from large audio buffers.
 
     while (true) {
-        // std::unique_lock: Like lock_guard but can be manually unlocked.
-        // Required for condition_variable::wait() which needs to unlock/relock.
-        std::unique_lock<std::mutex> lock(mutex);
-
-        // condition_variable::wait() does three things atomically:
-        // 1. Checks the predicate (lambda). If true, continues immediately.
-        // 2. If false, releases the lock and puts this thread to sleep.
-        // 3. When notify_one() is called, wakes up, re-acquires lock, rechecks predicate.
-        // The predicate prevents "spurious wakeups" (OS may wake thread randomly).
-        dataReady.wait(lock, [this] { return fftDataPending || shouldStop; });
+        // Block until work is available or shutdown requested.
+        //
+        // std::unique_lock: Required for condition_variable (unlike scoped_lock,
+        // it can be unlocked/relocked by wait()).
+        //
+        // condition_variable::wait() atomically:
+        // 1. Checks predicate - if true, returns immediately (no sleep)
+        // 2. If false, releases mutex and puts thread to sleep (zero CPU)
+        // 3. When notify_one() called, wakes up, re-acquires mutex, rechecks
+        //
+        // The predicate lambda prevents "spurious wakeups" - the OS may wake
+        // the thread randomly, but we only proceed if there's actual work.
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            dataReady.wait(lock, [this] {
+                return frameQueueFifo.getNumReady() > 0 || shouldStop;
+            });
+        }
+        // Mutex released here - we don't hold it during FFT processing
 
         if (shouldStop) {
             return;
         }
 
-        // Clear the pending flag while we still hold the lock
-        fftDataPending = false;
+        // Drain all queued frames. The lock-free AbstractFifo allows the audio
+        // thread to continue queueing frames while we process, so new frames
+        // may arrive during this loop. We process everything available before
+        // going back to sleep.
+        while (frameQueueFifo.getNumReady() > 0) {
+            // AbstractFifo::read() returns a ScopedRead with indices into the
+            // circular buffer. blockSize1 is the contiguous block before wrap,
+            // blockSize2 (if any) is after wrap. For single-frame reads,
+            // blockSize2 is always 0.
+            const auto scope = frameQueueFifo.read(1);
+            if (scope.blockSize1 > 0) {
+                // Copy frame data to local processing buffer. This is the only
+                // "copy" in the data path - the queue itself is zero-copy.
+                juce::zeromem(fftData, sizeof(fftData));
+                std::memcpy(
+                    fftData,
+                    frameQueue.at(static_cast<size_t>(scope.startIndex1)).data(),
+                    fftSize * sizeof(float));
+            }
+            // ScopedRead destructor automatically advances the read pointer
 
-        // Release lock before heavy processing - allows audio thread to continue
-        // filling the FIFO without being blocked by FFT computation.
-        lock.unlock();
+            // FFT processing (computationally expensive, ~0.5-1ms)
+            window.multiplyWithWindowingTable(fftData, fftSize);
+            forwardFFT.performFrequencyOnlyForwardTransform(fftData);
+            auto level = calculateLevel();
 
-        // FFT processing (no lock held - thread-safe because fftData was copied)
-        window.multiplyWithWindowingTable(fftData, fftSize);
-        forwardFFT.performFrequencyOnlyForwardTransform(fftData);
-        auto level = calculateLevel();
+            // Update long-term loudness statistics
+            loudnessIndex.update(level);
 
-        // Update long-term loudness statistics
-        loudnessIndex.update(level);
+            if (onLoudnessResult != nullptr) {
+                onLoudnessResult(level);
+            }
 
-        if (onLoudnessResult != nullptr) {
-            onLoudnessResult(level);
-        }
+            if (onIndexUpdate != nullptr) {
+                onIndexUpdate(loudnessIndex.getIndex10s(),
+                              loudnessIndex.getIndex1m(),
+                              loudnessIndex.getIndex5m(),
+                              loudnessIndex.getRange());
+            }
 
-        if (onIndexUpdate != nullptr) {
-            onIndexUpdate(loudnessIndex.getIndex10s(),
-                          loudnessIndex.getIndex1m(),
-                          loudnessIndex.getIndex5m(),
-                          loudnessIndex.getRange());
+            // Check shutdown between frames for responsive termination.
+            // Without this, destructor would block until all queued frames
+            // are processed, which could take 10+ ms with a full queue.
+            if (shouldStop) {
+                return;
+            }
         }
     }
 }
@@ -145,34 +182,78 @@ float Analyser::calculateLevel() {
 
 void Analyser::pushNextSampleIntoFifo(float sample) noexcept {
     // Called from the audio thread at sample rate (e.g., 44,100 Hz).
-    // Must be fast and never block for long - audio glitches if we're slow.
+    // CRITICAL: Must be fast and never block - any delay causes audio glitches.
     //
-    // Note: This function is marked noexcept despite using std::lock_guard.
-    // std::mutex::lock() can theoretically throw std::system_error if the mutex
-    // is corrupted or a system limit is reached, but in practice this doesn't
-    // happen on modern systems with properly initialized mutexes. If it did,
-    // std::terminate would be called, which is the correct behavior for an
-    // unrecoverable error in audio processing.
+    // This function is marked noexcept because exceptions in the audio thread
+    // would be unrecoverable. If something goes catastrophically wrong,
+    // std::terminate is the correct behavior.
 
+    // Accumulate samples in local buffer (not shared with other threads)
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     fifo[fifoIndex++] = sample;
 
     if (fifoIndex == fftSize) {
         fifoIndex = 0;
 
-        // Critical section: copy data to fftData buffer for processing thread.
-        // The lock is held very briefly (just for memcpy ~1KB).
-        {
-            std::scoped_lock lock(mutex);
-            zeromem(fftData, sizeof(fftData));
-            memcpy(fftData, fifo, fftSize * sizeof(float));
-            fftDataPending = true;
+        // Queue the completed frame using lock-free AbstractFifo.
+        //
+        // AbstractFifo::write() returns a ScopedWrite containing indices into
+        // the circular buffer. The write is "prepared" but not "committed"
+        // until the ScopedWrite destructor runs (RAII pattern).
+        //
+        // blockSize1: Number of slots available before buffer wraparound
+        // blockSize2: Additional slots after wraparound (for multi-item writes)
+        // For single-frame writes, we only use blockSize1.
+        const auto scope = frameQueueFifo.write(1);
+        if (scope.blockSize1 > 0) {
+            // Copy frame to queue slot. This is the producer side of the
+            // lock-free SPSC (single-producer single-consumer) pattern.
+            std::memcpy(frameQueue.at(static_cast<size_t>(scope.startIndex1)).data(),
+                        fifo,
+                        fftSize * sizeof(float));
+        } else {
+            // Queue completely full - frame must be dropped.
+            // This should be rare with proper queue sizing (32 frames).
+            // If it happens frequently, CPU can't keep up with audio rate.
+            return;
+        }
+        // ScopedWrite destructor commits the write (advances write pointer)
+
+        // =====================================================================
+        // Overload Detection
+        // =====================================================================
+        // Track whether the queue stays highly filled across consecutive writes.
+        // This distinguishes normal bursts (large audio buffers) from genuine
+        // CPU overload (processing thread can't keep up with sample rate).
+        //
+        // All atomic operations use memory_order_relaxed because:
+        // - No synchronization with other threads is needed
+        // - We only need eventual consistency for the overload flag
+        // - Relaxed is fastest (no memory barriers on most architectures)
+        const int numQueued = frameQueueFifo.getNumReady();
+        if (numQueued >= highFillThreshold) {
+            // fetch_add returns the OLD value, so +1 gives current count
+            const int count =
+                consecutiveHighFill.fetch_add(1, std::memory_order_relaxed) + 1;
+            if (count >= overloadTriggerCount
+                && !persistentOverload.load(std::memory_order_relaxed)) {
+                persistentOverload.store(true, std::memory_order_relaxed);
+                // Note: Cannot invoke onOverloadStateChanged here - callbacks
+                // may allocate memory or do other non-realtime-safe operations.
+                // The flag can be polled from a timer or UI thread instead.
+            }
+        } else {
+            // Queue drained below threshold - system is keeping up
+            consecutiveHighFill.store(0, std::memory_order_relaxed);
+            if (persistentOverload.load(std::memory_order_relaxed)) {
+                persistentOverload.store(false, std::memory_order_relaxed);
+            }
         }
 
-        // notify_one(): Wakes exactly one thread waiting on this condition_variable.
-        // If the processing thread is sleeping in wait(), it will wake up immediately.
-        // If it's already processing, this is a no-op (the flag is set, so next
-        // time it checks the predicate it will see fftDataPending==true).
+        // Wake the processing thread. notify_one() is very fast (~nanoseconds)
+        // and safe to call from the audio thread. If the processing thread is:
+        // - Sleeping in wait(): It wakes immediately and starts processing
+        // - Already processing: No effect (it will check queue after current frame)
         dataReady.notify_one();
     }
 }
