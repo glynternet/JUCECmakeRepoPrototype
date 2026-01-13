@@ -77,5 +77,9 @@ private:
 
     juce::Label cpuUsageLabel {"CPU usage", "CPU usage"};
     juce::Label cpuUsageText;
+
+    // Auto-minimize buffer size
+    void setMinimumBufferSize();
+    juce::String lastInputDeviceName;
 };
 } // namespace AudioApp

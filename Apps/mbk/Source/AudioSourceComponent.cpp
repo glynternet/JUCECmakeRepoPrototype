@@ -1,5 +1,6 @@
 #include "AudioSourceComponent.h"
 #include "prettyprint.hpp"
+#include <algorithm>
 
 namespace AudioApp {
 static constexpr int buttonsGap = 10;
@@ -18,6 +19,7 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
 
     formatManager.registerBasicFormats();
     transport.addChangeListener(this);
+    deviceManager.addChangeListener(this);
 
     addAndMakeVisible(selector);
 
@@ -51,6 +53,10 @@ AudioSourceComponent::AudioSourceComponent(juce::AudioDeviceManager& deviceManag
     addAndMakeVisible(&cpuUsageText);
 
     startTimerHz(30);
+
+    auto currentSetup = deviceManager.getAudioDeviceSetup();
+    lastInputDeviceName = currentSetup.inputDeviceName;
+    setMinimumBufferSize();
 }
 
 void AudioSourceComponent::paint(juce::Graphics& /*graphics*/) {
@@ -97,6 +103,17 @@ void AudioSourceComponent::changeListenerCallback(juce::ChangeBroadcaster* sourc
         } else {
             // file transport has reached end or stopped for some other reason
             transportStateChanged(Stopped);
+        }
+    } else if (source == &deviceManager) {
+        auto currentSetup = deviceManager.getAudioDeviceSetup();
+        juce::String currentInputDevice = currentSetup.inputDeviceName;
+
+        if (currentInputDevice != lastInputDeviceName) {
+            logger.info("Input device changed from '" + lastInputDeviceName.toStdString()
+                        + "' to '" + currentInputDevice.toStdString() + "'");
+            lastInputDeviceName = currentInputDevice;
+            // Defer to run after AudioDeviceSelectorComponent finishes restoring settings
+            juce::MessageManager::callAsync([this]() { setMinimumBufferSize(); });
         }
     }
 }
@@ -319,5 +336,39 @@ void AudioSourceComponent::transportStateChanged(TransportState newState) {
                 break;
         }
     }
+}
+
+void AudioSourceComponent::setMinimumBufferSize() {
+    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+    if (currentDevice == nullptr) {
+        logger.debug("No current audio device - cannot set buffer size");
+        return;
+    }
+
+    const auto availableBufferSizes = currentDevice->getAvailableBufferSizes();
+    if (availableBufferSizes.isEmpty()) {
+        logger.debug("No available buffer sizes reported by device");
+        return;
+    }
+
+    int minBufferSize =
+        *std::min_element(availableBufferSizes.begin(), availableBufferSizes.end());
+
+    auto currentSetup = deviceManager.getAudioDeviceSetup();
+    if (currentSetup.bufferSize == minBufferSize) {
+        logger.debug("Buffer size already at minimum: " + std::to_string(minBufferSize));
+        return;
+    }
+
+    currentSetup.bufferSize = minBufferSize;
+    const std::string errorMessage =
+        deviceManager.setAudioDeviceSetup(currentSetup, true).toStdString();
+
+    if (!errorMessage.empty()) {
+        logger.error("Error setting minimum buffer size: " + errorMessage);
+        return;
+    }
+
+    logger.info("Buffer size set to minimum: " + std::to_string(minBufferSize));
 }
 } // namespace AudioApp
