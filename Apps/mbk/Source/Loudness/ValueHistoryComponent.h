@@ -5,7 +5,15 @@
 namespace Loudness {
 class ValueHistoryComponent : public Component {
 public:
-    ValueHistoryComponent() {
+    explicit ValueHistoryComponent(const juce::String& label = "") {
+        if (label.isNotEmpty()) {
+            titleLabel.setText(label, dontSendNotification);
+            titleLabel.setFont(Font(16.0f, Font::bold));
+            titleLabel.setColour(Label::textColourId, Colours::white);
+            titleLabel.setJustificationType(Justification::centredLeft);
+            addAndMakeVisible(titleLabel);
+        }
+
         addAndMakeVisible(historySizeSlider);
         historySizeSlider.setRange(2, ValueHistoryComponent::maxHistorySize);
         historySizeSlider.onValueChange = [this] {
@@ -50,12 +58,12 @@ public:
         const float width = (float) bounds.getWidth();
 
         // Draw all three paths - inactive zones collapse to centerline
-        g.setGradientFill(
-            ColourGradient(Colours::transparentBlack, 0, 0, brightViolet, width, 0, false));
+        g.setGradientFill(ColourGradient(
+            Colours::transparentBlack, 0, 0, brightViolet, width, 0, false));
         g.fillPath(purplePath);
 
-        g.setGradientFill(
-            ColourGradient(Colours::transparentBlack, 0, 0, warningYellow, width, 0, false));
+        g.setGradientFill(ColourGradient(
+            Colours::transparentBlack, 0, 0, warningYellow, width, 0, false));
         g.fillPath(yellowPath);
 
         g.setGradientFill(
@@ -64,6 +72,16 @@ public:
     }
 
     void resized() override {
+        pathNeedsRebuild = true;
+
+        // Title label overlays the visualization
+        if (titleLabel.isVisible()) {
+            const int labelHeight = 24;
+            const int labelMargin = 10;
+            titleLabel.setBounds(
+                labelMargin, labelMargin, getWidth() - 2 * labelMargin, labelHeight);
+        }
+
         if (!isCompact) {
             const int sliderLeft = proportionOfWidth(0.69f);
             historySizeSlider.setBounds(sliderLeft, 10, getWidth() - sliderLeft - 10, 20);
@@ -81,6 +99,26 @@ public:
         isCompact = compact;
         historySizeSlider.setVisible(!compact);
         historySizeLabel.setVisible(!compact);
+        // Hide title label in compact mode (PipelineViewComponent has its own labels)
+        if (titleLabel.getText().isNotEmpty()) {
+            titleLabel.setVisible(!compact);
+        }
+    }
+
+    /** Set the overlay label text. Pass empty string to hide. */
+    void setLabelText(const juce::String& text) {
+        if (text.isEmpty()) {
+            titleLabel.setVisible(false);
+        } else {
+            titleLabel.setText(text, dontSendNotification);
+            if (!titleLabel.isVisible()) {
+                titleLabel.setFont(Font(16.0f, Font::bold));
+                titleLabel.setColour(Label::textColourId, Colours::white);
+                titleLabel.setJustificationType(Justification::centredLeft);
+                addAndMakeVisible(titleLabel);
+            }
+        }
+        resized();
     }
 
 private:
@@ -140,8 +178,10 @@ private:
         // Build paths for each zone. Each path covers all samples but only has non-zero height
         // where that zone is active. Higher priority zones (red > yellow > purple) visually
         // extend into lower priority zones at transitions, creating clean boundaries.
-        buildSymmetricPath(purplePath, xPositions, purpleActive, sampleHeights, halfHeight);
-        buildSymmetricPath(yellowPath, xPositions, yellowActive, sampleHeights, halfHeight);
+        buildSymmetricPath(
+            purplePath, xPositions, purpleActive, sampleHeights, halfHeight);
+        buildSymmetricPath(
+            yellowPath, xPositions, yellowActive, sampleHeights, halfHeight);
         buildSymmetricPath(redPath, xPositions, redActive, sampleHeights, halfHeight);
 
         pathNeedsRebuild = false;
@@ -181,7 +221,8 @@ private:
         }
 
         // Upper edge (right to left)
-        path.startNewSubPath(xPositions[0], halfHeight - (active[0] ? sampleHeights[0] : 0.0f));
+        path.startNewSubPath(xPositions[0],
+                             halfHeight - (active[0] ? sampleHeights[0] : 0.0f));
         for (int i = 1; i < size; ++i) {
             const bool prevActive = active[i - 1];
             const bool currActive = active[i];
@@ -209,7 +250,8 @@ private:
                     path.lineTo(xPositions[i], halfHeight - sampleHeights[i]);
                 }
             } else {
-                path.lineTo(xPositions[i], halfHeight - (currActive ? sampleHeights[i] : 0.0f));
+                path.lineTo(xPositions[i],
+                            halfHeight - (currActive ? sampleHeights[i] : 0.0f));
             }
         }
 
@@ -219,7 +261,7 @@ private:
         path.lineTo(xPositions[size - 1], halfHeight + endHeight);
 
         for (int i = size - 2; i >= 0; --i) {
-            const bool prevActive = active[i + 1];  // Previous in traversal direction
+            const bool prevActive = active[i + 1]; // Previous in traversal direction
             const bool currActive = active[i];
 
             if (prevActive && !currActive) {
@@ -245,7 +287,8 @@ private:
                     path.lineTo(xPositions[i], halfHeight + sampleHeights[i]);
                 }
             } else {
-                path.lineTo(xPositions[i], halfHeight + (currActive ? sampleHeights[i] : 0.0f));
+                path.lineTo(xPositions[i],
+                            halfHeight + (currActive ? sampleHeights[i] : 0.0f));
             }
         }
 
@@ -255,6 +298,7 @@ private:
     int historySize = 100;
     Slider historySizeSlider;
     Label historySizeLabel;
+    Label titleLabel;
 
     float levelHistory[maxHistorySize] = {};
     int latestValueIndex = 0;
