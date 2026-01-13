@@ -27,6 +27,9 @@ private:
 
     logger::Logger& logger;
 
+    juce::uint32 lastNotConnectedLogMs = 0;
+    static constexpr juce::uint32 notConnectedLogIntervalMs = 30000;
+
     juce::Label targetAddress {"targetAddress", "127.0.0.1"};
     juce::TextButton connectOSCButton {"Connect OSC"};
     juce::OSCSender sender;

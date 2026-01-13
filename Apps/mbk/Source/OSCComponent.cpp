@@ -50,11 +50,14 @@ bool OSCComponent::send(const juce::OSCMessage& message) {
             logger.error("Error sending message: " + e.description);
             return false;
         }
-    } else {
-        // TODO(glynternet): rate limit this specific message
-        logger.debug("Sender not connected");
-        return false;
     }
+
+    auto now = juce::Time::getMillisecondCounter();
+    if (now - lastNotConnectedLogMs >= notConnectedLogIntervalMs) {
+        logger.debug("Sender not connected");
+        lastNotConnectedLogMs = now;
+    }
+    return false;
 }
 
 void OSCComponent::connectOSCSender(const juce::String& address) {
@@ -70,6 +73,7 @@ void OSCComponent::connectOSCSender(const juce::String& address) {
         return;
     }
     setSenderConnectedState(true);
+    lastNotConnectedLogMs = 0;
     logger.info("Connected OSC with target " + target);
 }
 
