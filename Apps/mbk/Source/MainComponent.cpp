@@ -49,7 +49,7 @@ void MainComponent::resized() {
     auto area = getLocalBounds();
     logger.debug("resized: " + area.toString());
 
-    auto settings = area.removeFromLeft(area.proportionOfWidth(0.5));
+    auto settings = area.removeFromLeft(area.proportionOfWidth(0.4));
 
     audioSource.setBounds(settings.removeFromTop(410));
     auto bottomRow = settings.removeFromBottom(50);
